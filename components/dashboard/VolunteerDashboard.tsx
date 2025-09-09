@@ -1,12 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { Card } from '../ui/Card';
 import { useLocalization } from '../../hooks/useLocalization';
-import { MOCK_LOST_FOUND_REPORTS } from '../../data/mockData';
-import { LostFoundReport, User } from '../../types';
+import { MOCK_LOST_FOUND_REPORTS, MOCK_SOS_ALERTS } from '../../data/mockData';
+import { LostFoundReport, User, SosAlert } from '../../types';
 import ReportDetailsModal from './ReportDetailsModal';
 import { useAuth } from '../../hooks/useAuth';
 import { Button } from '../ui/Button';
 import { useToast } from '../../hooks/useToast';
+import { BroadcastAlertModal } from './BroadcastAlertModal';
 
 // --- ICONS ---
 const ClipboardListIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>;
@@ -14,6 +15,7 @@ const BellIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-
 const CheckCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
 const ListIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" /></svg>;
 const MapIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M11.95 2.006a.75.75 0 00-.9-.053l-4.25 2.5a.75.75 0 00-.45.698v10.198l-2.022-1.179a.75.75 0 00-.956.114l-2 2.5a.75.75 0 00.114.956l2.022 1.179v.699a.75.75 0 00.45.698l4.25 2.5a.75.75 0 00.9-.053l4.25-2.5a.75.75 0 00.45-.698V6.302l2.022 1.179a.75.75 0 00.956-.114l2-2.5a.75.75 0 00-.114-.956L14.022 3.03v-.699a.75.75 0 00-.45-.698l-4.25-2.5a.75.75 0 00-.372 0zM12.75 16.23v-9.69l-4.5 2.64v9.69l4.5-2.64z" clipRule="evenodd" /></svg>;
+const BroadcastIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.636 5.636a9 9 0 0112.728 0M8.464 15.536a5 5 0 010-7.072" /></svg>;
 
 
 // --- Helper Components ---
@@ -142,7 +144,7 @@ const VolunteerMapView: React.FC<{ user: User; assignments: LostFoundReport[]; a
  */
 const VolunteerDashboard: React.FC = () => {
     const { translations } = useLocalization();
-    const { user } = useAuth();
+    const { user, updateUser } = useAuth();
     const { addToast } = useToast();
     const t = translations.dashboard.volunteer;
 
@@ -150,6 +152,7 @@ const VolunteerDashboard: React.FC = () => {
     const [activeTab, setActiveTab] = useState('assignments');
     const [selectedReport, setSelectedReport] = useState<LostFoundReport | null>(null);
     const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+    const [isBroadcastModalOpen, setBroadcastModalOpen] = useState(false);
 
 
     const myAssignments = useMemo(() =>
@@ -194,6 +197,45 @@ const VolunteerDashboard: React.FC = () => {
         addToast(t.taskAccepted, 'success');
     };
 
+    const handleConfirmBroadcast = (message: string) => {
+        if (!user) return;
+
+        const volunteerLocation = user.locationCoords || { lat: 50 + Math.random() * 10, lng: 50 + Math.random() * 10 };
+
+        const newAlert: SosAlert = {
+            id: Date.now(),
+            userId: user.id,
+            userName: user.name,
+            timestamp: new Date().toISOString(),
+            status: 'Broadcasted',
+            locationCoords: volunteerLocation,
+            message: message,
+        };
+
+        MOCK_SOS_ALERTS.unshift(newAlert);
+        
+        addToast(t.broadcastModal.success, 'success');
+        setBroadcastModalOpen(false);
+    };
+
+    const handleAvailabilityChange = (status: 'Active' | 'On Break') => {
+      if (!user) return;
+      
+      const baseSettings = user.settings || {
+          notifications: false, powerButtonSos: false, voiceNav: false,
+      };
+      
+      updateUser({ 
+          settings: { 
+              ...baseSettings, 
+              availabilityStatus: status 
+          } 
+      });
+      addToast(`Your status is now ${status}.`, 'info');
+    };
+
+    const isAvailable = user?.settings?.availabilityStatus !== 'On Break';
+
     const renderContent = () => {
         if (activeTab === 'assignments') {
             return myAssignments.length > 0 ? (
@@ -205,6 +247,14 @@ const VolunteerDashboard: React.FC = () => {
             ) : <p className="text-center text-gray-500 py-10">{t.noAssignments}</p>;
         }
         if (activeTab === 'nearby') {
+             if (!isAvailable) {
+                return (
+                  <div className="text-center py-10">
+                    <p className="font-semibold text-lg">{t.onBreakTitle}</p>
+                    <p className="text-gray-500">{t.onBreakText}</p>
+                  </div>
+                );
+            }
             return nearbyAlerts.length > 0 ? (
                 <div className="space-y-4">
                     {nearbyAlerts.map(report => (
@@ -219,10 +269,29 @@ const VolunteerDashboard: React.FC = () => {
     return (
         <>
             <div className="space-y-6">
-                <h2 className="text-3xl font-bold">{t.title}</h2>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <h2 className="text-3xl font-bold">{t.title}</h2>
+                    <div className="flex flex-wrap items-center gap-4">
+                        <div>
+                            <span className="text-sm font-medium text-gray-600 mr-2">{t.availabilityLabel}</span>
+                            <div className="inline-flex rounded-md shadow-sm bg-gray-100 p-1">
+                                <button onClick={() => handleAvailabilityChange('Active')} className={`px-4 py-1 text-sm font-medium rounded-md ${isAvailable ? 'bg-white text-green-600 shadow' : 'text-gray-600'}`}>
+                                    {t.kpis.active}
+                                </button>
+                                <button onClick={() => handleAvailabilityChange('On Break')} className={`px-4 py-1 text-sm font-medium rounded-md ${!isAvailable ? 'bg-white text-orange-600 shadow' : 'text-gray-600'}`}>
+                                    {t.kpis.onBreak}
+                                </button>
+                            </div>
+                        </div>
+                        <Button onClick={() => setBroadcastModalOpen(true)} variant="danger" className="flex items-center">
+                            <BroadcastIcon /> {t.broadcastAlert}
+                        </Button>
+                    </div>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     <StatCard title={t.kpis.myAssignments} value={myAssignments.length} icon={<ClipboardListIcon />} />
-                    <StatCard title={t.kpis.nearbyAlerts} value={nearbyAlerts.length} icon={<BellIcon />} />
+                    <StatCard title={t.kpis.nearbyAlerts} value={isAvailable ? nearbyAlerts.length : 0} icon={<BellIcon />} />
                     <StatCard title={t.kpis.resolvedToday} value={resolvedTodayCount} icon={<CheckCircleIcon />} />
                 </div>
                 
@@ -231,7 +300,13 @@ const VolunteerDashboard: React.FC = () => {
                         <div className="border-b border-gray-200 w-full sm:w-auto">
                            <nav className="-mb-px flex space-x-6">
                                 <button onClick={() => setActiveTab('assignments')} className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'assignments' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>{t.tabs.assignments} ({myAssignments.length})</button>
-                                <button onClick={() => setActiveTab('nearby')} className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'nearby' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>{t.tabs.nearby} ({nearbyAlerts.length})</button>
+                                <button 
+                                    onClick={() => setActiveTab('nearby')}
+                                    disabled={!isAvailable}
+                                    className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'nearby' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'} ${!isAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                >
+                                    {t.tabs.nearby} ({isAvailable ? nearbyAlerts.length : 0})
+                                </button>
                            </nav>
                         </div>
                         <div className="inline-flex rounded-md shadow-sm bg-gray-100 p-1 flex-shrink-0">
@@ -242,7 +317,7 @@ const VolunteerDashboard: React.FC = () => {
                     {viewMode === 'list' ? (
                        <div className="animate-fade-in">{renderContent()}</div>
                     ) : (
-                       user && <VolunteerMapView user={user} assignments={myAssignments} alerts={nearbyAlerts} onSelectReport={setSelectedReport} />
+                       user && <VolunteerMapView user={user} assignments={myAssignments} alerts={isAvailable ? nearbyAlerts : []} onSelectReport={setSelectedReport} />
                     )}
                 </Card>
             </div>
@@ -251,6 +326,11 @@ const VolunteerDashboard: React.FC = () => {
                 onClose={() => setSelectedReport(null)}
                 report={selectedReport}
                 onUpdateReport={handleUpdateReport}
+            />
+            <BroadcastAlertModal
+                isOpen={isBroadcastModalOpen}
+                onClose={() => setBroadcastModalOpen(false)}
+                onConfirm={handleConfirmBroadcast}
             />
         </>
     );

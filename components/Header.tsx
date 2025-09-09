@@ -5,10 +5,12 @@ import { useLocalization } from '../hooks/useLocalization';
 import LanguageSelector from './LanguageSelector';
 import LoginModal from './LoginModal';
 import { Button } from './ui/Button';
-import { Modal } from './ui/Modal';
 import { AppContext } from '../context/AppContext';
 import { NAV_LINKS } from '../constants';
-import { UserRole } from '../types';
+import { UserRole, SosAlert } from '../types';
+import { useToast } from '../hooks/useToast';
+import { MOCK_SOS_ALERTS } from '../data/mockData';
+import { BroadcastAlertModal } from './dashboard/BroadcastAlertModal';
 
 const SosIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>;
 
@@ -25,6 +27,7 @@ const Header: React.FC = () => {
   const { language, translations } = useLocalization();
   const appContext = useContext(AppContext);
   const navigate = useNavigate();
+  const { addToast } = useToast();
 
   if (!appContext) {
     throw new Error("AppContext not found");
@@ -48,7 +51,29 @@ const Header: React.FC = () => {
     setIsSosModalOpen(true);
   };
 
-  const confirmSOS = () => {
+  const confirmSOS = (message: string) => {
+    if (!user) return;
+
+    // Create a new SOS Alert
+    const newSosAlert: SosAlert = {
+      id: Date.now(),
+      timestamp: new Date().toISOString(),
+      status: 'Broadcasted',
+      userId: user.id,
+      userName: user.name,
+      message: message,
+      // For demo, generate random location near Ujjain if user has no location
+      locationCoords: user.locationCoords || {
+        lat: 23.1793 + (Math.random() - 0.5) * 0.1,
+        lng: 75.7873 + (Math.random() - 0.5) * 0.1,
+      },
+    };
+    
+    // Add to the global mock data to broadcast it
+    MOCK_SOS_ALERTS.unshift(newSosAlert);
+
+    addToast('SOS Broadcasted! Help is on the way.', 'error');
+
     setSosStatus(true);
     setIsSosModalOpen(false);
     setSosConfirmed(true); // Trigger the follow-up modal
@@ -123,23 +148,11 @@ const Header: React.FC = () => {
         )}
       </header>
       <LoginModal isOpen={isLoginModalOpen} onClose={() => setLoginModalOpen(false)} />
-       <Modal
+       <BroadcastAlertModal
         isOpen={isSosModalOpen}
         onClose={() => setIsSosModalOpen(false)}
-        title={translations.header.sosConfirmTitle}
-      >
-        <div className="text-center">
-          <p className="text-gray-600 mb-6">{translations.header.sosConfirmText}</p>
-          <div className="flex justify-center gap-4">
-            <Button variant="secondary" onClick={() => setIsSosModalOpen(false)}>
-              {translations.familyHub.sosCancelButton}
-            </Button>
-            <Button variant="danger" onClick={confirmSOS}>
-              {translations.familyHub.sosConfirmButton}
-            </Button>
-          </div>
-        </div>
-      </Modal>
+        onConfirm={confirmSOS}
+      />
     </>
   );
 };

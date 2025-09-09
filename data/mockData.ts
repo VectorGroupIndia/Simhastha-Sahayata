@@ -1,5 +1,3 @@
-
-
 import { RegisteredItem, FamilyMember, LostFoundReport, UserRole, SosAlert, MapPointOfInterest } from '../types';
 
 export const MOCK_REGISTERED_ITEMS: RegisteredItem[] = [
@@ -121,7 +119,7 @@ export const MOCK_LOST_FOUND_REPORTS: LostFoundReport[] = [
     }
 ];
 
-export const MOCK_SOS_ALERTS: (SosAlert & { userName: string; userId: number; locationCoords: { lat: number, lng: number } })[] = [
+export const MOCK_SOS_ALERTS: SosAlert[] = [
     {
         id: 1,
         userId: 2,
@@ -304,14 +302,21 @@ export const translations: { [key: string]: any } = {
               report: 'REPORT',
               sosLog: 'SOS Log',
               triggeredBy: 'Triggered by',
+              broadcastFrom: 'Broadcast from'
           }
       },
       volunteer: {
           title: 'Volunteer Action Board',
+          broadcastAlert: 'Broadcast Alert',
+          availabilityLabel: "My Status:",
+          onBreakTitle: "You are currently on break.",
+          onBreakText: "Set your status to 'Active' to see new nearby alerts.",
           kpis: {
               myAssignments: 'My Active Assignments',
               nearbyAlerts: 'Nearby Alerts',
               resolvedToday: 'Resolved Today',
+              active: "Active",
+              onBreak: "On Break"
           },
           tabs: {
               assignments: 'My Assignments',
@@ -328,6 +333,14 @@ export const translations: { [key: string]: any } = {
           statusUpdated: 'Report status updated.',
           viewDetails: 'View Details',
           updateStatus: 'Update Status',
+          broadcastModal: {
+              title: 'Broadcast Emergency Alert',
+              description: 'This will send a high-priority alert to authorities. If you can, briefly describe the situation. Otherwise, just press confirm.',
+              placeholder: 'Optional: e.g., Medical emergency near Sector C...',
+              cancel: 'Cancel',
+              confirm: 'Confirm & Broadcast',
+              success: 'Alert broadcasted successfully to all authorities!',
+          },
       },
     },
     familyHub: {
@@ -359,10 +372,22 @@ export const translations: { [key: string]: any } = {
         title: 'Live Event Map',
         layers: 'Map Layers',
         layerFamily: 'Family',
+        layerSos: 'Family SOS',
         layerHelp: 'Help Centers',
         layerMedical: 'Medical Aid',
         layerReports: 'My Reports',
         navigationModalTitle: 'Route to {name}',
+        filterStatus: 'Filter Status',
+        allStatuses: 'All Statuses',
+        statuses: {
+            safe: 'Safe',
+            alert: 'Alert',
+            lost: 'Lost',
+            broadcasted: 'Broadcasted',
+            responded: 'Responded',
+            open: 'Open',
+            inProgress: 'In Progress'
+        }
     },
     navigation: {
         title: 'Intelligent Navigation',

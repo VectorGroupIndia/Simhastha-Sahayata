@@ -1,5 +1,3 @@
-
-
 // Defines the user roles within the application.
 export enum UserRole {
   PILGRIM = 'Pilgrim',
@@ -13,6 +11,10 @@ export interface SosAlert {
   id: number;
   timestamp: string;
   status: 'Broadcasted' | 'Responded' | 'Resolved';
+  message?: string; // User's custom message for broadcast alerts
+  userId?: number;
+  userName?: string;
+  locationCoords?: { lat: number; lng: number };
 }
 
 // Represents a user's pre-registered valuable item.

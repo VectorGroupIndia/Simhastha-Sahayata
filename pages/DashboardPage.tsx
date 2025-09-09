@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useLocalization } from '../hooks/useLocalization';
-import { LostFoundReport, UserRole, Navigatable } from '../types';
+import { LostFoundReport, UserRole, Navigatable, SosAlert } from '../types';
 import AdminDashboard from '../components/dashboard/AdminDashboard';
 import AuthoritiesDashboard from '../components/dashboard/AuthoritiesDashboard';
 import VolunteerDashboard from '../components/dashboard/VolunteerDashboard';
@@ -15,11 +15,16 @@ import AiAlerts from '../components/dashboard/AiAlerts';
 import CrowdDensityIndicator from '../components/dashboard/CrowdDensityIndicator';
 import { Card } from '../components/ui/Card';
 import ReportDetailsModal from '../components/dashboard/ReportDetailsModal';
-import { MOCK_LOST_FOUND_REPORTS } from '../data/mockData';
+import { MOCK_LOST_FOUND_REPORTS, MOCK_SOS_ALERTS } from '../data/mockData';
 import { UserGuideModal } from '../components/dashboard/UserGuideModal';
 import { Button } from '../components/ui/Button';
 import LiveMapView from '../components/dashboard/LiveMapView';
 import { NavigationModal } from '../components/dashboard/NavigationModal';
+import { useToast } from '../hooks/useToast';
+import { BroadcastAlertModal } from '../components/dashboard/BroadcastAlertModal';
+
+// --- ICONS ---
+const BroadcastIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.636 5.636a9 9 0 0112.728 0M8.464 15.536a5 5 0 010-7.072" /></svg>;
 
 // --- MyReports Component (for Pilgrim Dashboard) ---
 const MyReports: React.FC = () => {
@@ -80,9 +85,11 @@ const MyReports: React.FC = () => {
 const PilgrimDashboard: React.FC = () => {
     const { translations } = useLocalization();
     const { user } = useAuth();
+    const { addToast } = useToast();
     const [activeTab, setActiveTab] = useState('familyHub');
     const [isGuideOpen, setGuideOpen] = useState(false);
     const [navigationTarget, setNavigationTarget] = useState<Navigatable | null>(null);
+    const [isBroadcastModalOpen, setBroadcastModalOpen] = useState(false);
 
     const tabs = {
         familyHub: { name: translations.dashboard.pilgrim.familyHub, component: <FamilyHub /> },
@@ -90,6 +97,31 @@ const PilgrimDashboard: React.FC = () => {
         guide: { name: translations.dashboard.pilgrim.guide, component: <PilgrimGuide /> },
         myItems: { name: translations.dashboard.pilgrim.myItems, component: <MyItems /> },
         myReports: { name: translations.dashboard.pilgrim.myReports, component: <MyReports /> },
+    };
+
+    const handleConfirmBroadcast = (message: string) => {
+        if (!user) return;
+
+        // Simulate location for pilgrims if not available
+        const pilgrimLocation = user.locationCoords || { 
+            lat: 23.1793 + (Math.random() - 0.5) * 0.1,
+            lng: 75.7873 + (Math.random() - 0.5) * 0.1,
+        };
+
+        const newAlert: SosAlert = {
+            id: Date.now(),
+            userId: user.id,
+            userName: user.name,
+            timestamp: new Date().toISOString(),
+            status: 'Broadcasted',
+            locationCoords: pilgrimLocation,
+            message: message,
+        };
+
+        MOCK_SOS_ALERTS.unshift(newAlert);
+        
+        addToast(translations.dashboard.volunteer.broadcastModal.success, 'success');
+        setBroadcastModalOpen(false);
     };
 
     return (
@@ -100,9 +132,14 @@ const PilgrimDashboard: React.FC = () => {
                     <h2 className="text-3xl font-bold">{translations.dashboard.greeting}, {user?.name.split(' ')[0]}!</h2>
                     <p className="text-gray-600">{translations.dashboard.pilgrim.welcome}</p>
                 </div>
-                <Button onClick={() => setGuideOpen(true)} variant="secondary">
-                    {translations.userGuide.button}
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                    <Button onClick={() => setBroadcastModalOpen(true)} variant="danger" className="flex items-center">
+                        <BroadcastIcon /> {translations.dashboard.volunteer.broadcastAlert}
+                    </Button>
+                    <Button onClick={() => setGuideOpen(true)} variant="secondary">
+                        {translations.userGuide.button}
+                    </Button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -136,6 +173,11 @@ const PilgrimDashboard: React.FC = () => {
             isOpen={!!navigationTarget}
             onClose={() => setNavigationTarget(null)}
             destination={navigationTarget}
+        />
+        <BroadcastAlertModal
+            isOpen={isBroadcastModalOpen}
+            onClose={() => setBroadcastModalOpen(false)}
+            onConfirm={handleConfirmBroadcast}
         />
         </>
     );

@@ -1,8 +1,7 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card } from '../ui/Card';
 import { useLocalization } from '../../hooks/useLocalization';
-import { MOCK_FAMILY_MEMBERS, MOCK_POINTS_OF_INTEREST, MOCK_LOST_FOUND_REPORTS } from '../../data/mockData';
+import { MOCK_FAMILY_MEMBERS, MOCK_POINTS_OF_INTEREST, MOCK_LOST_FOUND_REPORTS, MOCK_SOS_ALERTS } from '../../data/mockData';
 import { MapPointOfInterest, LostFoundReport, Navigatable } from '../../types';
 import { ToggleSwitch } from '../ui/ToggleSwitch';
 import { Button } from '../ui/Button';
@@ -14,10 +13,11 @@ const HelpIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-
 const MedicalIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.707-10.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414l-3-3z" clipRule="evenodd" /></svg>;
 const ReportIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" /><path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm3 0a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1z" clipRule="evenodd" /></svg>;
 const DirectionsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>;
+const SosIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>;
 
 // --- Helper Components ---
 const LayerToggle: React.FC<{ id: string; label: string; checked: boolean; onToggle: (checked: boolean) => void; icon: React.ReactNode; }> = ({ id, label, checked, onToggle, icon }) => (
-    <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+    <div className="flex items-center justify-between">
         <div className="flex items-center">
             <div className="mr-2 text-orange-500">{icon}</div>
             <label htmlFor={id} className="font-medium text-sm text-gray-700">{label}</label>
@@ -25,6 +25,16 @@ const LayerToggle: React.FC<{ id: string; label: string; checked: boolean; onTog
         <ToggleSwitch id={id} checked={checked} onChange={onToggle} />
     </div>
 );
+
+const FilterDropdown: React.FC<{ value: string; onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void; options: { value: string; label: string }[]; label: string }> = ({ value, onChange, options, label }) => (
+    <div className="mt-2 pl-7 animate-fade-in">
+        <label className="text-xs text-gray-500">{label}</label>
+        <select value={value} onChange={onChange} className="w-full text-sm p-1 border rounded-md focus:ring-orange-500 focus:border-orange-500">
+            {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+        </select>
+    </div>
+);
+
 
 interface LiveMapViewProps {
     onNavigate: (destination: Navigatable) => void;
@@ -38,23 +48,39 @@ const LiveMapView: React.FC<LiveMapViewProps> = ({ onNavigate }) => {
 
     const [visibleLayers, setVisibleLayers] = useState({
         family: true,
+        sos: true,
         help: true,
         medical: true,
         reports: false,
+    });
+    
+    const [statusFilters, setStatusFilters] = useState({
+        family: 'all', // 'all', 'Safe', 'Alert', 'Lost'
+        sos: 'all',    // 'all', 'Broadcasted', 'Responded'
+        reports: 'all' // 'all', 'Open', 'In Progress'
     });
 
     const handleLayerToggle = (layer: keyof typeof visibleLayers, isVisible: boolean) => {
         setVisibleLayers(prev => ({ ...prev, [layer]: isVisible }));
     };
+    
+    const handleFilterChange = (layer: keyof typeof statusFilters, value: string) => {
+        setStatusFilters(prev => ({...prev, [layer]: value}));
+    }
 
     const myReports = useMemo(() =>
         MOCK_LOST_FOUND_REPORTS.filter(report => report.reportedById === user?.id && report.status !== 'Resolved'),
     [user]);
 
+    const familyMemberIds = useMemo(() => MOCK_FAMILY_MEMBERS.map(m => m.id), []);
+    const familySosAlerts = useMemo(() => MOCK_SOS_ALERTS.filter(alert => alert.userId && familyMemberIds.includes(alert.userId) && alert.status !== 'Resolved'), [familyMemberIds]);
+
+
     const Pin = ({ item, color, type }: { item: any, color: string, type: string }) => {
-        const coords = type === 'family' ? item.location : item.locationCoords;
+        const coords = (type === 'family') ? item.location : item.locationCoords;
         if (!coords) return null;
         const isActive = activePin && activePin.id === item.id && activePin.type === type;
+        const isSos = type === 'sos';
 
         return (
             <div
@@ -63,6 +89,7 @@ const LiveMapView: React.FC<LiveMapViewProps> = ({ onNavigate }) => {
                 onClick={(e) => { e.stopPropagation(); setActivePin({ ...item, type }); }}
             >
                 <div className={`relative flex flex-col items-center group`}>
+                    {isSos && <div className={`absolute h-8 w-8 rounded-full bg-red-400 opacity-75 animate-ping`}></div>}
                      <svg xmlns="http://www.w3.org/2000/svg" className={`h-8 w-8 text-${color}-500 drop-shadow-lg transition-transform group-hover:scale-110 ${isActive ? 'scale-125' : ''}`} viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 20l-4.95-5.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                     </svg>
@@ -89,11 +116,30 @@ const LiveMapView: React.FC<LiveMapViewProps> = ({ onNavigate }) => {
              <div className="absolute p-3 bg-white rounded-lg shadow-xl border w-64 animate-fade-in-up" style={{ top: `${coords.lat}%`, left: `${coords.lng}%`, transform: 'translate(-50%, -115%)', zIndex: 20 }}>
                  <button onClick={() => setActivePin(null)} className="absolute -top-2 -right-2 bg-white rounded-full text-gray-600 w-6 h-6 flex items-center justify-center shadow">&times;</button>
                  <h4 className="font-bold text-orange-600 truncate">{item.name || item.itemName || item.personName}</h4>
-                 <p className="text-sm text-gray-500">{item.type}</p>
+                 <p className="text-sm text-gray-500 uppercase font-semibold">{item.type === 'sos' ? "SOS ACTIVATED" : item.type}</p>
                  <Button onClick={handleNavigateClick} variant="secondary" className="w-full mt-2 text-xs py-1 h-auto flex items-center justify-center"><DirectionsIcon/><span className="ml-1.5">{translations.familyHub.getDirections}</span></Button>
              </div>
         );
     }
+    
+    // Filter Options
+    const familyFilterOptions = [
+        { value: 'all', label: t.allStatuses },
+        { value: 'Safe', label: t.statuses.safe },
+        { value: 'Alert', label: t.statuses.alert },
+        { value: 'Lost', label: t.statuses.lost }
+    ];
+    const sosFilterOptions = [
+        { value: 'all', label: t.allStatuses },
+        { value: 'Broadcasted', label: t.statuses.broadcasted },
+        { value: 'Responded', label: t.statuses.responded }
+    ];
+    const reportFilterOptions = [
+        { value: 'all', label: t.allStatuses },
+        { value: 'Open', label: t.statuses.open },
+        { value: 'In Progress', label: t.statuses.inProgress }
+    ];
+
 
     return (
         <Card>
@@ -101,10 +147,11 @@ const LiveMapView: React.FC<LiveMapViewProps> = ({ onNavigate }) => {
                 <div className="lg:col-span-1">
                     <h3 className="text-xl font-bold mb-4">{t.layers}</h3>
                     <div className="space-y-3">
-                        <LayerToggle id="family-layer" label={t.layerFamily} checked={visibleLayers.family} onToggle={(c) => handleLayerToggle('family', c)} icon={<FamilyIcon />} />
-                        <LayerToggle id="help-layer" label={t.layerHelp} checked={visibleLayers.help} onToggle={(c) => handleLayerToggle('help', c)} icon={<HelpIcon />} />
-                        <LayerToggle id="medical-layer" label={t.layerMedical} checked={visibleLayers.medical} onToggle={(c) => handleLayerToggle('medical', c)} icon={<MedicalIcon />} />
-                        <LayerToggle id="reports-layer" label={t.layerReports} checked={visibleLayers.reports} onToggle={(c) => handleLayerToggle('reports', c)} icon={<ReportIcon />} />
+                        <div className="p-2 bg-gray-50 rounded-lg"><LayerToggle id="family-layer" label={t.layerFamily} checked={visibleLayers.family} onToggle={(c) => handleLayerToggle('family', c)} icon={<FamilyIcon />} />{visibleLayers.family && <FilterDropdown value={statusFilters.family} onChange={(e) => handleFilterChange('family', e.target.value)} options={familyFilterOptions} label={t.filterStatus} />}</div>
+                        <div className="p-2 bg-gray-50 rounded-lg"><LayerToggle id="sos-layer" label={t.layerSos} checked={visibleLayers.sos} onToggle={(c) => handleLayerToggle('sos', c)} icon={<SosIcon />} />{visibleLayers.sos && <FilterDropdown value={statusFilters.sos} onChange={(e) => handleFilterChange('sos', e.target.value)} options={sosFilterOptions} label={t.filterStatus} />}</div>
+                        <div className="p-2 bg-gray-50 rounded-lg"><LayerToggle id="help-layer" label={t.layerHelp} checked={visibleLayers.help} onToggle={(c) => handleLayerToggle('help', c)} icon={<HelpIcon />} /></div>
+                        <div className="p-2 bg-gray-50 rounded-lg"><LayerToggle id="medical-layer" label={t.layerMedical} checked={visibleLayers.medical} onToggle={(c) => handleLayerToggle('medical', c)} icon={<MedicalIcon />} /></div>
+                        <div className="p-2 bg-gray-50 rounded-lg"><LayerToggle id="reports-layer" label={t.layerReports} checked={visibleLayers.reports} onToggle={(c) => handleLayerToggle('reports', c)} icon={<ReportIcon />} />{visibleLayers.reports && <FilterDropdown value={statusFilters.reports} onChange={(e) => handleFilterChange('reports', e.target.value)} options={reportFilterOptions} label={t.filterStatus} />}</div>
                     </div>
                 </div>
                 <div className="lg:col-span-2">
@@ -112,10 +159,14 @@ const LiveMapView: React.FC<LiveMapViewProps> = ({ onNavigate }) => {
                     <div className="aspect-video bg-gray-200 rounded-lg relative overflow-hidden" onClick={() => setActivePin(null)}>
                         <img src="https://i.imgur.com/3Z3tV8C.png" alt="Map" className="w-full h-full object-cover" />
                         
-                        {visibleLayers.family && MOCK_FAMILY_MEMBERS.map(m => <Pin key={`fam-${m.id}`} item={m} color="purple" type="family"/>)}
+                        {visibleLayers.family && MOCK_FAMILY_MEMBERS.filter(m => statusFilters.family === 'all' || m.status === statusFilters.family).map(m => <Pin key={`fam-${m.id}`} item={m} color="purple" type="family"/>)}
+                        {visibleLayers.sos && familySosAlerts.filter(a => statusFilters.sos === 'all' || a.status === statusFilters.sos).map(alert => {
+                            const member = MOCK_FAMILY_MEMBERS.find(m => m.id === alert.userId);
+                            return <Pin key={`sos-${alert.id}`} item={{...alert, name: member?.name || "SOS"}} color="red" type="sos"/>
+                        })}
                         {visibleLayers.help && MOCK_POINTS_OF_INTEREST.filter(p => p.type !== 'Medical').map(p => <Pin key={`poi-${p.id}`} item={p} color="blue" type={p.type}/>)}
                         {visibleLayers.medical && MOCK_POINTS_OF_INTEREST.filter(p => p.type === 'Medical').map(p => <Pin key={`poi-${p.id}`} item={p} color="green" type={p.type}/>)}
-                        {visibleLayers.reports && myReports.map(r => <Pin key={`rpt-${r.id}`} item={r} color="red" type="My Report"/>)}
+                        {visibleLayers.reports && myReports.filter(r => statusFilters.reports === 'all' || r.status === statusFilters.reports).map(r => <Pin key={`rpt-${r.id}`} item={r} color="yellow" type="My Report"/>)}
                         
                         {activePin && <Popover item={activePin} />}
                     </div>

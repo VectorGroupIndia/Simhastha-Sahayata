@@ -84,7 +84,7 @@ const CrowdDensityLegend: React.FC = () => {
 
 const AuthorityMapView: React.FC<{
     reports: LostFoundReport[];
-    sosAlerts: (SosAlert & { locationCoords: { lat: number; lng: number } })[];
+    sosAlerts: SosAlert[];
     personnel: User[];
     onSelectReport: (report: LostFoundReport) => void;
 }> = ({ reports, sosAlerts, personnel, onSelectReport }) => {
@@ -133,7 +133,7 @@ const AuthorityMapView: React.FC<{
 
 const AlertsPanel: React.FC<{
     reports: LostFoundReport[];
-    sosAlerts: (SosAlert & { userName: string })[];
+    sosAlerts: SosAlert[];
     personnel: User[];
     onSelectReport: (report: LostFoundReport) => void;
 }> = ({ reports, sosAlerts, personnel, onSelectReport }) => {
@@ -147,7 +147,12 @@ const AlertsPanel: React.FC<{
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()), [reports, sosAlerts]);
     
     const getAlertTitle = (alert: any): string => {
-        if (alert.kind === 'sos') return `${t.sos}: ${alert.userName}`;
+        if (alert.kind === 'sos') {
+            if (alert.userName?.includes('Volunteer')) {
+                return `${t.broadcastFrom}: ${alert.userName.replace(' (Volunteer)', '')}`;
+            }
+            return `${t.sos}: ${alert.userName}`;
+        }
         const report = alert as LostFoundReport;
         if (report.category === 'Person') return `${t.missingPerson}: ${report.personName}`;
         return `${t.report}: ${report.itemName}`;
@@ -183,7 +188,15 @@ const AlertsPanel: React.FC<{
                                 'bg-yellow-50 border-yellow-500'
                             }`}>
                                 <p className="font-bold text-sm">{getAlertTitle(alert)}</p>
-                                <p className="text-xs text-gray-600 truncate">{alert.kind === 'report' ? (alert as any).description : `Triggered at ${new Date(alert.timestamp).toLocaleTimeString()}`}</p>
+                                {/* FIX: Explicitly cast `alert` to the correct type within the union to access its properties without TypeScript errors. */}
+                                <p className="text-xs text-gray-600">
+                                    {alert.kind === 'report' 
+                                        ? (alert as LostFoundReport).description 
+                                        : (alert as SosAlert).message 
+                                            ? <span className="italic">"{(alert as SosAlert).message}"</span>
+                                            : `Triggered at ${new Date(alert.timestamp).toLocaleTimeString()}`
+                                    }
+                                </p>
                                 <div className="flex gap-2 mt-2">
                                     {alert.kind === 'report' && <Button onClick={() => onSelectReport(alert as LostFoundReport)} variant="secondary" className="text-xs py-1 px-2">{t.viewDetails}</Button>}
                                     <Button variant="secondary" className="text-xs py-1 px-2">{t.acknowledge}</Button>
@@ -264,7 +277,7 @@ const AuthoritiesDashboard: React.FC = () => {
                 {/* Main Content Area */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ height: '70vh' }}>
                     <div className="lg:col-span-2">
-                        <AuthorityMapView reports={activeReports} sosAlerts={activeSosAlerts} personnel={activePersonnel} onSelectReport={setSelectedReport} />
+                        <AuthorityMapView reports={activeReports} sosAlerts={MOCK_SOS_ALERTS} personnel={activePersonnel} onSelectReport={setSelectedReport} />
                     </div>
                     <div className="lg:col-span-1">
                         <AlertsPanel reports={activeReports} sosAlerts={MOCK_SOS_ALERTS} personnel={activePersonnel} onSelectReport={setSelectedReport} />
