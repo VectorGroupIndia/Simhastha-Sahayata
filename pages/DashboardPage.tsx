@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -20,7 +21,6 @@ import { ImageZoomModal } from '../components/ui/ImageZoomModal';
 // Icon Components defined locally
 const HeartIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>;
 const MapIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13v-6m0 6l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 16.382V5.618a1 1 0 00-1.447-.894L15 7m0 10v-6m0 6l-6-3" /></svg>;
-// FIX: Updated icon size to h-6 w-6 for consistency with other tab icons.
 const SparklesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 17l-4 4 4-4 2.293-2.293a1 1 0 011.414 0L17 14m-5-5l2.293 2.293a1 1 0 010 1.414L10 17" /></svg>;
 const PlusCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
 const ArchiveIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 001.414 0l2.414-2.414a1 1 0 01.707-.293H21" /></svg>;
@@ -29,7 +29,8 @@ const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 
 const FilterDropdown: React.FC<{label: string, value: string, onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void, options: {value: string, label: string}[]}> = ({label, value, onChange, options}) => (
     <div className="w-full">
         <label htmlFor={label} className="sr-only">{label}</label>
-        <select id={label} value={value} onChange={onChange} className="w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 py-2 pl-3 pr-8 text-base">
+        {/* FIX: Added styling classes to ensure visibility */ }
+        <select id={label} value={value} onChange={onChange} className="w-full bg-white text-gray-900 rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 py-2 pl-3 pr-8 text-base">
             {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
         </select>
     </div>
@@ -144,35 +145,36 @@ const MyReports: React.FC = () => {
     return (
         <>
             <Card>
+                {/* IMPROVEMENT: Replaced stacked labels with a cleaner, responsive horizontal filter bar */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
-                    <h3 className="text-2xl font-bold">{translations.myReports.title}</h3>
-                     <div className="w-full md:w-auto flex-grow flex flex-col md:flex-row gap-2 items-center justify-end">
-                        <div className="relative w-full md:flex-grow">
-                            <input
-                                type="text"
-                                placeholder={translations.myReports.searchPlaceholder}
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                onKeyDown={e => e.key === 'Enter' && handleAiSearch()}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full"
-                            />
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <SearchIcon />
-                            </div>
+                    <h3 className="text-2xl font-bold flex-shrink-0">{translations.myReports.title}</h3>
+                </div>
+                 <div className="w-full grid grid-cols-1 md:grid-cols-5 gap-2 items-center justify-end mb-4 p-3 bg-gray-50 rounded-lg">
+                    <div className="relative w-full md:col-span-2">
+                        <input
+                            type="text"
+                            placeholder={translations.myReports.searchPlaceholder}
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && handleAiSearch()}
+                            // FIX: Added styling classes to ensure visibility
+                            className="w-full pl-10 pr-4 py-2 bg-white text-gray-900 border border-gray-300 rounded-full"
+                        />
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <SearchIcon />
                         </div>
-                         <button
+                        <button
                             onClick={handleAiSearch}
                             disabled={isAiSearching || !searchQuery.trim()}
                             title={translations.myReports.aiSearchTooltip}
-                            className="flex items-center justify-center gap-2 w-full md:w-auto px-4 py-2 text-sm font-medium text-white bg-orange-500 rounded-full hover:bg-orange-600 disabled:bg-orange-300 transition-colors"
+                            className="absolute inset-y-0 right-0 flex items-center justify-center gap-2 w-10 h-10 text-white bg-orange-500 rounded-full hover:bg-orange-600 disabled:bg-orange-300 transition-colors"
                         >
                             {isAiSearching ? <Spinner size="sm" /> : <SparklesIcon />}
-                            <span className="hidden sm:inline">{isAiSearching ? translations.myReports.aiSearching : translations.myReports.aiSearch}</span>
                         </button>
-                        <FilterDropdown label={translations.filterBar.statusLabel} value={statusFilter} onChange={e => setStatusFilter(e.target.value)} options={statusOptions} />
-                        <FilterDropdown label={translations.filterBar.categoryLabel} value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} options={categoryOptions} />
-                        <FilterDropdown label={translations.filterBar.typeLabel} value={typeFilter} onChange={e => setTypeFilter(e.target.value)} options={typeOptions} />
                     </div>
+                    <FilterDropdown label={translations.filterBar.statusLabel} value={statusFilter} onChange={e => setStatusFilter(e.target.value)} options={statusOptions} />
+                    <FilterDropdown label={translations.filterBar.categoryLabel} value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} options={categoryOptions} />
+                    <FilterDropdown label={translations.filterBar.typeLabel} value={typeFilter} onChange={e => setTypeFilter(e.target.value)} options={typeOptions} />
                 </div>
                 
                 {aiFilteredReportIds !== null && (
@@ -264,7 +266,6 @@ const DashboardPage: React.FC = () => {
     const tabs = [
       { id: 'hub', name: translations.familyHub.title, icon: <HeartIcon /> },
       { id: 'nav', name: translations.navigation.title, icon: <MapIcon /> },
-      // FIX: Removed invalid 'style' prop. The component's class was updated for correct sizing.
       { id: 'guide', name: translations.guide.title, icon: <SparklesIcon /> },
       { id: 'reports', name: translations.dashboard.myReports, icon: <ArchiveIcon /> },
     ];

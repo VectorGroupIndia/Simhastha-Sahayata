@@ -123,3 +123,107 @@ export const getAiSearchResults = async (query: string, reports: LostFoundReport
 
   return sortedResults.map(r => r.id);
 };
+
+/**
+ * Simulates a Gemini API call to parse a natural language prompt and autofill a report form.
+ * @param prompt - The user's natural language description of the situation.
+ * @returns A promise that resolves to a partial LostFoundReport object with extracted details.
+ */
+export const autofillReportForm = async (prompt: string): Promise<Partial<LostFoundReport>> => {
+    console.log("Simulating Gemini AI Form Autofill with prompt:", prompt);
+    await sleep(1800); // Simulate processing time
+
+    const lowerCasePrompt = prompt.toLowerCase();
+    const autofillData: Partial<LostFoundReport> = {};
+
+    // Determine report type (Lost/Found)
+    if (lowerCasePrompt.includes('found') || lowerCasePrompt.includes('saw a')) {
+        autofillData.type = 'Found';
+    } else {
+        autofillData.type = 'Lost'; // Default
+    }
+
+    // Determine category (Person/Item)
+    if (/\b(son|daughter|mother|father|child|boy|girl|man|woman|person|someone)\b/.test(lowerCasePrompt)) {
+        autofillData.category = 'Person';
+    } else if (/\b(bag|backpack|phone|wallet|item|keys|bottle)\b/.test(lowerCasePrompt)) {
+        autofillData.category = 'Item';
+    }
+    
+    // Extract details for Person
+    if (autofillData.category === 'Person') {
+        // Simple name extraction (mock)
+        const nameMatch = prompt.match(/\b([A-Z][a-z]+)\b/);
+        if (nameMatch) autofillData.personName = nameMatch[1];
+
+        // Age
+        const ageMatch = lowerCasePrompt.match(/(\d+)\s*year\s*old/);
+        if (ageMatch) autofillData.personAge = ageMatch[1];
+
+        // Gender
+        if (/\b(son|boy|man|father|he)\b/.test(lowerCasePrompt)) autofillData.personGender = 'Male';
+        if (/\b(daughter|girl|woman|mother|she)\b/.test(lowerCasePrompt)) autofillData.personGender = 'Female';
+
+        // Clothing
+        if(lowerCasePrompt.includes('wearing')) {
+            autofillData.clothingAppearance = prompt.substring(lowerCasePrompt.indexOf('wearing') + 8).trim();
+        }
+    }
+
+    // Extract details for Item
+    if (autofillData.category === 'Item') {
+         if (lowerCasePrompt.includes('backpack')) autofillData.itemName = 'Backpack';
+         if (lowerCasePrompt.includes('phone')) autofillData.itemName = 'Phone';
+         if (lowerCasePrompt.includes('wallet')) autofillData.itemName = 'Wallet';
+         if (lowerCasePrompt.includes('bag')) autofillData.itemName = 'Bag';
+
+         if (lowerCasePrompt.includes('red')) autofillData.itemColor = 'Red';
+         if (lowerCasePrompt.includes('blue')) autofillData.itemColor = 'Blue';
+         if (lowerCasePrompt.includes('black')) autofillData.itemColor = 'Black';
+    }
+    
+    // Extract Location
+    const locationMatch = prompt.match(/(near|at|in)\s+([A-Z][a-zA-Z\s]+)/);
+    if(locationMatch) {
+        autofillData.lastSeen = locationMatch[2].trim();
+    }
+    
+    autofillData.description = prompt; // Use the full prompt as a base description
+
+    console.log("AI Autofill result:", autofillData);
+    return autofillData;
+};
+
+/**
+ * NEW: Simulates a Gemini API call to analyze an image and extract details for a report.
+ * @param imageBase64 - The base64 encoded string of the image to analyze.
+ * @returns A promise that resolves to a partial LostFoundReport object with extracted details.
+ */
+export const analyzeReportImage = async (imageBase64: string): Promise<Partial<LostFoundReport>> => {
+    console.log("Simulating Gemini Vision API for Image Analysis...");
+    await sleep(2500); // Simulate longer processing for image analysis
+
+    const analysisResult: Partial<LostFoundReport> = {};
+
+    // Mocking: Randomly return one of two possible analyses for demonstration
+    const isPerson = Math.random() > 0.5;
+
+    if (isPerson) {
+        analysisResult.category = 'Person';
+        analysisResult.personName = 'Unknown';
+        analysisResult.personAge = '5-7';
+        analysisResult.personGender = 'Male';
+        analysisResult.clothingAppearance = 'AI analysis suggests the person is wearing a red t-shirt and blue shorts.';
+        analysisResult.description = 'Image appears to be of a young child, possibly lost. The photo was likely taken outdoors during the day.';
+    } else {
+        analysisResult.category = 'Item';
+        analysisResult.itemName = 'Backpack';
+        analysisResult.itemColor = 'Red';
+        analysisResult.itemBrand = 'Unbranded';
+        analysisResult.description = 'AI analysis suggests this is a red backpack. It seems to be moderately full.';
+        analysisResult.identifyingMarks = 'A keychain is visible on the zipper.';
+    }
+    
+    console.log("AI Image Analysis result:", analysisResult);
+    return analysisResult;
+};

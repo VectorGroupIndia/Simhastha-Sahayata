@@ -6,10 +6,16 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { LostFoundReport } from '../types';
 import { ImageZoomModal } from '../components/ui/ImageZoomModal';
+import { autofillReportForm, analyzeReportImage } from '../services/geminiService';
+import { Spinner } from '../components/ui/Spinner';
 
-type ReportStep = 'instructions' | 'form' | 'confirmation';
+type ReportStep = 'instructions' | 'form' | 'review' | 'confirmation';
 type ReportType = 'Lost' | 'Found';
 type ReportCategory = 'Person' | 'Item';
+
+const SparklesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 17l-4 4 4-4 2.293-2.293a1 1 0 011.414 0L17 14m-5-5l2.293 2.293a1 1 0 010 1.414L10 17" /></svg>;
+const CameraIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
+
 
 /**
  * Page for reporting a lost or found person/item.
@@ -31,6 +37,10 @@ const ReportLostFoundPage: React.FC = () => {
   const [image, setImage] = useState<File | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [isZoomModalOpen, setIsZoomModalOpen] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [isAutofilling, setIsAutofilling] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
 
   // Person-specific state
   const [personName, setPersonName] = useState('');
@@ -43,6 +53,9 @@ const ReportLostFoundPage: React.FC = () => {
   const [itemBrand, setItemBrand] = useState('');
   const [itemColor, setItemColor] = useState('');
   const [identifyingMarks, setIdentifyingMarks] = useState('');
+  
+  // Review state
+  const [reportToReview, setReportToReview] = useState<LostFoundReport | null>(null);
 
   // Confirmation state
   const [submittedReport, setSubmittedReport] = useState<LostFoundReport | null>(null);
@@ -63,12 +76,11 @@ const ReportLostFoundPage: React.FC = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleReview = (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    // In a real app, this would submit data to a backend.
-    const newReport: LostFoundReport = {
-        id: `RPT-${Date.now()}`,
+    const reportData: LostFoundReport = {
+        id: `RPT-${Date.now()}`, // Temporary ID
         type: reportType,
         category,
         description,
@@ -81,9 +93,109 @@ const ReportLostFoundPage: React.FC = () => {
         ...(category === 'Person' && { personName, personAge, personGender, clothingAppearance }),
         ...(category === 'Item' && { itemName, itemBrand, itemColor, identifyingMarks }),
     };
-    setSubmittedReport(newReport);
-    setStep('confirmation');
+    setReportToReview(reportData);
+    setStep('review');
+  }
+
+  const handleSubmit = () => {
+      // In a real app, this would submit data to a backend.
+      if(!reportToReview) return;
+      // Here you would add the report to your global state or mock data array
+      // e.g., MOCK_LOST_FOUND_REPORTS.unshift(reportToReview);
+      setSubmittedReport(reportToReview);
+      setStep('confirmation');
   };
+
+  const handleAutofill = async () => {
+      if(!aiPrompt.trim()) return;
+      setIsAutofilling(true);
+      try {
+          const autofilledData = await autofillReportForm(aiPrompt);
+          if (autofilledData.type) setReportType(autofilledData.type);
+          if (autofilledData.category) setCategory(autofilledData.category);
+          if (autofilledData.description) setDescription(autofilledData.description);
+          if (autofilledData.lastSeen) setLastSeen(autofilledData.lastSeen);
+          if (autofilledData.personName) setPersonName(autofilledData.personName);
+          if (autofilledData.personAge) setPersonAge(autofilledData.personAge);
+          if (autofilledData.personGender) setPersonGender(autofilledData.personGender);
+          if (autofilledData.clothingAppearance) setClothingAppearance(autofilledData.clothingAppearance);
+          if (autofilledData.itemName) setItemName(autofilledData.itemName);
+          if (autofilledData.itemBrand) setItemBrand(autofilledData.itemBrand);
+          if (autofilledData.itemColor) setItemColor(autofilledData.itemColor);
+      } catch (error) {
+          console.error("AI autofill failed:", error);
+          alert("AI autofill failed. Please fill the form manually.");
+      } finally {
+          setIsAutofilling(false);
+      }
+  };
+
+  const handleAnalyzeImage = async () => {
+    if (!imageBase64) return;
+    setIsAnalyzing(true);
+    try {
+        const analysisData = await analyzeReportImage(imageBase64);
+        // Populate form fields with AI data
+        if (analysisData.type) setReportType(analysisData.type);
+        if (analysisData.category) setCategory(analysisData.category);
+        if (analysisData.description) setDescription(prev => `${analysisData.description} ${prev}`.trim());
+        if (analysisData.personName) setPersonName(analysisData.personName);
+        if (analysisData.personAge) setPersonAge(analysisData.personAge);
+        if (analysisData.personGender) setPersonGender(analysisData.personGender);
+        if (analysisData.clothingAppearance) setClothingAppearance(analysisData.clothingAppearance);
+        if (analysisData.itemName) setItemName(analysisData.itemName);
+        if (analysisData.itemBrand) setItemBrand(analysisData.itemBrand);
+        if (analysisData.itemColor) setItemColor(analysisData.itemColor);
+        if (analysisData.identifyingMarks) setIdentifyingMarks(analysisData.identifyingMarks);
+    } catch (error) {
+        console.error("AI Image Analysis failed:", error);
+        alert("AI Image Analysis failed. Please fill the form manually.");
+    } finally {
+        setIsAnalyzing(false);
+    }
+  };
+
+
+  const generateReportText = (report: LostFoundReport): string => {
+    let content = `** Simhastha Sahayata - Report Summary **\n\n`;
+    content += `Report ID: ${report.id}\n`;
+    content += `Date: ${new Date(report.timestamp).toLocaleString()}\n`;
+    content += `Status: ${report.status}\n\n`;
+    content += `--- Details ---\n`;
+    content += `Type: ${report.type}\n`;
+    content += `Category: ${report.category}\n`;
+    content += `Last Seen: ${report.lastSeen}\n`;
+    
+    if (report.category === 'Person') {
+        content += `Person's Name: ${report.personName || 'N/A'}\n`;
+        content += `Approx. Age: ${report.personAge || 'N/A'}\n`;
+        content += `Gender: ${report.personGender || 'N/A'}\n`;
+        content += `Clothing/Appearance: ${report.clothingAppearance || 'N/A'}\n`;
+    } else {
+        content += `Item Name: ${report.itemName || 'N/A'}\n`;
+        content += `Brand: ${report.itemBrand || 'N/A'}\n`;
+        content += `Color: ${report.itemColor || 'N/A'}\n`;
+        content += `Identifying Marks: ${report.identifyingMarks || 'N/A'}\n`;
+    }
+    content += `\nDescription: ${report.description}\n`;
+    content += `\nReported By: ${report.reportedBy}\n`;
+    return content;
+  };
+
+  const handleDownload = () => {
+    if (!submittedReport) return;
+    const reportText = generateReportText(submittedReport);
+    const blob = new Blob([reportText], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Report-${submittedReport.id}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
 
   const resetForm = () => {
     setStep('instructions');
@@ -103,7 +215,37 @@ const ReportLostFoundPage: React.FC = () => {
     setItemColor('');
     setIdentifyingMarks('');
     setSubmittedReport(null);
+    setReportToReview(null);
+    setAiPrompt('');
   }
+
+  const renderReportSummary = (report: LostFoundReport) => (
+       <Card className="text-left bg-gray-50/50">
+            <h4 className="font-bold text-lg mb-3 border-b pb-2">{translations.report.reportSummary}</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {report.imageUrl && (
+                    <div className="md:col-span-1">
+                        <img src={report.imageUrl} alt="Uploaded" className="rounded-lg shadow-md w-full object-cover aspect-square" />
+                    </div>
+                )}
+                <div className={`space-y-2 text-sm ${report.imageUrl ? 'md:col-span-2' : 'md:col-span-3'}`}>
+                    <p><strong>{translations.myReports.id}:</strong> <span className="font-mono bg-gray-200 px-1 rounded">{report.id}</span></p>
+                    <p><strong>{translations.report.type}:</strong> {report.type}</p>
+                    <p><strong>{translations.report.category}:</strong> {report.category}</p>
+                    {report.personName && <p><strong>{translations.report.personName}:</strong> {report.personName}</p>}
+                    {report.personAge && <p><strong>{translations.report.personAge}:</strong> {report.personAge}</p>}
+                    {report.personGender && <p><strong>{translations.report.personGender}:</strong> {report.personGender}</p>}
+                    {report.clothingAppearance && <p><strong>{translations.report.clothingAppearance}:</strong> {report.clothingAppearance}</p>}
+                    {report.itemName && <p><strong>{translations.report.itemName}:</strong> {report.itemName}</p>}
+                    {report.itemBrand && <p><strong>{translations.report.itemBrand}:</strong> {report.itemBrand}</p>}
+                    {report.itemColor && <p><strong>{translations.report.itemColor}:</strong> {report.itemColor}</p>}
+                    {report.identifyingMarks && <p><strong>{translations.report.identifyingMarks}:</strong> {report.identifyingMarks}</p>}
+                    <p><strong>{translations.report.lastSeen}:</strong> {report.lastSeen}</p>
+                    <p><strong>{translations.report.description}:</strong> {report.description}</p>
+                </div>
+            </div>
+        </Card>
+  );
 
   const renderStep = () => {
     switch (step) {
@@ -129,7 +271,28 @@ const ReportLostFoundPage: React.FC = () => {
       case 'form':
         return (
          <>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleReview} className="space-y-6">
+            {/* AI Autofill Section */}
+            <div>
+              <label htmlFor="ai-prompt" className="block text-sm font-medium text-gray-700 mb-1">{translations.report.aiPromptLabel}</label>
+              <div className="flex gap-2">
+                <textarea 
+                    id="ai-prompt"
+                    value={aiPrompt}
+                    onChange={e => setAiPrompt(e.target.value)}
+                    rows={2}
+                    placeholder={translations.report.aiPromptPlaceholder}
+                    className="flex-grow bg-white text-gray-900 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
+                />
+                <Button type="button" onClick={handleAutofill} disabled={isAutofilling || !aiPrompt.trim()} className="h-full">
+                    {isAutofilling ? <Spinner size="sm" /> : <SparklesIcon />}
+                    <span className="hidden sm:inline ml-1">{translations.report.aiFillButton}</span>
+                </Button>
+              </div>
+            </div>
+
+            <hr/>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">{translations.report.type}</label>
               <div className="flex gap-4">
@@ -144,29 +307,7 @@ const ReportLostFoundPage: React.FC = () => {
                 <Button type="button" variant={category === 'Item' ? 'primary' : 'secondary'} onClick={() => setCategory('Item')}>{translations.report.item}</Button>
               </div>
             </div>
-            <hr/>
-            
-            {category === 'Person' && (
-              <div className="space-y-4 animate-fade-in-up">
-                <div><label htmlFor="personName" className="block text-sm font-medium text-gray-700">{translations.report.personName}</label><input type="text" id="personName" value={personName} onChange={e => setPersonName(e.target.value)} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder={translations.report.personNamePlaceholder} /></div>
-                <div><label htmlFor="personAge" className="block text-sm font-medium text-gray-700">{translations.report.personAge}</label><input type="text" id="personAge" value={personAge} onChange={e => setPersonAge(e.target.value)} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder={translations.report.personAgePlaceholder} /></div>
-                <div><label htmlFor="personGender" className="block text-sm font-medium text-gray-700">{translations.report.personGender}</label><select id="personGender" value={personGender} onChange={e => setPersonGender(e.target.value)} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"><option value="">{translations.report.selectGender}</option><option value="Male">{translations.report.male}</option><option value="Female">{translations.report.female}</option><option value="Other">{translations.report.other}</option></select></div>
-                <div><label htmlFor="clothingAppearance" className="block text-sm font-medium text-gray-700">{translations.report.clothingAppearance}</label><textarea id="clothingAppearance" value={clothingAppearance} onChange={e => setClothingAppearance(e.target.value)} required rows={2} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder={translations.report.clothingAppearancePlaceholder}></textarea></div>
-              </div>
-            )}
 
-            {category === 'Item' && (
-              <div className="space-y-4 animate-fade-in-up">
-                <div><label htmlFor="itemName" className="block text-sm font-medium text-gray-700">{translations.report.itemName}</label><input type="text" id="itemName" value={itemName} onChange={e => setItemName(e.target.value)} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder={translations.report.itemNamePlaceholder} /></div>
-                <div><label htmlFor="itemBrand" className="block text-sm font-medium text-gray-700">{translations.report.itemBrand}</label><input type="text" id="itemBrand" value={itemBrand} onChange={e => setItemBrand(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder={translations.report.itemBrandPlaceholder} /></div>
-                <div><label htmlFor="itemColor" className="block text-sm font-medium text-gray-700">{translations.report.itemColor}</label><input type="text" id="itemColor" value={itemColor} onChange={e => setItemColor(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder={translations.report.itemColorPlaceholder} /></div>
-                <div><label htmlFor="identifyingMarks" className="block text-sm font-medium text-gray-700">{translations.report.identifyingMarks}</label><input type="text" id="identifyingMarks" value={identifyingMarks} onChange={e => setIdentifyingMarks(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder={translations.report.identifyingMarksPlaceholder} /></div>
-              </div>
-            )}
-            
-            <div><label htmlFor="description" className="block text-sm font-medium text-gray-700">{translations.report.description}</label><textarea id="description" value={description} onChange={e => setDescription(e.target.value)} required rows={3} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder={translations.report.descriptionPlaceholder}></textarea></div>
-            <div><label htmlFor="lastSeen" className="block text-sm font-medium text-gray-700">{translations.report.lastSeen}</label><input type="text" id="lastSeen" value={lastSeen} onChange={e => setLastSeen(e.target.value)} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder={translations.report.lastSeenPlaceholder} /></div>
-            
             <div>
               <label className="block text-sm font-medium text-gray-700">{translations.report.upload}</label>
               {imageBase64 ? (
@@ -186,6 +327,24 @@ const ReportLostFoundPage: React.FC = () => {
                       >
                           {translations.report.removeImage}
                       </Button>
+                       <Button
+                          type="button"
+                          onClick={handleAnalyzeImage}
+                          disabled={isAnalyzing}
+                          className="w-full mt-2"
+                      >
+                          {isAnalyzing ? (
+                              <>
+                                  <Spinner size="sm" className="mr-2" />
+                                  {translations.report.aiAnalyzing}
+                              </>
+                          ) : (
+                              <>
+                                  <CameraIcon />
+                                  {translations.report.aiAnalyzeButton}
+                              </>
+                          )}
+                      </Button>
                   </div>
               ) : (
                   <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
@@ -197,7 +356,31 @@ const ReportLostFoundPage: React.FC = () => {
                   </div>
               )}
             </div>
-            <Button type="submit" className="w-full">{translations.report.submit}</Button>
+            
+            <hr/>
+            
+            {category === 'Person' && (
+              <div className="space-y-4 animate-fade-in-up">
+                <div><label htmlFor="personName" className="block text-sm font-medium text-gray-700">{translations.report.personName}</label><input type="text" id="personName" value={personName} onChange={e => setPersonName(e.target.value)} required className="mt-1 block w-full bg-white text-gray-900 rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder={translations.report.personNamePlaceholder} /></div>
+                <div><label htmlFor="personAge" className="block text-sm font-medium text-gray-700">{translations.report.personAge}</label><input type="text" id="personAge" value={personAge} onChange={e => setPersonAge(e.target.value)} required className="mt-1 block w-full bg-white text-gray-900 rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder={translations.report.personAgePlaceholder} /></div>
+                <div><label htmlFor="personGender" className="block text-sm font-medium text-gray-700">{translations.report.personGender}</label><select id="personGender" value={personGender} onChange={e => setPersonGender(e.target.value)} required className="mt-1 block w-full bg-white text-gray-900 rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"><option value="">{translations.report.selectGender}</option><option value="Male">{translations.report.male}</option><option value="Female">{translations.report.female}</option><option value="Other">{translations.report.other}</option></select></div>
+                <div><label htmlFor="clothingAppearance" className="block text-sm font-medium text-gray-700">{translations.report.clothingAppearance}</label><textarea id="clothingAppearance" value={clothingAppearance} onChange={e => setClothingAppearance(e.target.value)} required rows={2} className="mt-1 block w-full bg-white text-gray-900 rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder={translations.report.clothingAppearancePlaceholder}></textarea></div>
+              </div>
+            )}
+
+            {category === 'Item' && (
+              <div className="space-y-4 animate-fade-in-up">
+                <div><label htmlFor="itemName" className="block text-sm font-medium text-gray-700">{translations.report.itemName}</label><input type="text" id="itemName" value={itemName} onChange={e => setItemName(e.target.value)} required className="mt-1 block w-full bg-white text-gray-900 rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder={translations.report.itemNamePlaceholder} /></div>
+                <div><label htmlFor="itemBrand" className="block text-sm font-medium text-gray-700">{translations.report.itemBrand}</label><input type="text" id="itemBrand" value={itemBrand} onChange={e => setItemBrand(e.target.value)} className="mt-1 block w-full bg-white text-gray-900 rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder={translations.report.itemBrandPlaceholder} /></div>
+                <div><label htmlFor="itemColor" className="block text-sm font-medium text-gray-700">{translations.report.itemColor}</label><input type="text" id="itemColor" value={itemColor} onChange={e => setItemColor(e.target.value)} className="mt-1 block w-full bg-white text-gray-900 rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder={translations.report.itemColorPlaceholder} /></div>
+                <div><label htmlFor="identifyingMarks" className="block text-sm font-medium text-gray-700">{translations.report.identifyingMarks}</label><input type="text" id="identifyingMarks" value={identifyingMarks} onChange={e => setIdentifyingMarks(e.target.value)} className="mt-1 block w-full bg-white text-gray-900 rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder={translations.report.identifyingMarksPlaceholder} /></div>
+              </div>
+            )}
+            
+            <div><label htmlFor="description" className="block text-sm font-medium text-gray-700">{translations.report.description}</label><textarea id="description" value={description} onChange={e => setDescription(e.target.value)} required rows={3} className="mt-1 block w-full bg-white text-gray-900 rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder={translations.report.descriptionPlaceholder}></textarea></div>
+            <div><label htmlFor="lastSeen" className="block text-sm font-medium text-gray-700">{translations.report.lastSeen}</label><input type="text" id="lastSeen" value={lastSeen} onChange={e => setLastSeen(e.target.value)} required className="mt-1 block w-full bg-white text-gray-900 rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" placeholder={translations.report.lastSeenPlaceholder} /></div>
+            
+            <Button type="submit" className="w-full">{translations.report.reviewButton}</Button>
           </form>
           {imageBase64 && (
             <ImageZoomModal 
@@ -208,40 +391,30 @@ const ReportLostFoundPage: React.FC = () => {
           )}
           </>
         );
+      case 'review':
+        if (!reportToReview) return null;
+        return (
+            <div className="space-y-4">
+                 <h3 className="text-2xl font-bold text-center">{translations.report.reviewTitle}</h3>
+                 <p className="text-center text-gray-600">{translations.report.reviewSubtitle}</p>
+                 {renderReportSummary(reportToReview)}
+                 <div className="flex gap-4 justify-center pt-4">
+                    <Button onClick={() => setStep('form')} variant="secondary">{translations.report.editButton}</Button>
+                    <Button onClick={handleSubmit}>{translations.report.confirmSubmitButton}</Button>
+                </div>
+            </div>
+        )
       case 'confirmation':
         if (!submittedReport) return null;
         return (
             <div className="text-center space-y-4">
                 <h3 className="text-2xl font-bold text-green-600">{translations.report.confirmationTitle}</h3>
                 <p className="text-gray-600">{translations.report.confirmationText}</p>
-                 <Card className="text-left bg-gray-50/50">
-                    <h4 className="font-bold text-lg mb-3 border-b pb-2">{translations.report.reportSummary}</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {submittedReport.imageUrl && (
-                            <div className="md:col-span-1">
-                                <img src={submittedReport.imageUrl} alt="Uploaded" className="rounded-lg shadow-md w-full object-cover aspect-square" />
-                            </div>
-                        )}
-                        <div className={`space-y-2 text-sm ${submittedReport.imageUrl ? 'md:col-span-2' : 'md:col-span-3'}`}>
-                            <p><strong>{translations.myReports.id}:</strong> <span className="font-mono bg-gray-200 px-1 rounded">{submittedReport.id}</span></p>
-                            <p><strong>{translations.report.type}:</strong> {submittedReport.type}</p>
-                            <p><strong>{translations.report.category}:</strong> {submittedReport.category}</p>
-                            {submittedReport.personName && <p><strong>{translations.report.personName}:</strong> {submittedReport.personName}</p>}
-                            {submittedReport.personAge && <p><strong>{translations.report.personAge}:</strong> {submittedReport.personAge}</p>}
-                            {submittedReport.personGender && <p><strong>{translations.report.personGender}:</strong> {submittedReport.personGender}</p>}
-                            {submittedReport.clothingAppearance && <p><strong>{translations.report.clothingAppearance}:</strong> {submittedReport.clothingAppearance}</p>}
-                            {submittedReport.itemName && <p><strong>{translations.report.itemName}:</strong> {submittedReport.itemName}</p>}
-                            {submittedReport.itemBrand && <p><strong>{translations.report.itemBrand}:</strong> {submittedReport.itemBrand}</p>}
-                            {submittedReport.itemColor && <p><strong>{translations.report.itemColor}:</strong> {submittedReport.itemColor}</p>}
-                            {submittedReport.identifyingMarks && <p><strong>{translations.report.identifyingMarks}:</strong> {submittedReport.identifyingMarks}</p>}
-                            <p><strong>{translations.report.lastSeen}:</strong> {submittedReport.lastSeen}</p>
-                            <p><strong>{translations.report.description}:</strong> {submittedReport.description}</p>
-                        </div>
-                    </div>
-                </Card>
+                {renderReportSummary(submittedReport)}
                 <div className="flex gap-4 justify-center pt-4">
+                    <Button onClick={handleDownload}>{translations.report.downloadButton}</Button>
                     <Button onClick={resetForm}>{translations.report.newReport}</Button>
-                    <Button onClick={() => navigate('/dashboard')} variant="secondary">Go to Dashboard</Button>
+                    <Button onClick={() => navigate('/dashboard')} variant="secondary">{translations.report.dashboardButton}</Button>
                 </div>
             </div>
         )
