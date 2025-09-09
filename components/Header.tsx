@@ -8,6 +8,7 @@ import { Button } from './ui/Button';
 import { Modal } from './ui/Modal';
 import { AppContext } from '../context/AppContext';
 import { NAV_LINKS } from '../constants';
+import { UserRole } from '../types';
 
 const SosIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>;
 
@@ -55,6 +56,7 @@ const Header: React.FC = () => {
 
 
   const navLinks = NAV_LINKS[language] || NAV_LINKS.en;
+  const canReport = !user || user.role === UserRole.PILGRIM || user.role === UserRole.VOLUNTEER;
 
   return (
     <>
@@ -73,9 +75,11 @@ const Header: React.FC = () => {
             </nav>
 
             <div className="flex items-center space-x-4">
-              <div className="hidden md:block">
-                  <Button onClick={handleReportClick} variant="secondary">{translations.home.reportButton}</Button>
-              </div>
+              {canReport && (
+                <div className="hidden md:block">
+                    <Button onClick={handleReportClick} variant="secondary">{translations.home.reportButton}</Button>
+                </div>
+              )}
               {user ? (
                 <div className="hidden md:flex items-center space-x-4">
                    <Button onClick={handleSosClick} variant="danger" className={`px-3 ${isSosActive ? 'animate-pulse' : ''}`} disabled={isSosActive}><SosIcon/><span className="ml-1.5">{translations.header.sosButton}</span></Button>
@@ -100,7 +104,9 @@ const Header: React.FC = () => {
                 <NavLink key={link.name} to={link.path} className={({ isActive }) => `text-gray-600 hover:text-orange-500 p-2 rounded ${isActive ? 'bg-orange-100 text-orange-600' : ''}`} onClick={() => setMobileMenuOpen(false)}>{link.name}</NavLink>
               ))}
                <div className="border-t pt-4 flex flex-col items-start space-y-3">
-                    <Button onClick={() => {handleReportClick(); setMobileMenuOpen(false);}} className="w-full" variant="secondary">{translations.home.reportButton}</Button>
+                    {canReport && (
+                      <Button onClick={() => {handleReportClick(); setMobileMenuOpen(false);}} className="w-full" variant="secondary">{translations.home.reportButton}</Button>
+                    )}
                     {user ? (
                         <>
                            <Button onClick={() => {handleSosClick(); setMobileMenuOpen(false);}} variant="danger" className={`w-full ${isSosActive ? 'animate-pulse' : ''}`} disabled={isSosActive}>{translations.header.sosButton}</Button>

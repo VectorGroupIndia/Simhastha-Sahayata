@@ -1,5 +1,6 @@
 
 import { User, UserRole } from './types';
+import { MOCK_REGISTERED_ITEMS } from './data/mockData';
 
 // Defines the available languages for the language selector.
 export const LANGUAGES = [
@@ -31,7 +32,7 @@ export const NAV_LINKS = {
 
 // Demo users for login simulation. This allows easy testing for different roles.
 export const DEMO_USERS: User[] = [
-  { id: 1, name: 'Ravi Kumar (Pilgrim)', role: UserRole.PILGRIM, avatar: 'https://picsum.photos/seed/ravi/100/100', emergencyContacts: [{ id: 1, name: 'Priya (Wife)', phone: '9876543210' }, { id: 2, name: 'Amit (Brother)', phone: '9876543211' }], sosHistory: [{ id: 1, timestamp: '2024-07-28T14:30:00Z', status: 'Resolved' }, { id: 2, timestamp: '2024-07-26T09:00:00Z', status: 'Broadcasted' }] },
+  { id: 1, name: 'Ravi Kumar (Pilgrim)', role: UserRole.PILGRIM, avatar: 'https://picsum.photos/seed/ravi/100/100', emergencyContacts: [{ id: 1, name: 'Priya (Wife)', phone: '9876543210' }, { id: 2, name: 'Amit (Brother)', phone: '9876543211' }], sosHistory: [{ id: 1, timestamp: '2024-07-28T14:30:00Z', status: 'Resolved' }, { id: 2, timestamp: '2024-07-26T09:00:00Z', status: 'Broadcasted' }], registeredItems: MOCK_REGISTERED_ITEMS },
   { id: 2, name: 'Priya Sharma (Pilgrim)', role: UserRole.PILGRIM, avatar: 'https://picsum.photos/seed/priya/100/100', emergencyContacts: [], sosHistory: [] },
   { id: 3, name: 'Admin User', role: UserRole.ADMIN, avatar: 'https://picsum.photos/seed/admin/100/100', emergencyContacts: [] },
   { id: 4, name: 'Officer Singh (Authority)', role: UserRole.AUTHORITY, avatar: 'https://picsum.photos/seed/officer/100/100', emergencyContacts: [] },

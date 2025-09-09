@@ -5,11 +5,15 @@ import { MOCK_FAMILY_MEMBERS } from '../../data/mockData';
 import { useLocalization } from '../../hooks/useLocalization';
 import { Modal } from '../ui/Modal';
 import { AppContext } from '../../context/AppContext';
+import { FamilyMember } from '../../types';
+import { InviteMemberModal } from './InviteMemberModal';
+import { NavigateToMemberModal } from './NavigateToMemberModal';
 
 // SVG Icon Components defined locally for simplicity
 const UserIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" /></svg>;
 const AlertIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-500" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 13a1 1 0 110-2 1 1 0 010 2zm-1-4a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clipRule="evenodd" /></svg>;
 const LostIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>;
+const DirectionsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>;
 
 /**
  * Family Hub Component - The "killer feature".
@@ -20,6 +24,9 @@ const LostIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-
 const FamilyHub: React.FC = () => {
     const { translations } = useLocalization();
     const [isSosModalOpen, setIsSosModalOpen] = useState(false);
+    const [isInviteModalOpen, setInviteModalOpen] = useState(false);
+    const [isNavigateModalOpen, setNavigateModalOpen] = useState(false);
+    const [memberToNavigate, setMemberToNavigate] = useState<FamilyMember | null>(null);
     const appContext = useContext(AppContext);
 
     if (!appContext) {
@@ -40,6 +47,10 @@ const FamilyHub: React.FC = () => {
         console.log("SOS Confirmed! Alerting network.");
     };
 
+    const handleNavigate = (member: FamilyMember) => {
+        setMemberToNavigate(member);
+        setNavigateModalOpen(true);
+    };
 
     const getStatusIcon = (status: 'Safe' | 'Alert' | 'Lost') => {
         switch (status) {
@@ -73,9 +84,16 @@ const FamilyHub: React.FC = () => {
                                     </p>
                                 </div>
                                 {getStatusIcon(member.status)}
+                                <button
+                                    onClick={() => handleNavigate(member)}
+                                    title={translations.familyHub.getDirections}
+                                    className="ml-2 p-2 text-gray-500 hover:bg-gray-200 hover:text-orange-500 rounded-full transition-colors"
+                                >
+                                    <DirectionsIcon />
+                                </button>
                             </div>
                         ))}
-                        <Button variant="secondary" className="w-full mt-4">{translations.familyHub.addGroup}</Button>
+                        <Button onClick={() => setInviteModalOpen(true)} variant="secondary" className="w-full mt-4">{translations.familyHub.addGroup}</Button>
                     </div>
 
                     {/* Simulated Map View */}
@@ -124,6 +142,15 @@ const FamilyHub: React.FC = () => {
                     </div>
                 </div>
             </Modal>
+             <InviteMemberModal 
+                isOpen={isInviteModalOpen}
+                onClose={() => setInviteModalOpen(false)}
+            />
+            <NavigateToMemberModal
+                isOpen={isNavigateModalOpen}
+                onClose={() => setNavigateModalOpen(false)}
+                member={memberToNavigate}
+            />
         </>
     );
 };

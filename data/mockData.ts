@@ -1,4 +1,4 @@
-import { FamilyMember, LostFoundReport, EmergencyContact } from '../types';
+import { FamilyMember, LostFoundReport, EmergencyContact, RegisteredItem } from '../types';
 
 // This file centralizes all mock data used in the application.
 // This approach simulates a backend/database and makes it easy to manage
@@ -17,13 +17,43 @@ export const MOCK_FAMILY_MEMBERS: FamilyMember[] = [
   { id: 4, name: 'Uncle Mohan', avatar: 'https://picsum.photos/seed/mohan/100/100', location: { lat: 80, lng: 60 }, status: 'Safe' },
 ];
 
+export const MOCK_REGISTERED_ITEMS: RegisteredItem[] = [
+    {
+        id: 'item-1',
+        name: 'Red Travel Backpack',
+        category: 'Item',
+        subCategory: 'Bags & Luggage',
+        brand: 'American Tourister',
+        color: 'Red',
+        identifyingMarks: 'A keychain with a Taj Mahal souvenir is attached.',
+        images: [
+            'https://picsum.photos/seed/bag1/400/400',
+            'https://picsum.photos/seed/bag2/400/400',
+            'https://picsum.photos/seed/bag3/400/400'
+        ],
+        status: 'Safe'
+    },
+    {
+        id: 'item-2',
+        name: 'Samsung Smartphone',
+        category: 'Item',
+        subCategory: 'Electronics',
+        brand: 'Samsung',
+        color: 'Blue',
+        identifyingMarks: 'Cracked screen on the bottom right. Family picture as wallpaper.',
+        images: ['https://picsum.photos/seed/phone1/400/400'],
+        status: 'Lost'
+    }
+];
+
+
 export const MOCK_LOST_FOUND_REPORTS: LostFoundReport[] = [
     { id: 'p001', type: 'Lost', category: 'Person', personName: 'Rohan Sharma', personAge: '5', personGender: 'Male', clothingAppearance: 'Red T-shirt with a cartoon print, blue shorts.', description: 'He was holding a small toy car.', lastSeen: 'Ram Ghat', locationCoords: { lat: 25, lng: 40 }, imageUrl: 'https://picsum.photos/seed/child1/200/200', reportedBy: 'Ravi Kumar', reportedById: 1, timestamp: '2024-07-28T10:00:00Z', status: 'Open' },
     { id: 'i001', type: 'Found', category: 'Item', subCategory: 'Documents & Cards', itemName: 'Wallet', itemBrand: 'Unbranded', itemColor: 'Black', identifyingMarks: 'Has a small scratch on the corner.', description: 'Black leather wallet with an ID card for "Suresh Verma".', lastSeen: 'Food Stall Area', locationCoords: { lat: 70, lng: 65 }, imageUrl: 'https://picsum.photos/seed/wallet/200/200', reportedBy: 'Sunita Devi (Volunteer)', reportedById: 5, timestamp: '2024-07-28T11:30:00Z', status: 'In Progress' },
     { id: 'p002', type: 'Lost', category: 'Person', personName: 'Kamla Devi', personAge: '72', personGender: 'Female', clothingAppearance: 'Wearing a plain white saree and glasses.', description: 'She seems disoriented and might not remember her name.', lastSeen: 'Near Mahakal Temple', locationCoords: { lat: 50, lng: 50 }, imageUrl: 'https://picsum.photos/seed/grandma2/200/200', reportedBy: 'Priya Sharma', reportedById: 2, timestamp: '2024-07-28T09:15:00Z', status: 'Open' },
-    { id: 'i002', type: 'Lost', category: 'Item', subCategory: 'Bags & Luggage', itemName: 'Backpack', itemBrand: 'American Tourister', itemColor: 'Red', identifyingMarks: 'A keychain with a Taj Mahal souvenir is attached.', description: 'Red backpack with travel documents.', lastSeen: 'Bus Station', locationCoords: { lat: 85, lng: 20 }, reportedBy: 'Ravi Kumar', reportedById: 1, timestamp: '2024-07-27T18:00:00Z', status: 'Resolved' },
+    { id: 'i002', type: 'Lost', category: 'Item', subCategory: 'Bags & Luggage', itemName: 'Backpack', itemBrand: 'American Tourister', itemColor: 'Red', identifyingMarks: 'A keychain with a Taj Mahal souvenir is attached.', description: 'Red backpack with travel documents.', lastSeen: 'Bus Station', locationCoords: { lat: 85, lng: 20 }, reportedBy: 'Ravi Kumar', reportedById: 1, timestamp: '2024-07-27T18:00:00Z', status: 'Resolved', originalItemId: 'item-1' },
     { id: 'i003', type: 'Found', category: 'Item', subCategory: 'Bags & Luggage', itemName: 'Red Bag', itemBrand: 'Unknown', itemColor: 'Red', identifyingMarks: 'Seems to be a travel bag.', description: 'Found a red travel backpack near the bus station. Looks like it has documents inside.', lastSeen: 'Bus Station Drop-off', locationCoords: { lat: 86, lng: 22 }, reportedBy: 'Officer Singh (Authority)', reportedById: 4, timestamp: '2024-07-28T14:00:00Z', status: 'Open' },
-    { id: 'i004', type: 'Lost', category: 'Item', subCategory: 'Electronics', itemName: 'Samsung Phone', itemBrand: 'Samsung', itemColor: 'Blue', identifyingMarks: 'Cracked screen on the bottom right.', description: 'My blue Samsung smartphone was lost, it has a picture of my family as the wallpaper.', lastSeen: 'Harsiddhi Temple', locationCoords: { lat: 30, lng: 60 }, reportedBy: 'Ravi Kumar', reportedById: 1, timestamp: '2024-07-28T15:00:00Z', status: 'Open' },
+    { id: 'i004', type: 'Lost', category: 'Item', subCategory: 'Electronics', itemName: 'Samsung Phone', itemBrand: 'Samsung', itemColor: 'Blue', identifyingMarks: 'Cracked screen on the bottom right.', description: 'My blue Samsung smartphone was lost, it has a picture of my family as the wallpaper.', lastSeen: 'Harsiddhi Temple', locationCoords: { lat: 30, lng: 60 }, reportedBy: 'Ravi Kumar', reportedById: 1, timestamp: '2024-07-28T15:00:00Z', status: 'Open', originalItemId: 'item-2' },
     { id: 'i005', type: 'Found', category: 'Item', subCategory: 'Electronics', itemName: 'Smartphone', itemBrand: 'Unknown', itemColor: 'Blue', identifyingMarks: 'Screen is cracked.', description: 'Found a blue phone near Harsiddhi Temple.', lastSeen: 'Harsiddhi Temple Entrance', locationCoords: { lat: 31, lng: 61 }, reportedBy: 'Volunteer', reportedById: 5, timestamp: '2024-07-28T15:30:00Z', status: 'Open' }
 ];
 
@@ -64,6 +94,7 @@ export const translations: { [key: string]: any } = {
             greeting: "Welcome",
             fileReport: "File a New Report",
             myReports: "My Reports",
+            myItems: "My Items",
             userGuide: "User Guide",
             admin: { 
                 title: 'Admin Dashboard', 
@@ -112,6 +143,13 @@ export const translations: { [key: string]: any } = {
             sosCancelButton: 'Cancel',
             sosActive: 'SOS ACTIVATED',
             sosActiveText: 'Help is on the way. Move to a safe, visible location if possible.',
+            getDirections: 'Get Directions',
+            inviteModal: {
+                title: 'Invite a Family Member',
+                description: 'Share this unique link with a family member to add them to your hub. The link is valid for 24 hours.',
+                copyLink: 'Copy Link',
+                linkCopied: 'Invitation link copied to clipboard!',
+            },
         },
         sosCallModal: {
             title: 'Emergency Action Required',
@@ -128,7 +166,8 @@ export const translations: { [key: string]: any } = {
             placeholder: 'Ask "Where is the nearest toilet away from crowds?"',
             search: 'Find Route',
             routeFound: 'Route Found!',
-            error: 'Sorry, I could not find a route. Please try again.'
+            error: 'Sorry, I could not find a route. Please try again.',
+            routeTo: 'Route to {name}',
         },
         guide: {
             title: 'AI Pilgrim Guide',
@@ -203,6 +242,31 @@ export const translations: { [key: string]: any } = {
             itemColorPlaceholder: "e.g., Blue",
             identifyingMarks: "Identifying Marks",
             identifyingMarksPlaceholder: "e.g., Cracked screen, a sticker on the back"
+        },
+        myItems: {
+            title: 'My Items',
+            addItem: 'Add New Item',
+            noItems: "You haven't registered any items yet. Add your valuables for peace of mind.",
+            status: 'Status',
+            safe: 'Safe',
+            lost: 'Lost',
+            markAsLost: 'Mark as Lost',
+            viewDetails: 'View Details',
+            itemLost: 'Item Reported as Lost',
+            addModal: {
+                title: 'Add a New Item',
+                editTitle: 'Edit Item',
+                uploadMultiple: 'Upload Images (Front, Back, Side, etc.)',
+                save: 'Save Item',
+                success: 'Item added successfully!',
+                updateSuccess: 'Item updated successfully!',
+            },
+            markAsLostModal: {
+                title: 'Report Item as Lost',
+                description: 'Please provide the last known location of this item to file a lost report.',
+                confirmButton: 'File Lost Report',
+                success: 'Lost report filed successfully! You can track it in "My Reports".',
+            }
         },
         myReports: {
             title: 'My Reports',
@@ -380,6 +444,7 @@ export const translations: { [key: string]: any } = {
             greeting: "नमस्ते",
             fileReport: "नई रिपोर्ट दर्ज करें",
             myReports: "मेरी रिपोर्ट",
+            myItems: "मेरी वस्तुएं",
             userGuide: "उपयोगकर्ता गाइड",
             admin: {
                 title: 'एडमिन डैशबोर्ड',
@@ -428,6 +493,13 @@ export const translations: { [key: string]: any } = {
             sosCancelButton: 'रद्द करें',
             sosActive: 'एसओएस सक्रिय',
             sosActiveText: 'मदद रास्ते में है। यदि संभव हो तो एक सुरक्षित, दृश्यमान स्थान पर चले जाएँ।',
+            getDirections: 'दिशा-निर्देश प्राप्त करें',
+            inviteModal: {
+                title: 'परिवार के सदस्य को आमंत्रित करें',
+                description: 'अपने परिवार के सदस्य को अपने हब में जोड़ने के लिए यह अनूठा लिंक साझा करें। यह लिंक 24 घंटे के लिए वैध है।',
+                copyLink: 'लिंक कॉपी करें',
+                linkCopied: 'आमंत्रण लिंक क्लिपबोर्ड पर कॉपी किया गया!',
+            },
         },
         sosCallModal: {
             title: 'आपातकालीन कार्रवाई आवश्यक',
@@ -444,7 +516,8 @@ export const translations: { [key: string]: any } = {
             placeholder: 'पूछें "भीड़ से दूर निकटतम शौचालय कहाँ है?"',
             search: 'मार्ग खोजें',
             routeFound: 'मार्ग मिल गया!',
-            error: 'क्षमा करें, मुझे कोई मार्ग नहीं मिला। कृपया पुनः प्रयास करें।'
+            error: 'क्षमा करें, मुझे कोई मार्ग नहीं मिला। कृपया पुनः प्रयास करें।',
+            routeTo: '{name} का मार्ग',
         },
         guide: {
             title: 'एआई तीर्थयात्री गाइड',
@@ -519,6 +592,31 @@ export const translations: { [key: string]: any } = {
             itemColorPlaceholder: "उदा., नीला",
             identifyingMarks: "पहचान चिह्न",
             identifyingMarksPlaceholder: "उदा., टूटी हुई स्क्रीन, पीठ पर एक स्टिकर"
+        },
+        myItems: {
+            title: 'मेरी वस्तुएं',
+            addItem: 'नई वस्तु जोड़ें',
+            noItems: 'आपने अभी तक कोई वस्तु पंजीकृत नहीं की है। मन की शांति के लिए अपना कीमती सामान जोड़ें।',
+            status: 'स्थिति',
+            safe: 'सुरक्षित',
+            lost: 'खो गया',
+            markAsLost: 'खो गया के रूप में चिह्नित करें',
+            viewDetails: 'विवरण देखें',
+            itemLost: 'वस्तु खो जाने की सूचना दी गई',
+            addModal: {
+                title: 'एक नई वस्तु जोड़ें',
+                editTitle: 'वस्तु संपादित करें',
+                uploadMultiple: 'छवियाँ अपलोड करें (सामने, पीछे, साइड, आदि)',
+                save: 'वस्तु सहेजें',
+                success: 'वस्तु सफलतापूर्वक जोड़ी गई!',
+                updateSuccess: 'वस्तु सफलतापूर्वक अपडेट की गई!',
+            },
+            markAsLostModal: {
+                title: 'वस्तु को खो गया के रूप में रिपोर्ट करें',
+                description: 'खोई हुई रिपोर्ट दर्ज करने के लिए कृपया इस वस्तु का अंतिम ज्ञात स्थान प्रदान करें।',
+                confirmButton: 'खोई हुई रिपोर्ट दर्ज करें',
+                success: 'खोई हुई रिपोर्ट सफलतापूर्वक दर्ज की गई! आप इसे "मेरी रिपोर्ट" में ट्रैक कर सकते हैं।',
+            }
         },
         myReports: {
             title: 'मेरी रिपोर्ट',

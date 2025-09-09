@@ -17,20 +17,45 @@ export const getNavigationRoute = async (query: string): Promise<{ text: string;
   console.log("Simulating Gemini API call for navigation with query:", query);
   await sleep(1500); // Simulate API latency
 
+  const lowerQuery = query.toLowerCase();
+
+  // Mock logic for navigating to family members
+  if (lowerQuery.includes('route to')) {
+    if (lowerQuery.includes('grandma sita')) {
+        return {
+            text: "Grandma Sita is near the Harsiddhi Temple. I've highlighted the safest, least crowded 8-minute walk for you.",
+            path: "M 50 85 C 40 70, 30 50, 65 30",
+        };
+    }
+    if (lowerQuery.includes('little anjali')) {
+        return {
+            text: "Anjali's SOS was activated near the river bank. The route is crowded, please be careful. Help is on the way to her location.",
+            path: "M 50 85 Q 30 50, 75 20",
+        };
+    }
+     if (lowerQuery.includes('uncle mohan')) {
+        return {
+            text: "Uncle Mohan is in the main market area. I'm routing you through a side-path to avoid the most congested sections.",
+            path: "M 50 85 C 60 70, 80 80, 60 80",
+        };
+    }
+  }
+
+
   // Mock logic based on keywords in the query
-  if (query.toLowerCase().includes('water')) {
+  if (lowerQuery.includes('water')) {
     return {
       text: "The nearest water station with low crowd is near Sector 5 medical camp. I've highlighted the 5-minute walking route for you.",
       path: "M 50 85 C 40 60, 60 40, 75 25"
     };
   }
-  if (query.toLowerCase().includes('toilet')) {
+  if (lowerQuery.includes('toilet')) {
     return {
       text: "There's a clean toilet facility behind the main stage. It's less crowded now. Follow the path I've marked on your map.",
       path: "M 50 85 Q 80 50, 40 20"
     };
   }
-  if (query.toLowerCase().includes('food')) {
+  if (lowerQuery.includes('food')) {
     return {
       text: "For 'prasad' with smaller queues, head towards Harsiddhi Temple area. It's a 10-minute walk from your current location.",
       path: "M 50 85 C 20 70, 20 30, 50 15"

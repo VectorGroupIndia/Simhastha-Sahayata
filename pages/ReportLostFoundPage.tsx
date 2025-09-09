@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useLocalization } from '../hooks/useLocalization';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
-import { LostFoundReport } from '../types';
+import { LostFoundReport, UserRole } from '../types';
 import { ImageZoomModal } from '../components/ui/ImageZoomModal';
 import { autofillReportForm, analyzeReportImage } from '../services/geminiService';
 import { Spinner } from '../components/ui/Spinner';
@@ -66,6 +66,10 @@ const ReportLostFoundPage: React.FC = () => {
 
   if (!isAuthenticated || !user) {
     return <Navigate to="/" />;
+  }
+
+  if (user.role === UserRole.ADMIN || user.role === UserRole.AUTHORITY) {
+    return <Navigate to="/dashboard" />;
   }
 
   const handleFile = (file: File) => {

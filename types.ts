@@ -13,6 +13,20 @@ export interface SosAlert {
   status: 'Broadcasted' | 'Responded' | 'Resolved';
 }
 
+// Represents a user's pre-registered valuable item.
+export interface RegisteredItem {
+    id: string;
+    name: string;
+    category: 'Item';
+    subCategory?: 'Bags & Luggage' | 'Electronics' | 'Documents & Cards' | 'Jewelry & Accessories' | 'Other';
+    brand?: string;
+    color?: string;
+    identifyingMarks?: string;
+    images: string[]; // Array of base64 encoded images
+    status: 'Safe' | 'Lost';
+}
+
+
 // Represents a user object.
 export interface User {
   id: number;
@@ -21,12 +35,13 @@ export interface User {
   avatar: string;
   emergencyContacts?: EmergencyContact[]; // For SOS calls
   sosHistory?: SosAlert[]; // For SOS history tracking
+  registeredItems?: RegisteredItem[]; // For the "My Items" feature
 }
 
 // Represents a family member in the Family Hub.
 export interface FamilyMember {
   id: number;
-  name: string;
+  name:string;
   avatar: string;
   location: { lat: number; lng: number };
   status: 'Safe' | 'Alert' | 'Lost';
@@ -41,11 +56,13 @@ export interface LostFoundReport {
     description: string;
     lastSeen: string;
     locationCoords?: { lat: number; lng: number }; // For map view
-    imageUrl?: string;
+    imageUrl?: string; // For single-image reports, can be the primary image from RegisteredItem
+    imageUrls?: string[]; // For multi-image reports
     reportedBy: string;
     reportedById: number;
     timestamp: string;
     status: 'Open' | 'In Progress' | 'Resolved';
+    originalItemId?: string; // Link back to the RegisteredItem
 
     // Details for a person
     personName?: string;
@@ -79,6 +96,12 @@ export interface EmergencyContact {
   name: string;
   phone: string;
 }
+
+// Props for the IntelligentNav component
+export interface IntelligentNavProps {
+  destinationMember?: FamilyMember;
+}
+
 
 // Add global declaration for jsPDF loaded from CDN
 // FIX: Changed to jsPDF and wrapped in declare global for proper module-scoped global type.
