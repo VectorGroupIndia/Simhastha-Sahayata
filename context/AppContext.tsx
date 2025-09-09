@@ -11,6 +11,8 @@ interface AppContextType {
   translations: any; // In a real app, this would be strongly typed
   isSosActive: boolean;
   setSosStatus: (isActive: boolean) => void;
+  sosConfirmed: boolean;
+  setSosConfirmed: (isConfirmed: boolean) => void;
 }
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -22,6 +24,7 @@ interface AppProviderProps {
 export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [language, setLanguage] = useState('en');
   const [isSosActive, setIsSosActive] = useState(false);
+  const [sosConfirmed, setSosConfirmed] = useState(false);
 
   // useMemo ensures that the translations object is only recalculated when the language changes.
   const translations = useMemo(() => appTranslations[language] || appTranslations.en, [language]);
@@ -36,6 +39,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     translations,
     isSosActive,
     setSosStatus,
+    sosConfirmed,
+    setSosConfirmed,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

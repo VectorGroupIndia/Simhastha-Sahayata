@@ -6,6 +6,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useLocalization } from '../../hooks/useLocalization';
 import { MapModal } from '../ui/MapModal';
 import { ImageZoomModal } from '../ui/ImageZoomModal';
+import { generateReportPdf } from '../../services/pdfService';
 
 interface ReportDetailsModalProps {
   isOpen: boolean;
@@ -84,6 +85,7 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
                     <DetailRow label={translations.report.type} value={report.type} />
                     <DetailRow label={translations.report.category} value={report.category} />
                     <DetailRow label={translations.myReports.reportedOn} value={new Date(report.timestamp).toLocaleString()} />
+                    <DetailRow label={translations.reportDetails.reportedBy} value={report.reportedBy} />
                     <hr/>
                     <DetailRow label={translations.report.personAge} value={report.personAge} />
                     <DetailRow label={translations.report.personGender} value={report.personGender} />
@@ -114,9 +116,12 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
                     </div>
                 </div>
             )}
-             <div className="mt-6 flex justify-end">
+             <div className="mt-6 flex justify-end gap-2">
                 <Button onClick={() => setMapOpen(true)} variant="secondary" disabled={!report.locationCoords}>
                     {translations.reportDetails.viewOnMap}
+                </Button>
+                <Button onClick={() => generateReportPdf(report)} variant="secondary">
+                    {translations.reportDetails.downloadPdf}
                 </Button>
             </div>
         </div>

@@ -19,6 +19,7 @@ import { ImageZoomModal } from '../components/ui/ImageZoomModal';
 import CrowdDensityIndicator from '../components/dashboard/CrowdDensityIndicator';
 import AiAlerts from '../components/dashboard/AiAlerts';
 import { UserGuideModal } from '../components/dashboard/UserGuideModal';
+import { ReportsMapView } from '../components/dashboard/ReportsMapView';
 
 // Icon Components defined locally
 const HeartIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>;
@@ -28,6 +29,9 @@ const PlusCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="
 const ArchiveIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 001.414 0l2.414-2.414a1 1 0 01.707-.293H21" /></svg>;
 const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" /></svg>;
 const QuestionMarkCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" /></svg>;
+const ListIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" /></svg>;
+const MapViewIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M11.95 2.006a.75.75 0 00-.9-.053l-4.25 2.5a.75.75 0 00-.45.698v10.198l-2.022-1.179a.75.75 0 00-.956.114l-2 2.5a.75.75 0 00.114.956l2.022 1.179v.699a.75.75 0 00.45.698l4.25 2.5a.75.75 0 00.9-.053l4.25-2.5a.75.75 0 00.45-.698V6.302l2.022 1.179a.75.75 0 00.956-.114l2-2.5a.75.75 0 00-.114-.956L14.022 3.03v-.699a.75.75 0 00-.45-.698l-4.25-2.5a.75.75 0 00-.372 0zM12.75 16.23v-9.69l-4.5 2.64v9.69l4.5-2.64z" clipRule="evenodd" /></svg>;
+
 
 const FilterDropdown: React.FC<{label: string, value: string, onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void, options: {value: string, label: string}[]}> = ({label, value, onChange, options}) => (
     <div className="w-full">
@@ -51,6 +55,8 @@ const MyReports: React.FC = () => {
     const [statusFilter, setStatusFilter] = useState('all');
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [typeFilter, setTypeFilter] = useState('all');
+    const [sortOption, setSortOption] = useState('dateNewest');
+    const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
     
     const [isAiSearching, setIsAiSearching] = useState(false);
     const [aiFilteredReportIds, setAiFilteredReportIds] = useState<string[] | null>(null);
@@ -125,7 +131,20 @@ const MyReports: React.FC = () => {
         if (aiFilteredReportIds !== null) {
             return aiFilteredReportIds.indexOf(a.id) - aiFilteredReportIds.indexOf(b.id);
         }
-        return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        // Sorting logic
+        switch (sortOption) {
+            case 'dateOldest':
+                return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+            case 'status':
+                return a.status.localeCompare(b.status);
+            case 'category':
+                return a.category.localeCompare(b.category);
+            case 'type':
+                return a.type.localeCompare(b.type);
+            case 'dateNewest':
+            default:
+                return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+        }
     });
 
     const statusOptions = [
@@ -144,24 +163,39 @@ const MyReports: React.FC = () => {
         { value: 'Lost', label: translations.filterBar.lost },
         { value: 'Found', label: translations.filterBar.found },
     ];
+     const sortOptions = [
+        { value: 'dateNewest', label: translations.filterBar.dateNewest },
+        { value: 'dateOldest', label: translations.filterBar.dateOldest },
+        { value: 'status', label: translations.filterBar.statusSort },
+        { value: 'category', label: translations.filterBar.categorySort },
+        { value: 'type', label: translations.filterBar.typeSort },
+    ];
 
     return (
         <>
             <Card>
-                {/* IMPROVEMENT: Replaced stacked labels with a cleaner, responsive horizontal filter bar */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
                     <h3 className="text-2xl font-bold flex-shrink-0">{translations.myReports.title}</h3>
+                     <div className="inline-flex rounded-md shadow-sm bg-gray-100 p-1">
+                        <button onClick={() => setViewMode('list')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center ${viewMode === 'list' ? 'bg-white text-orange-600 shadow' : 'text-gray-600'}`}>
+                            <ListIcon/> {translations.myReports.listView}
+                        </button>
+                        <button onClick={() => setViewMode('map')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center ${viewMode === 'map' ? 'bg-white text-orange-600 shadow' : 'text-gray-600'}`}>
+                            <MapViewIcon/> {translations.myReports.mapView}
+                        </button>
+                    </div>
                 </div>
-                 <div className="w-full grid grid-cols-1 md:grid-cols-5 gap-2 items-center justify-end mb-4 p-3 bg-gray-50 rounded-lg">
-                    <div className="relative w-full md:col-span-2">
+                {viewMode === 'list' && (
+                 <>
+                 <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2 items-center justify-end mb-4 p-3 bg-gray-50 rounded-lg">
+                    <div className="relative w-full lg:col-span-2">
                         <input
                             type="text"
                             placeholder={translations.myReports.searchPlaceholder}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && handleAiSearch()}
-                            // FIX: Added styling classes to ensure visibility
-                            className="w-full pl-10 pr-4 py-2 bg-white text-gray-900 border border-gray-300 rounded-full"
+                            className="w-full pl-10 pr-12 py-2 bg-white text-gray-900 border border-gray-300 rounded-full"
                         />
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <SearchIcon />
@@ -178,6 +212,9 @@ const MyReports: React.FC = () => {
                     <FilterDropdown label={translations.filterBar.statusLabel} value={statusFilter} onChange={e => setStatusFilter(e.target.value)} options={statusOptions} />
                     <FilterDropdown label={translations.filterBar.categoryLabel} value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} options={categoryOptions} />
                     <FilterDropdown label={translations.filterBar.typeLabel} value={typeFilter} onChange={e => setTypeFilter(e.target.value)} options={typeOptions} />
+                    <div className="lg:col-span-2 lg:col-start-4">
+                     <FilterDropdown label={translations.filterBar.sortLabel} value={sortOption} onChange={e => setSortOption(e.target.value)} options={sortOptions.map(opt => ({...opt, label: `${translations.filterBar.sortLabel}: ${opt.label}`}))} />
+                    </div>
                 </div>
                 
                 {aiFilteredReportIds !== null && (
@@ -233,6 +270,11 @@ const MyReports: React.FC = () => {
                         }
                     </p>
                 )}
+                </>
+             )}
+             {viewMode === 'map' && (
+                <ReportsMapView reports={filteredReports} onSelectReport={openDetailsModal} />
+             )}
             </Card>
             <ReportDetailsModal 
                 isOpen={!!selectedReport}
@@ -332,7 +374,7 @@ const DashboardPage: React.FC = () => {
           {user.role === UserRole.PILGRIM && (
             <Button onClick={() => setIsGuideOpen(true)} variant="secondary" className="text-sm flex items-center">
               <QuestionMarkCircleIcon />
-              {translations.dashboard.help}
+              {translations.dashboard.userGuide}
             </Button>
           )}
           <Button onClick={() => navigate('/report')} className="text-lg flex items-center">

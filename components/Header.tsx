@@ -28,7 +28,7 @@ const Header: React.FC = () => {
   if (!appContext) {
     throw new Error("AppContext not found");
   }
-  const { isSosActive, setSosStatus } = appContext;
+  const { isSosActive, setSosStatus, setSosConfirmed } = appContext;
 
   const handleLogout = () => {
     logout();
@@ -50,6 +50,7 @@ const Header: React.FC = () => {
   const confirmSOS = () => {
     setSosStatus(true);
     setIsSosModalOpen(false);
+    setSosConfirmed(true); // Trigger the follow-up modal
   };
 
 

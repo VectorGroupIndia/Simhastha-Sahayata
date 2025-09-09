@@ -9,10 +9,12 @@ import { ImageZoomModal } from '../components/ui/ImageZoomModal';
 import { autofillReportForm, analyzeReportImage } from '../services/geminiService';
 import { Spinner } from '../components/ui/Spinner';
 import { MOCK_LOST_FOUND_REPORTS } from '../data/mockData';
+import { generateReportPdf } from '../services/pdfService';
 
 type ReportStep = 'instructions' | 'form' | 'review' | 'confirmation';
 type ReportType = 'Lost' | 'Found';
 type ReportCategory = 'Person' | 'Item';
+type ReportSubCategory = 'Bags & Luggage' | 'Electronics' | 'Documents & Cards' | 'Jewelry & Accessories' | 'Other';
 
 const SparklesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 17l-4 4 4-4 2.293-2.293a1 1 0 011.414 0L17 14m-5-5l2.293 2.293a1 1 0 010 1.414L10 17" /></svg>;
 const CameraIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
@@ -33,6 +35,7 @@ const ReportLostFoundPage: React.FC = () => {
   const [agreed, setAgreed] = useState(false);
   const [reportType, setReportType] = useState<ReportType>('Lost');
   const [category, setCategory] = useState<ReportCategory>('Person');
+  const [subCategory, setSubCategory] = useState<ReportSubCategory | undefined>(undefined);
   const [description, setDescription] = useState('');
   const [lastSeen, setLastSeen] = useState('');
   const [imageBase64, setImageBase64] = useState<string | null>(null);
@@ -71,6 +74,7 @@ const ReportLostFoundPage: React.FC = () => {
           reader.onloadend = () => {
               setImageBase64(reader.result as string);
           };
+          // FIX: Corrected FileReader method name from readDataURL to readAsDataURL.
           reader.readAsDataURL(file);
       }
   };
@@ -123,7 +127,7 @@ const ReportLostFoundPage: React.FC = () => {
         status: 'Open',
         imageUrl: imageBase64 || undefined,
         ...(category === 'Person' && { personName, personAge, personGender, clothingAppearance }),
-        ...(category === 'Item' && { itemName, itemBrand, itemColor, identifyingMarks }),
+        ...(category === 'Item' && { itemName, itemBrand, itemColor, identifyingMarks, subCategory }),
     };
     setReportToReview(reportData);
     setStep('review');
@@ -185,45 +189,9 @@ const ReportLostFoundPage: React.FC = () => {
     }
   };
 
-
-  const generateReportText = (report: LostFoundReport): string => {
-    let content = `** Simhastha Sahayata - Report Summary **\n\n`;
-    content += `Report ID: ${report.id}\n`;
-    content += `Date: ${new Date(report.timestamp).toLocaleString()}\n`;
-    content += `Status: ${report.status}\n\n`;
-    content += `--- Details ---\n`;
-    content += `Type: ${report.type}\n`;
-    content += `Category: ${report.category}\n`;
-    content += `Last Seen: ${report.lastSeen}\n`;
-    
-    if (report.category === 'Person') {
-        content += `Person's Name: ${report.personName || 'N/A'}\n`;
-        content += `Approx. Age: ${report.personAge || 'N/A'}\n`;
-        content += `Gender: ${report.personGender || 'N/A'}\n`;
-        content += `Clothing/Appearance: ${report.clothingAppearance || 'N/A'}\n`;
-    } else {
-        content += `Item Name: ${report.itemName || 'N/A'}\n`;
-        content += `Brand: ${report.itemBrand || 'N/A'}\n`;
-        content += `Color: ${report.itemColor || 'N/A'}\n`;
-        content += `Identifying Marks: ${report.identifyingMarks || 'N/A'}\n`;
-    }
-    content += `\nDescription: ${report.description}\n`;
-    content += `\nReported By: ${report.reportedBy}\n`;
-    return content;
-  };
-
   const handleDownload = () => {
     if (!submittedReport) return;
-    const reportText = generateReportText(submittedReport);
-    const blob = new Blob([reportText], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Report-${submittedReport.id}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    generateReportPdf(submittedReport);
   };
 
 
@@ -232,6 +200,7 @@ const ReportLostFoundPage: React.FC = () => {
     setAgreed(false);
     setReportType('Lost');
     setCategory('Person');
+    setSubCategory(undefined);
     setDescription('');
     setLastSeen('');
     setImageBase64(null);
@@ -261,6 +230,7 @@ const ReportLostFoundPage: React.FC = () => {
                     <p><strong>{translations.myReports.id}:</strong> <span className="font-mono bg-gray-200 px-1 rounded">{report.id}</span></p>
                     <p><strong>{translations.report.type}:</strong> {report.type}</p>
                     <p><strong>{translations.report.category}:</strong> {report.category}</p>
+                    {report.subCategory && <p><strong>{translations.report.subCategory}:</strong> {report.subCategory}</p>}
                     {report.personName && <p><strong>{translations.report.personName}:</strong> {report.personName}</p>}
                     {report.personAge && <p><strong>{translations.report.personAge}:</strong> {report.personAge}</p>}
                     {report.personGender && <p><strong>{translations.report.personGender}:</strong> {report.personGender}</p>}
@@ -332,10 +302,31 @@ const ReportLostFoundPage: React.FC = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">{translations.report.category}</label>
               <div className="flex gap-4">
-                <Button type="button" variant={category === 'Person' ? 'primary' : 'secondary'} onClick={() => setCategory('Person')}>{translations.report.person}</Button>
+                <Button type="button" variant={category === 'Person' ? 'primary' : 'secondary'} onClick={() => { setCategory('Person'); setSubCategory(undefined); }}>{translations.report.person}</Button>
                 <Button type="button" variant={category === 'Item' ? 'primary' : 'secondary'} onClick={() => setCategory('Item')}>{translations.report.item}</Button>
               </div>
             </div>
+
+            {category === 'Item' && (
+                <div className="animate-fade-in">
+                    <label htmlFor="subCategory" className="block text-sm font-medium text-gray-700">{translations.report.subCategory}</label>
+                    <select
+                        id="subCategory"
+                        value={subCategory || ''}
+                        onChange={e => setSubCategory(e.target.value as ReportSubCategory)}
+                        required
+                        className="mt-1 block w-full bg-white text-gray-900 rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
+                    >
+                        <option value="">{translations.report.selectSubCategory}</option>
+                        <option value="Bags & Luggage">{translations.report.subCategories.bags}</option>
+                        <option value="Electronics">{translations.report.subCategories.electronics}</option>
+                        <option value="Documents & Cards">{translations.report.subCategories.documents}</option>
+                        <option value="Jewelry & Accessories">{translations.report.subCategories.jewelry}</option>
+                        <option value="Other">{translations.report.subCategories.other}</option>
+                    </select>
+                </div>
+            )}
+
 
             <div>
               <label className="block text-sm font-medium text-gray-700">{translations.report.upload}</label>

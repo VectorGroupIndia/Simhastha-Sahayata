@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
-import { AppProvider } from './context/AppContext';
+import { AppProvider, AppContext } from './context/AppContext';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import HomePage from './pages/HomePage';
@@ -15,7 +15,7 @@ import ProfilePage from './pages/ProfilePage';
 import CookieConsentBanner from './components/CookieConsentBanner';
 import CookieSettingsModal from './components/CookieSettingsModal';
 import ToastContainer from './components/ToastContainer';
-
+import { SosCallModal } from './components/dashboard/SosCallModal';
 
 /**
  * The root component of the application.
@@ -23,8 +23,22 @@ import ToastContainer from './components/ToastContainer';
  * Note: HashRouter is used as per project constraints to avoid URL path manipulation.
  */
 function App() {
+  return (
+    <AppProvider>
+      <AuthProvider>
+        <ToastProvider>
+          <MainApp />
+        </ToastProvider>
+      </AuthProvider>
+    </AppProvider>
+  );
+}
+
+// MainApp component to access context from providers
+const MainApp = () => {
   const [showCookieBanner, setShowCookieBanner] = useState(false);
   const [isCookieModalOpen, setIsCookieModalOpen] = useState(false);
+  const appContext = useContext(AppContext);
 
   useEffect(() => {
     const consent = localStorage.getItem('cookie_consent');
@@ -53,45 +67,45 @@ function App() {
     setShowCookieBanner(false);
   };
 
+  if (!appContext) return null; // Should not happen
 
   return (
-    <AppProvider>
-      <AuthProvider>
-        <ToastProvider>
-          <HashRouter>
-            <div className="flex flex-col min-h-screen bg-orange-50 text-gray-800 font-sans">
-              <Header />
-              <main className="flex-grow">
-                <Routes>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/dashboard" element={<DashboardPage />} />
-                  <Route path="/report" element={<ReportLostFoundPage />} />
-                  <Route path="/about" element={<AboutUsPage />} />
-                  <Route path="/contact" element={<ContactUsPage />} />
-                  <Route path="/faq" element={<FAQPage />} />
-                  <Route path="/profile" element={<ProfilePage />} />
-                </Routes>
-              </main>
-              <Footer />
-              <ToastContainer />
-              {showCookieBanner && (
-                <CookieConsentBanner 
-                  onAccept={handleAcceptCookies}
-                  onReject={handleRejectCookies}
-                  onModify={handleModifyCookies}
-                />
-              )}
-              <CookieSettingsModal
-                isOpen={isCookieModalOpen}
-                onClose={() => setIsCookieModalOpen(false)}
-                onSave={handleSaveCookieSettings}
-              />
-            </div>
-          </HashRouter>
-        </ToastProvider>
-      </AuthProvider>
-    </AppProvider>
+    <HashRouter>
+      <div className="flex flex-col min-h-screen bg-orange-50 text-gray-800 font-sans">
+        <Header />
+        <main className="flex-grow">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/report" element={<ReportLostFoundPage />} />
+            <Route path="/about" element={<AboutUsPage />} />
+            <Route path="/contact" element={<ContactUsPage />} />
+            <Route path="/faq" element={<FAQPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+          </Routes>
+        </main>
+        <Footer />
+        <ToastContainer />
+        {showCookieBanner && (
+          <CookieConsentBanner 
+            onAccept={handleAcceptCookies}
+            onReject={handleRejectCookies}
+            onModify={handleModifyCookies}
+          />
+        )}
+        <CookieSettingsModal
+          isOpen={isCookieModalOpen}
+          onClose={() => setIsCookieModalOpen(false)}
+          onSave={handleSaveCookieSettings}
+        />
+        <SosCallModal 
+          isOpen={appContext.sosConfirmed}
+          onClose={() => appContext.setSosConfirmed(false)}
+        />
+      </div>
+    </HashRouter>
   );
 }
+
 
 export default App;

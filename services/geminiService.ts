@@ -81,49 +81,136 @@ export const getAiSearchResults = async (query: string, reports: LostFoundReport
 
   const lowerCaseQuery = query.toLowerCase();
 
-  // This is a simplified mock of what a real AI would do.
-  // It checks for keywords and semantic concepts.
+  // More extensive synonym dictionary, especially for clothing and accessories
+  const synonyms: { [key: string]: string[] } = {
+    'bag': ['backpack', 'luggage', 'suitcase', 'rucksack', 'purse', 'handbag'],
+    'backpack': ['bag', 'rucksack'],
+    'phone': ['smartphone', 'mobile', 'cellphone'],
+    'child': ['boy', 'girl', 'son', 'daughter', 'kid', 'toddler', 'infant'],
+    'man': ['gentleman', 'male', 'father', 'husband'],
+    'woman': ['lady', 'female', 'mother', 'wife', 'grandmother'],
+    'elderly': ['old', 'senior', 'grandma', 'grandpa', 'grandmother', 'grandfather'],
+    'old': ['elderly', 'senior'],
+    'shirt': ['t-shirt', 'top', 'blouse', 'kurta'],
+    'pants': ['trousers', 'jeans', 'shorts', 'pyjamas'],
+    'jewelry': ['necklace', 'bracelet', 'earrings', 'ring', 'bangle'],
+    'document': ['card', 'id', 'passport', 'wallet', 'license'],
+    'wallet': ['purse', 'document'],
+    'card': ['document', 'id', 'license'],
+    'glasses': ['spectacles', 'eyewear'],
+  };
+
+  const colors = ['red', 'blue', 'green', 'black', 'white', 'yellow', 'orange', 'purple', 'brown', 'grey', 'gray', 'pink', 'silver', 'gold'];
+
+  // Utility to get all synonyms for a word, including the word itself
+  const getSynonyms = (word: string): string[] => {
+    return [word, ...(synonyms[word] || [])];
+  };
+
+  const queryWords = new Set(lowerCaseQuery.split(' ').filter(w => w.length > 2));
+  
   const rankedResults: { id: string, score: number }[] = [];
 
   reports.forEach(report => {
     let score = 0;
-    const reportText = JSON.stringify(report).toLowerCase();
 
-    // Simple keyword matching for demonstration
-    if (lowerCaseQuery.includes('old woman') || lowerCaseQuery.includes('elderly lady') || (lowerCaseQuery.includes('woman') && (report.personAge && parseInt(report.personAge, 10) > 60))) {
-      if (report.personGender?.toLowerCase() === 'female' && report.personAge && parseInt(report.personAge, 10) > 60) {
-        score += 5;
-      }
-    }
-    if (lowerCaseQuery.includes('saree') && report.clothingAppearance?.toLowerCase().includes('saree')) {
-      score += 4;
-    }
-    if (lowerCaseQuery.includes('temple') && report.lastSeen?.toLowerCase().includes('temple')) {
-      score += 3;
-    }
-    if (lowerCaseQuery.includes('child') || lowerCaseQuery.includes('boy')) {
-        if(report.personAge && parseInt(report.personAge, 10) < 10){
-            score += 5;
-        }
-    }
-    if (lowerCaseQuery.includes('red t-shirt') && report.clothingAppearance?.toLowerCase().includes('red t-shirt')) {
-        score += 4;
-    }
-    if (lowerCaseQuery.includes('wallet') && report.itemName?.toLowerCase().includes('wallet')) {
-        score += 5;
-    }
-     if (lowerCaseQuery.includes('black') && report.itemColor?.toLowerCase().includes('black')) {
-        score += 2;
-    }
-
-    // Generic word matching
-    lowerCaseQuery.split(' ').forEach(word => {
-        if(word.length > 2 && reportText.includes(word)) {
-            score += 1;
-        }
+    // Field-specific weighted scoring
+    const checkField = (fieldValue: string | undefined | null, weight: number, exact = false) => {
+        if (!fieldValue) return;
+        const text = fieldValue.toLowerCase();
+        queryWords.forEach(word => {
+            const wordSynonyms = getSynonyms(word);
+            for (const s of wordSynonyms) {
+                if (exact && text === s) {
+                    score += weight;
+                    break;
+                }
+                if (!exact && text.includes(s)) {
+                    score += weight;
+                    break;
+                }
+            }
+        });
+    };
+    
+    // 1. Category check - very important
+    const personQueryWords = new Set(['person', 'child', 'woman', 'man', 'son', 'daughter', 'boy', 'girl', 'elderly']);
+    const itemQueryWords = new Set(['item', 'bag', 'phone', 'wallet', 'backpack', 'jewelry', 'document']);
+    
+    let isPersonQuery = false;
+    let isItemQuery = false;
+    queryWords.forEach(word => {
+        if(personQueryWords.has(word)) isPersonQuery = true;
+        if(itemQueryWords.has(word)) isItemQuery = true;
     });
 
-    if (score > 0) {
+    if (report.category === 'Person') {
+        if (isPersonQuery) score += 10;
+        else if (isItemQuery) score -= 20; // Heavy penalty for category mismatch
+    } else if (report.category === 'Item') {
+        if (isItemQuery) score += 10;
+        else if (isPersonQuery) score -= 20; // Heavy penalty
+    }
+
+    // 2. Score main identifiers
+    checkField(report.personName, 15);
+    checkField(report.itemName, 15);
+    checkField(report.subCategory, 8, true);
+    checkField(report.itemBrand, 10);
+    checkField(report.itemColor, 10, true);
+
+    // 3. Score descriptive fields
+    checkField(report.description, 2);
+    checkField(report.identifyingMarks, 6);
+
+    // 4. Advanced clothing/appearance scoring
+    if (report.clothingAppearance) {
+        const clothingText = report.clothingAppearance.toLowerCase();
+        let clothingItemMatches = 0;
+        let colorInClothingMatch = false;
+
+        const clothingKeywords = new Set([
+            ...getSynonyms('shirt'), ...getSynonyms('pants'), ...getSynonyms('jewelry'), ...getSynonyms('glasses'),
+            'dress', 'saree', 'kurta', 'hat', 'cap', 'scarf', 'shawl', 'shoes', 'sandals',
+        ]);
+        
+        const queryClothingWords = new Set<string>();
+        queryWords.forEach(word => {
+            if(clothingKeywords.has(word)) queryClothingWords.add(word);
+        });
+
+        queryClothingWords.forEach(word => {
+            if(clothingText.includes(word)) {
+                clothingItemMatches++;
+                score += 5;
+            }
+        });
+
+        queryWords.forEach(word => {
+            if (colors.includes(word) && clothingText.includes(word)) {
+                colorInClothingMatch = true;
+                score += 6;
+            }
+        });
+        
+        // Bonus for matching both color and item type in query and clothing description
+        if (colorInClothingMatch && clothingItemMatches > 0) {
+            score += 8;
+        }
+    }
+    
+    // 5. Demographic matching
+    if (report.category === 'Person' && report.personAge) {
+        const age = parseInt(report.personAge, 10);
+        if (!isNaN(age)) {
+            if ((queryWords.has('child') || queryWords.has('kid')) && age < 12) score += 8;
+            if (queryWords.has('toddler') && age < 4) score += 10;
+            if ((queryWords.has('elderly') || queryWords.has('senior')) && age > 65) score += 10;
+        }
+    }
+
+
+    if (score > 5) { // Threshold for a result to be considered relevant
       rankedResults.push({ id: report.id, score });
     }
   });
@@ -131,10 +218,11 @@ export const getAiSearchResults = async (query: string, reports: LostFoundReport
   // Sort by score descending
   const sortedResults = rankedResults.sort((a, b) => b.score - a.score);
 
-  console.log("AI Search ranked results:", sortedResults);
+  console.log("AI Search refined ranked results:", sortedResults);
 
   return sortedResults.map(r => r.id);
 };
+
 
 /**
  * Simulates a Gemini API call to parse a natural language prompt and autofill a report form.
@@ -207,7 +295,7 @@ export const autofillReportForm = async (prompt: string): Promise<Partial<LostFo
 };
 
 /**
- * NEW: Simulates a Gemini API call to analyze an image and extract details for a report.
+ * Simulates a Gemini API call to analyze an image and extract details for a report.
  * @param imageBase64 - The base64 encoded string of the image to analyze.
  * @returns A promise that resolves to a partial LostFoundReport object with extracted details.
  */

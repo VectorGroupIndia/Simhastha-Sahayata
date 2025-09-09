@@ -25,7 +25,7 @@ const FamilyHub: React.FC = () => {
     if (!appContext) {
         throw new Error("AppContext not found");
     }
-    const { isSosActive, setSosStatus } = appContext;
+    const { isSosActive, setSosStatus, setSosConfirmed } = appContext;
 
 
     const handleSOS = () => {
@@ -35,6 +35,7 @@ const FamilyHub: React.FC = () => {
     const confirmSOS = () => {
         setSosStatus(true);
         setIsSosModalOpen(false);
+        setSosConfirmed(true); // Trigger the follow-up modal
         // In a real app, this would trigger a backend call
         console.log("SOS Confirmed! Alerting network.");
     };

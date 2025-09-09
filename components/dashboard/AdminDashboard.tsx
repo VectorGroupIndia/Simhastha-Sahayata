@@ -38,6 +38,7 @@ const AdminDashboard: React.FC = () => {
     const [statusFilter, setStatusFilter] = useState('all');
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [typeFilter, setTypeFilter] = useState('all');
+    const [sortOption, setSortOption] = useState('dateNewest');
     const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
 
     const [isAiSearching, setIsAiSearching] = useState(false);
@@ -106,8 +107,20 @@ const AdminDashboard: React.FC = () => {
         if (aiFilteredReportIds !== null) {
             return aiFilteredReportIds.indexOf(a.id) - aiFilteredReportIds.indexOf(b.id);
         }
-        // Otherwise, sort by timestamp
-        return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+        // Sorting logic
+        switch (sortOption) {
+            case 'dateOldest':
+                return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+            case 'status':
+                return a.status.localeCompare(b.status);
+            case 'category':
+                return a.category.localeCompare(b.category);
+            case 'type':
+                return a.type.localeCompare(b.type);
+            case 'dateNewest':
+            default:
+                return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+        }
     });
 
     const statusOptions = [
@@ -126,6 +139,14 @@ const AdminDashboard: React.FC = () => {
         { value: 'Lost', label: translations.filterBar.lost },
         { value: 'Found', label: translations.filterBar.found },
     ];
+     const sortOptions = [
+        { value: 'dateNewest', label: translations.filterBar.dateNewest },
+        { value: 'dateOldest', label: translations.filterBar.dateOldest },
+        { value: 'status', label: translations.filterBar.statusSort },
+        { value: 'category', label: translations.filterBar.categorySort },
+        { value: 'type', label: translations.filterBar.typeSort },
+    ];
+
 
     return (
         <>
@@ -140,8 +161,8 @@ const AdminDashboard: React.FC = () => {
                 <Card>
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
                         <h3 className="text-xl font-bold flex-shrink-0">{translations.dashboard.admin.recentReports}</h3>
-                        <div className="w-full sm:w-auto flex-grow flex flex-col md:flex-row gap-2 items-center justify-end">
-                            <div className="relative w-full md:w-64">
+                        <div className="w-full sm:w-auto flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2 items-center justify-end">
+                            <div className="relative w-full lg:col-span-2">
                                 <input
                                     type="text"
                                     placeholder={translations.dashboard.admin.searchPlaceholder}
@@ -153,19 +174,22 @@ const AdminDashboard: React.FC = () => {
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <SearchIcon />
                                 </div>
+                                <button
+                                    onClick={handleAiSearch}
+                                    disabled={isAiSearching || !searchQuery.trim()}
+                                    title={translations.dashboard.admin.aiSearchTooltip}
+                                    className="absolute inset-y-0 right-0 flex items-center justify-center gap-2 w-10 h-10 text-white bg-orange-500 rounded-full hover:bg-orange-600 disabled:bg-orange-300 transition-colors"
+                                >
+                                    {isAiSearching ? <Spinner size="sm" /> : <SparklesIcon />}
+                                </button>
                             </div>
-                            <button
-                                onClick={handleAiSearch}
-                                disabled={isAiSearching || !searchQuery.trim()}
-                                title={translations.dashboard.admin.aiSearchTooltip}
-                                className="flex items-center justify-center gap-2 w-full md:w-auto px-4 py-2 text-sm font-medium text-white bg-orange-500 rounded-full hover:bg-orange-600 disabled:bg-orange-300 transition-colors"
-                            >
-                                {isAiSearching ? <Spinner size="sm" /> : <SparklesIcon />}
-                                <span>{isAiSearching ? translations.dashboard.admin.aiSearching : translations.dashboard.admin.aiSearch}</span>
-                            </button>
+                           
                             <FilterDropdown label={translations.filterBar.statusLabel} value={statusFilter} onChange={e => setStatusFilter(e.target.value)} options={statusOptions} />
                             <FilterDropdown label={translations.filterBar.categoryLabel} value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} options={categoryOptions} />
                             <FilterDropdown label={translations.filterBar.typeLabel} value={typeFilter} onChange={e => setTypeFilter(e.target.value)} options={typeOptions} />
+                             <div className="lg:col-start-4">
+                                <FilterDropdown label={translations.filterBar.sortLabel} value={sortOption} onChange={e => setSortOption(e.target.value)} options={sortOptions.map(opt => ({...opt, label: `${translations.filterBar.sortLabel}: ${opt.label}`}))} />
+                            </div>
                         </div>
                     </div>
                     {aiFilteredReportIds !== null && (
