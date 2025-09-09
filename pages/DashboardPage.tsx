@@ -18,6 +18,7 @@ import { Spinner } from '../components/ui/Spinner';
 import { ImageZoomModal } from '../components/ui/ImageZoomModal';
 import CrowdDensityIndicator from '../components/dashboard/CrowdDensityIndicator';
 import AiAlerts from '../components/dashboard/AiAlerts';
+import { UserGuideModal } from '../components/dashboard/UserGuideModal';
 
 // Icon Components defined locally
 const HeartIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>;
@@ -26,6 +27,7 @@ const SparklesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-
 const PlusCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
 const ArchiveIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 001.414 0l2.414-2.414a1 1 0 01.707-.293H21" /></svg>;
 const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" /></svg>;
+const QuestionMarkCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" /></svg>;
 
 const FilterDropdown: React.FC<{label: string, value: string, onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void, options: {value: string, label: string}[]}> = ({label, value, onChange, options}) => (
     <div className="w-full">
@@ -257,6 +259,7 @@ const DashboardPage: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
   const { translations } = useLocalization();
   const [activeTab, setActiveTab] = useState('hub');
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
   const navigate = useNavigate();
 
   if (!isAuthenticated || !user) {
@@ -272,31 +275,34 @@ const DashboardPage: React.FC = () => {
     ];
     
     return (
-      <div className="space-y-6">
-        <CrowdDensityIndicator />
-        <AiAlerts />
+      <>
+        <div className="space-y-6">
+          <CrowdDensityIndicator />
+          <AiAlerts />
 
-        <div className="bg-white rounded-full shadow-md p-2 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex items-center justify-center p-3 rounded-full text-sm font-semibold transition-colors ${
-                activeTab === tab.id ? 'bg-orange-500 text-white shadow' : 'text-gray-600 hover:bg-orange-100'
-              }`}
-            >
-              {tab.icon}
-              <span className="ml-2 hidden md:inline">{tab.name}</span>
-            </button>
-          ))}
+          <div className="bg-white rounded-full shadow-md p-2 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 flex items-center justify-center p-3 rounded-full text-sm font-semibold transition-colors ${
+                  activeTab === tab.id ? 'bg-orange-500 text-white shadow' : 'text-gray-600 hover:bg-orange-100'
+                }`}
+              >
+                {tab.icon}
+                <span className="ml-2 hidden md:inline">{tab.name}</span>
+              </button>
+            ))}
+          </div>
+          <div>
+            {activeTab === 'hub' && <FamilyHub />}
+            {activeTab === 'nav' && <IntelligentNav />}
+            {activeTab === 'guide' && <PilgrimGuide />}
+            {activeTab === 'reports' && <MyReports />}
+          </div>
         </div>
-        <div>
-          {activeTab === 'hub' && <FamilyHub />}
-          {activeTab === 'nav' && <IntelligentNav />}
-          {activeTab === 'guide' && <PilgrimGuide />}
-          {activeTab === 'reports' && <MyReports />}
-        </div>
-      </div>
+        <UserGuideModal isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} />
+      </>
     );
   };
 
@@ -322,10 +328,18 @@ const DashboardPage: React.FC = () => {
             <h1 className="text-4xl font-bold text-gray-800">{translations.dashboard.greeting}, {user.name}!</h1>
             <p className="text-lg text-gray-500">Role: {user.role}</p>
         </div>
-        <Button onClick={() => navigate('/report')} className="text-lg flex items-center">
-            <PlusCircleIcon />
-            {translations.dashboard.fileReport}
-        </Button>
+        <div className="flex items-center gap-2">
+          {user.role === UserRole.PILGRIM && (
+            <Button onClick={() => setIsGuideOpen(true)} variant="secondary" className="text-sm flex items-center">
+              <QuestionMarkCircleIcon />
+              {translations.dashboard.help}
+            </Button>
+          )}
+          <Button onClick={() => navigate('/report')} className="text-lg flex items-center">
+              <PlusCircleIcon />
+              {translations.dashboard.fileReport}
+          </Button>
+        </div>
       </div>
       {renderDashboardByRole()}
     </div>

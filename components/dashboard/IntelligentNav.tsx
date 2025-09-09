@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
@@ -20,7 +19,7 @@ const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 
 const IntelligentNav: React.FC = () => {
   const [query, setQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [route, setRoute] = useState<string | null>(null);
+  const [route, setRoute] = useState<{ text: string; path: string } | null>(null);
   const { translations } = useLocalization();
 
   const handleSearch = async () => {
@@ -28,12 +27,13 @@ const IntelligentNav: React.FC = () => {
     setIsLoading(true);
     setRoute(null);
     try {
-      // This simulates a call to the Gemini API
+      // This simulates a call to the Gemini API which now returns a structured object
       const result = await getNavigationRoute(query);
       setRoute(result);
-    } catch (error) {
+    } catch (error)
+ {
       console.error("Navigation error:", error);
-      setRoute(translations.navigation.error);
+      setRoute({ text: translations.navigation.error, path: '' });
     } finally {
       setIsLoading(false);
     }
@@ -69,13 +69,42 @@ const IntelligentNav: React.FC = () => {
       <div className="aspect-video bg-gray-200 rounded-lg relative overflow-hidden flex items-center justify-center">
         <img src="https://i.imgur.com/3Z3tV8C.png" alt="Map of Kumbh Mela area" className="w-full h-full object-cover"/>
         {isLoading && <div className="absolute inset-0 bg-white/50 flex items-center justify-center"><Spinner /></div>}
+        
+        {route && route.path && (
+          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <path
+              d={route.path}
+              stroke="rgba(249, 115, 22, 0.8)"
+              strokeWidth="2"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="animate-draw-path"
+              style={{
+                strokeDasharray: 1000,
+                strokeDashoffset: 1000,
+              }}
+            />
+          </svg>
+        )}
+
         {route && (
           <div className="absolute top-4 left-4 right-4 bg-white/90 p-3 rounded-lg shadow-lg animate-fade-in-up">
             <p className="font-semibold text-orange-600">{translations.navigation.routeFound}</p>
-            <p className="text-gray-700">{route}</p>
+            <p className="text-gray-700">{route.text}</p>
           </div>
         )}
       </div>
+      <style>{`
+        @keyframes draw {
+          to {
+            stroke-dashoffset: 0;
+          }
+        }
+        .animate-draw-path {
+          animation: draw 2s ease-in-out forwards;
+        }
+      `}</style>
     </Card>
   );
 };

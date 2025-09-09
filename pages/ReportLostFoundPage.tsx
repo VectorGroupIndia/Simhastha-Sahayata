@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useLocalization } from '../hooks/useLocalization';
@@ -35,12 +35,12 @@ const ReportLostFoundPage: React.FC = () => {
   const [category, setCategory] = useState<ReportCategory>('Person');
   const [description, setDescription] = useState('');
   const [lastSeen, setLastSeen] = useState('');
-  const [image, setImage] = useState<File | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [isZoomModalOpen, setIsZoomModalOpen] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [isAutofilling, setIsAutofilling] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
 
 
   // Person-specific state
@@ -65,17 +65,48 @@ const ReportLostFoundPage: React.FC = () => {
     return <Navigate to="/" />;
   }
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImageBase64(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleFile = (file: File) => {
+      if (file && file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+              setImageBase64(reader.result as string);
+          };
+          reader.readAsDataURL(file);
+      }
   };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files && e.target.files[0]) {
+          handleFile(e.target.files[0]);
+      }
+  };
+  
+  const handleDrop = useCallback((e: React.DragEvent<HTMLLabelElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDraggingOver(false);
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+          handleFile(e.dataTransfer.files[0]);
+      }
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLLabelElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+  }, []);
+
+  const handleDragEnter = useCallback((e: React.DragEvent<HTMLLabelElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDraggingOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent<HTMLLabelElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDraggingOver(false);
+  }, []);
+
 
   const handleReview = (e: React.FormEvent) => {
     e.preventDefault();
@@ -203,7 +234,6 @@ const ReportLostFoundPage: React.FC = () => {
     setCategory('Person');
     setDescription('');
     setLastSeen('');
-    setImage(null);
     setImageBase64(null);
     setPersonName('');
     setPersonAge('');
@@ -322,7 +352,7 @@ const ReportLostFoundPage: React.FC = () => {
                           type="button"
                           variant="danger"
                           className="absolute top-2 right-2 px-2 py-1 text-xs"
-                          onClick={() => { setImage(null); setImageBase64(null); (document.getElementById('file-upload') as HTMLInputElement).value = ''; }}
+                          onClick={() => { setImageBase64(null); (document.getElementById('file-upload') as HTMLInputElement).value = ''; }}
                       >
                           {translations.report.removeImage}
                       </Button>
@@ -346,13 +376,26 @@ const ReportLostFoundPage: React.FC = () => {
                       </Button>
                   </div>
               ) : (
-                  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                  <label 
+                    htmlFor="file-upload"
+                    className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-md cursor-pointer transition-colors ${isDraggingOver ? 'border-orange-500 bg-orange-50' : 'border-gray-300'}`}
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
+                    onDragEnter={handleDragEnter}
+                    onDragLeave={handleDragLeave}
+                  >
                       <div className="space-y-1 text-center">
                           <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                          <div className="flex text-sm text-gray-600"><label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-orange-600 hover:text-orange-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-orange-500"><span>{translations.report.uploadPrompt}</span><input id="file-upload" name="file-upload" type="file" className="sr-only" onChange={handleImageChange} accept="image/*"/></label><p className="pl-1">{translations.report.uploadOrDrag}</p></div>
+                          <div className="flex text-sm text-gray-600">
+                            <span className="relative bg-white rounded-md font-medium text-orange-600 hover:text-orange-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-orange-500">
+                              <span>{translations.report.uploadPrompt}</span>
+                              <input id="file-upload" name="file-upload" type="file" className="sr-only" onChange={handleImageChange} accept="image/*"/>
+                            </span>
+                            <p className="pl-1">{translations.report.uploadOrDrag}</p>
+                          </div>
                           <p className="text-xs text-gray-500">{translations.report.uploadHint}</p>
                       </div>
-                  </div>
+                  </label>
               )}
             </div>
             

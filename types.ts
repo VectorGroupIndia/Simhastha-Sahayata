@@ -55,3 +55,10 @@ export interface ChatMessage {
   sender: 'user' | 'ai';
   text: string;
 }
+
+// Represents a toast notification message.
+export interface ToastMessage {
+  id: number;
+  message: string;
+  type: 'success' | 'error' | 'info';
+}

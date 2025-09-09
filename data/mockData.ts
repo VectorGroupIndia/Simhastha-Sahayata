@@ -47,6 +47,7 @@ export const translations: { [key: string]: any } = {
             greeting: "Welcome",
             fileReport: "File a New Report",
             myReports: "My Reports",
+            help: "Help",
             admin: { 
                 title: 'Admin Dashboard', 
                 recentReports: 'Recent Lost & Found Reports', 
@@ -133,9 +134,9 @@ export const translations: { [key: string]: any } = {
             lastSeen: 'Last Seen Location',
             lastSeenPlaceholder: 'e.g., Near Ram Ghat, food stall area',
             upload: 'Upload Image',
-            uploadPrompt: 'Upload a file',
+            uploadPrompt: 'Click to upload a file',
             uploadOrDrag: 'or drag and drop',
-            uploadHint: 'PNG, JPG, GIF up to 10MB',
+            uploadHint: 'PNG, JPG up to 10MB',
             removeImage: 'Remove',
             confirmationTitle: 'Report Submitted!',
             confirmationText: 'Your report has been filed. You can track its status in the "My Reports" section of your dashboard.',
@@ -211,7 +212,35 @@ export const translations: { [key: string]: any } = {
             navigationSettings: 'Navigation Settings',
             voiceNav: 'Voice Input Navigation',
             voiceNavDesc: 'Enable microphone input for hands-free navigation commands.',
+            notificationSettings: 'Notification Settings',
+            pushNotifications: 'Enable Push Notifications',
+            pushNotificationsDesc: 'Receive alerts for SOS, report updates, and crowd warnings.',
             featureComingSoon: 'Feature coming soon',
+        },
+        notifications: {
+            enabled: 'Push notifications have been enabled.',
+            disabled: 'Push notifications have been disabled.',
+        },
+        userGuide: {
+            title: 'User Guide',
+            intro: 'Welcome to Simhastha Sahayata! Here’s a quick guide to our key features.',
+            familyHub: {
+                title: 'Family Hub',
+                description: 'Keep your loved ones safe. Create a group to see their live location on the map, set safe zones, and use the SOS button for emergencies.'
+            },
+            navigation: {
+                title: 'Intelligent Navigation',
+                description: 'Lost? Ask our AI for directions in your own language. It provides smart routes that avoid heavy crowds, shown directly on the event map.'
+            },
+            reporting: {
+                title: 'Lost & Found Reports',
+                description: 'Quickly report a lost person or item. You can use your voice or an image to let our AI help fill out the form for you.'
+            },
+            guide: {
+                title: 'AI Pilgrim Guide',
+                description: 'Have a question? Our AI guide is available 24/7. Ask about event schedules, spiritual significance, or where to find amenities.'
+            },
+            close: 'Close',
         },
         cookieBanner: {
             message: 'We use cookies to enhance your experience, analyze site traffic, and personalize content. Your privacy is important to us.',
@@ -260,6 +289,7 @@ export const translations: { [key: string]: any } = {
             greeting: "नमस्ते",
             fileReport: "नई रिपोर्ट दर्ज करें",
             myReports: "मेरी रिपोर्ट",
+            help: "सहायता",
             admin: { 
                 title: 'एडमिन डैशबोर्ड', 
                 recentReports: 'हाल की खोया-पाया रिपोर्ट', 
@@ -346,9 +376,9 @@ export const translations: { [key: string]: any } = {
             lastSeen: 'अंतिम बार देखा गया स्थान',
             lastSeenPlaceholder: 'उदा., राम घाट के पास, भोजन स्टाल क्षेत्र',
             upload: 'छवि अपलोड करें',
-            uploadPrompt: 'फ़ाइल अपलोड करें',
+            uploadPrompt: 'फ़ाइल अपलोड करने के लिए क्लिक करें',
             uploadOrDrag: 'या खींच कर छोड़ें',
-            uploadHint: 'PNG, JPG, GIF 10MB तक',
+            uploadHint: 'PNG, JPG 10MB तक',
             removeImage: 'हटाएं',
             confirmationTitle: 'रिपोर्ट जमा हो गई!',
             confirmationText: 'आपकी रिपोर्ट दर्ज कर ली गई है। आप अपने डैशबोर्ड के "मेरी रिपोर्ट" अनुभाग में इसकी स्थिति को ट्रैक कर सकते हैं।',
@@ -424,7 +454,35 @@ export const translations: { [key: string]: any } = {
             navigationSettings: 'नेविगेशन सेटिंग्स',
             voiceNav: 'आवाज इनपुट नेविगेशन',
             voiceNavDesc: 'हैंड्स-फ्री नेविगेशन कमांड के लिए माइक्रोफ़ोन इनपुट सक्षम करें।',
+            notificationSettings: 'अधिसूचना सेटिंग्स',
+            pushNotifications: 'पुश सूचनाएं सक्षम करें',
+            pushNotificationsDesc: 'SOS, रिपोर्ट अपडेट और भीड़ की चेतावनियों के लिए अलर्ट प्राप्त करें।',
             featureComingSoon: 'सुविधा जल्द ही आ रही है',
+        },
+        notifications: {
+            enabled: 'पुश सूचनाएं सक्षम कर दी गई हैं।',
+            disabled: 'पुश सूचनाएं अक्षम कर दी गई हैं।',
+        },
+        userGuide: {
+            title: 'उपयोगकर्ता गाइड',
+            intro: 'सिंहस्थ सहायता में आपका स्वागत है! यहाँ हमारी मुख्य विशेषताओं के लिए एक त्वरित गाइड है।',
+            familyHub: {
+                title: 'परिवार हब',
+                description: 'अपने प्रियजनों को सुरक्षित रखें। मानचित्र पर उनका लाइव स्थान देखने, सुरक्षित क्षेत्र निर्धारित करने और आपात स्थिति के लिए SOS बटन का उपयोग करने के लिए एक समूह बनाएं।'
+            },
+            navigation: {
+                title: 'इंटेलिजेंट नेविगेशन',
+                description: 'खोगए? हमारी AI से अपनी भाषा में दिशा-निर्देश मांगें। यह सीधे इवेंट मैप पर भारी भीड़ से बचने वाले स्मार्ट मार्ग प्रदान करता है।'
+            },
+            reporting: {
+                title: 'खोया और पाया रिपोर्ट',
+                description: 'किसी खोए हुए व्यक्ति या वस्तु की तुरंत रिपोर्ट करें। आप हमारी AI को फ़ॉर्म भरने में मदद करने के लिए अपनी आवाज़ या एक छवि का उपयोग कर सकते हैं।'
+            },
+            guide: {
+                title: 'AI तीर्थयात्री गाइड',
+                description: 'कोई सवाल है? हमारा AI गाइड 24/7 उपलब्ध है। इवेंट शेड्यूल, आध्यात्मिक महत्व, या सुविधाएं कहां मिलेंगी, इसके बारे में पूछें।'
+            },
+            close: 'बंद करें',
         },
         cookieBanner: {
             message: 'हम आपके अनुभव को बेहतर बनाने, साइट ट्रैफिक का विश्लेषण करने और सामग्री को वैयक्तिकृत करने के लिए कुकीज़ का उपयोग करते हैं। आपकी गोपनीयता हमारे लिए महत्वपूर्ण है।',

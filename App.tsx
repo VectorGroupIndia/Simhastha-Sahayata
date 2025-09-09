@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
 import HomePage from './pages/HomePage';
 import DashboardPage from './pages/DashboardPage';
 import ReportLostFoundPage from './pages/ReportLostFoundPage';
@@ -13,6 +14,7 @@ import Footer from './components/Footer';
 import ProfilePage from './pages/ProfilePage';
 import CookieConsentBanner from './components/CookieConsentBanner';
 import CookieSettingsModal from './components/CookieSettingsModal';
+import ToastContainer from './components/ToastContainer';
 
 
 /**
@@ -55,35 +57,38 @@ function App() {
   return (
     <AppProvider>
       <AuthProvider>
-        <HashRouter>
-          <div className="flex flex-col min-h-screen bg-orange-50 text-gray-800 font-sans">
-            <Header />
-            <main className="flex-grow">
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/report" element={<ReportLostFoundPage />} />
-                <Route path="/about" element={<AboutUsPage />} />
-                <Route path="/contact" element={<ContactUsPage />} />
-                <Route path="/faq" element={<FAQPage />} />
-                <Route path="/profile" element={<ProfilePage />} />
-              </Routes>
-            </main>
-            <Footer />
-            {showCookieBanner && (
-              <CookieConsentBanner 
-                onAccept={handleAcceptCookies}
-                onReject={handleRejectCookies}
-                onModify={handleModifyCookies}
+        <ToastProvider>
+          <HashRouter>
+            <div className="flex flex-col min-h-screen bg-orange-50 text-gray-800 font-sans">
+              <Header />
+              <main className="flex-grow">
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/dashboard" element={<DashboardPage />} />
+                  <Route path="/report" element={<ReportLostFoundPage />} />
+                  <Route path="/about" element={<AboutUsPage />} />
+                  <Route path="/contact" element={<ContactUsPage />} />
+                  <Route path="/faq" element={<FAQPage />} />
+                  <Route path="/profile" element={<ProfilePage />} />
+                </Routes>
+              </main>
+              <Footer />
+              <ToastContainer />
+              {showCookieBanner && (
+                <CookieConsentBanner 
+                  onAccept={handleAcceptCookies}
+                  onReject={handleRejectCookies}
+                  onModify={handleModifyCookies}
+                />
+              )}
+              <CookieSettingsModal
+                isOpen={isCookieModalOpen}
+                onClose={() => setIsCookieModalOpen(false)}
+                onSave={handleSaveCookieSettings}
               />
-            )}
-             <CookieSettingsModal
-              isOpen={isCookieModalOpen}
-              onClose={() => setIsCookieModalOpen(false)}
-              onSave={handleSaveCookieSettings}
-            />
-          </div>
-        </HashRouter>
+            </div>
+          </HashRouter>
+        </ToastProvider>
       </AuthProvider>
     </AppProvider>
   );

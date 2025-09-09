@@ -11,24 +11,36 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 /**
  * Simulates a Gemini API call to get a navigation route.
  * @param query - The user's natural language navigation query.
- * @returns A promise that resolves to a string with navigation instructions.
+ * @returns A promise that resolves to an object with text instructions and an SVG path.
  */
-export const getNavigationRoute = async (query: string): Promise<string> => {
+export const getNavigationRoute = async (query: string): Promise<{ text: string; path: string }> => {
   console.log("Simulating Gemini API call for navigation with query:", query);
   await sleep(1500); // Simulate API latency
 
   // Mock logic based on keywords in the query
   if (query.toLowerCase().includes('water')) {
-    return "The nearest water station with low crowd is near Sector 5 medical camp. I've highlighted the 5-minute walking route for you.";
+    return {
+      text: "The nearest water station with low crowd is near Sector 5 medical camp. I've highlighted the 5-minute walking route for you.",
+      path: "M 50 85 C 40 60, 60 40, 75 25"
+    };
   }
   if (query.toLowerCase().includes('toilet')) {
-    return "There's a clean toilet facility behind the main stage. It's less crowded now. Follow the path I've marked on your map.";
+    return {
+      text: "There's a clean toilet facility behind the main stage. It's less crowded now. Follow the path I've marked on your map.",
+      path: "M 50 85 Q 80 50, 40 20"
+    };
   }
   if (query.toLowerCase().includes('food')) {
-    return "For 'prasad' with smaller queues, head towards Harsiddhi Temple area. It's a 10-minute walk from your current location.";
+    return {
+      text: "For 'prasad' with smaller queues, head towards Harsiddhi Temple area. It's a 10-minute walk from your current location.",
+      path: "M 50 85 C 20 70, 20 30, 50 15"
+    };
   }
 
-  return "I've found a route to the main bathing ghat. It is currently very crowded. A less crowded alternative is Datta Akhara Ghat. I've marked both routes.";
+  return {
+    text: "I've found a route to the main bathing ghat. It is currently very crowded. A less crowded alternative is Datta Akhara Ghat. I've marked both routes.",
+    path: "M 50 85 L 30 50 L 50 20"
+  };
 };
 
 /**

@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useLocalization } from '../hooks/useLocalization';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { ToggleSwitch } from '../components/ui/ToggleSwitch';
+import { useToast } from '../hooks/useToast';
 
 /**
  * User Profile Page.
@@ -14,6 +15,8 @@ import { ToggleSwitch } from '../components/ui/ToggleSwitch';
 const ProfilePage: React.FC = () => {
   const { user, isAuthenticated, updateUser } = useAuth();
   const { translations } = useLocalization();
+  const { addToast } = useToast();
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
   if (!isAuthenticated || !user) {
     // Redirect to home page if not logged in
@@ -25,6 +28,15 @@ const ProfilePage: React.FC = () => {
     // Using Date.now() as a seed to get a different image each time
     const newAvatarUrl = `https://picsum.photos/seed/${Date.now()}/100/100`;
     updateUser({ avatar: newAvatarUrl });
+  };
+  
+  const handleNotificationToggle = (enabled: boolean) => {
+    setNotificationsEnabled(enabled);
+    if (enabled) {
+        addToast(translations.notifications.enabled, 'success');
+    } else {
+        addToast(translations.notifications.disabled, 'info');
+    }
   };
 
   return (
@@ -79,6 +91,20 @@ const ProfilePage: React.FC = () => {
                             <ToggleSwitch id="voice-nav" checked={false} onChange={() => {}} disabled={true} />
                         </div>
                          <p className="text-xs text-orange-500 mt-2">{translations.profile.featureComingSoon}</p>
+                    </div>
+                </div>
+                
+                 {/* Notification Settings */}
+                <div>
+                    <h3 className="text-lg font-semibold text-gray-700">{translations.profile.notificationSettings}</h3>
+                    <div className="mt-2 p-4 border rounded-lg">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <label htmlFor="push-notifications" className="font-medium text-gray-800">{translations.profile.pushNotifications}</label>
+                                <p className="text-sm text-gray-500">{translations.profile.pushNotificationsDesc}</p>
+                            </div>
+                            <ToggleSwitch id="push-notifications" checked={notificationsEnabled} onChange={handleNotificationToggle} />
+                        </div>
                     </div>
                 </div>
             </div>
