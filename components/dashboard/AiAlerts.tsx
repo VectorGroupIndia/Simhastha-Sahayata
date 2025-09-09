@@ -1,186 +1,73 @@
-import React, { useMemo, useState } from 'react';
-import { useAuth } from '../../hooks/useAuth';
+
+import React, { useState, useEffect } from 'react';
 import { useLocalization } from '../../hooks/useLocalization';
-import { MOCK_LOST_FOUND_REPORTS } from '../../data/mockData';
-import { LostFoundReport } from '../../types';
 import { Card } from '../ui/Card';
-import ReportDetailsModal from './ReportDetailsModal';
-import { Button } from '../ui/Button';
 
-const calculateMatchScore = (reportA: LostFoundReport, reportB: LostFoundReport): number => {
-    let score = 0;
-    if (reportA.category !== reportB.category) return 0;
+type AlertLevel = 'low' | 'medium' | 'high' | 'critical';
 
-    if (reportA.category === 'Person') {
-        const pA = reportA;
-        const pB = reportB;
-        if (pA.personGender && pB.personGender && pA.personGender === pB.personGender) score += 2;
-        if (pA.personAge && pB.personAge) {
-            const age1 = parseInt(pA.personAge, 10);
-            const age2 = parseInt(pB.personAge, 10);
-            if (!isNaN(age1) && !isNaN(age2)) {
-                if (Math.abs(age1 - age2) <= 2) score += 4;
-                else if (Math.abs(age1 - age2) <= 5) score += 2;
-            }
-        }
-        if (pA.clothingAppearance && pB.clothingAppearance) {
-            const keywords = pA.clothingAppearance.toLowerCase().split(' ').filter(w => w.length > 2);
-            let matches = 0;
-            keywords.forEach(kw => {
-                if (pB.clothingAppearance?.toLowerCase().includes(kw)) matches++;
-            });
-            score += Math.min(matches, 3);
-        }
-    } else { // 'Item'
-        const iA = reportA;
-        const iB = reportB;
-        if (iA.subCategory && iA.subCategory === iB.subCategory) score += 4;
-        if (iA.itemColor && iB.itemColor && iA.itemColor.toLowerCase() === iB.itemColor.toLowerCase()) score += 3;
-        if (iA.itemBrand && iB.itemBrand && iA.itemBrand.toLowerCase() === iB.itemBrand.toLowerCase()) score += 5;
+const SparklesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 17l-4 4 4-4 2.293-2.293a1 1 0 011.414 0L17 14m-5-5l2.293 2.293a1 1 0 010 1.414L10 17" /></svg>;
+const InfoIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" /></svg>;
+const WarningIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 13a1 1 0 110-2 1 1 0 010 2zm-1-4a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clipRule="evenodd" /></svg>;
 
-        const descA = `${iA.itemName || ''} ${iA.description}`.toLowerCase();
-        const descB = `${iB.itemName || ''} ${iB.description}`.toLowerCase();
-        const keywordsA = new Set(descA.split(' ').filter(w => w.length > 3));
-        let commonKeywords = 0;
-        keywordsA.forEach(kw => {
-            if (descB.includes(kw)) commonKeywords++;
-        });
-        score += Math.min(commonKeywords, 4);
-    }
-
-    if (reportA.lastSeen && reportB.lastSeen && reportA.lastSeen.toLowerCase() === reportB.lastSeen.toLowerCase()) {
-        score += 3;
-    }
-    return score;
-};
-
-
-// A more advanced "AI" function to check for potential matches
-const findPotentialMatches = (
-  myReports: LostFoundReport[],
-  allReports: LostFoundReport[]
-): { myReport: LostFoundReport; foundReport: LostFoundReport; confidence: 'High' | 'Medium' | 'Low' }[] => {
-  const myLostReports = myReports.filter((r) => r.type === 'Lost' && r.status === 'Open');
-  const myFoundReports = myReports.filter((r) => r.type === 'Found' && r.status === 'Open');
-  
-  const allFoundReports = allReports.filter((r) => r.type === 'Found' && r.status === 'Open');
-  const allLostReports = allReports.filter((r) => r.type === 'Lost' && r.status === 'Open');
-
-  const matches: { myReport: LostFoundReport; foundReport: LostFoundReport; confidence: 'High' | 'Medium' | 'Low' }[] = [];
-
-  // Match my LOST reports with all FOUND reports
-  for (const lost of myLostReports) {
-    for (const found of allFoundReports) {
-      if (lost.reportedById === found.reportedById) continue;
-      const score = calculateMatchScore(lost, found);
-      
-      if (score >= 5) {
-        let confidence: 'High' | 'Medium' | 'Low' = 'Low';
-        if (score > 8) confidence = 'High';
-        else if (score > 5) confidence = 'Medium';
-        matches.push({ myReport: lost, foundReport: found, confidence });
-      }
-    }
-  }
-
-  // Match my FOUND reports with all LOST reports
-  for (const found of myFoundReports) {
-    for (const lost of allLostReports) {
-      if (found.reportedById === lost.reportedById) continue;
-      const score = calculateMatchScore(found, lost);
-
-      if (score >= 5) {
-          let confidence: 'High' | 'Medium' | 'Low' = 'Low';
-          if (score > 8) confidence = 'High';
-          else if (score > 5) confidence = 'Medium';
-          matches.push({ myReport: found, foundReport: lost, confidence });
-      }
-    }
-  }
-
-
-  return matches.sort((a,b) => { // Sort by confidence
-      const order = { 'High': 3, 'Medium': 2, 'Low': 1 };
-      return order[b.confidence] - order[a.confidence];
-  });
-};
 
 const AiAlerts: React.FC = () => {
-  const { user } = useAuth();
   const { translations } = useLocalization();
-  const [selectedReport, setSelectedReport] = useState<LostFoundReport | null>(null);
+  const t = translations.dashboard.aiAlerts;
 
-  const myReports = useMemo(() => {
-    if (!user) return [];
-    return MOCK_LOST_FOUND_REPORTS.filter((report) => report.reportedById === user.id);
-  }, [user]);
+  const MOCK_ALERTS: { id: number; text: string; level: AlertLevel }[] = [
+    { id: 1, text: t.alerts.crowd, level: 'high' },
+    { id: 2, text: t.alerts.item, level: 'medium' },
+    { id: 3, text: t.alerts.child, level: 'critical' },
+    { id: 4, text: t.alerts.weather, level: 'low' },
+  ];
 
-  const potentialMatches = useMemo(() => {
-    return findPotentialMatches(myReports, MOCK_LOST_FOUND_REPORTS);
-  }, [myReports]);
-  
-  const openDetailsModal = (report: LostFoundReport) => setSelectedReport(report);
-  const closeDetailsModal = () => setSelectedReport(null);
-  
-  const getConfidenceClass = (confidence: 'High' | 'Medium' | 'Low') => {
-      switch(confidence) {
-          case 'High': return 'text-green-600 bg-green-100';
-          case 'Medium': return 'text-yellow-600 bg-yellow-100';
-          case 'Low': return 'text-gray-600 bg-gray-100';
-      }
-  }
+  const [currentIndex, setCurrentIndex] = useState(0);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % MOCK_ALERTS.length);
+    }, 8000); // Cycle every 8 seconds
 
-  if (potentialMatches.length === 0) {
-    return null; // Don't render anything if no alerts
-  }
+    return () => clearInterval(interval);
+  }, [MOCK_ALERTS.length]);
+
+  const getLevelInfo = (level: AlertLevel) => {
+    switch (level) {
+      case 'critical':
+        return {
+          icon: <WarningIcon />,
+          classes: 'bg-red-100 border-red-500 text-red-800',
+        };
+      case 'high':
+        return {
+          icon: <WarningIcon />,
+          classes: 'bg-orange-100 border-orange-500 text-orange-800',
+        };
+      case 'medium':
+        return {
+          icon: <InfoIcon />,
+          classes: 'bg-yellow-100 border-yellow-500 text-yellow-800',
+        };
+      case 'low':
+      default:
+        return {
+          icon: <SparklesIcon />,
+          classes: 'bg-blue-100 border-blue-500 text-blue-800',
+        };
+    }
+  };
+
+  const currentAlert = MOCK_ALERTS[currentIndex];
+  const { icon, classes } = getLevelInfo(currentAlert.level);
 
   return (
-    <>
-      <Card>
-        <h3 className="text-xl font-bold mb-4">{translations.dashboard.aiAlerts.title}</h3>
-        <div className="space-y-4">
-          {potentialMatches.map(({ myReport, foundReport, confidence }, index) => (
-            <div key={index} className="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-r-lg">
-                <div className="flex justify-between items-start">
-                    <p className="font-semibold text-orange-700">{translations.dashboard.aiAlerts.potentialMatch}</p>
-                    <div className="text-xs font-bold px-2 py-1 rounded-full">
-                        {translations.dashboard.aiAlerts.matchConfidence}: <span className={getConfidenceClass(confidence)}>{translations.dashboard.aiAlerts[confidence.toLowerCase()]}</span>
-                    </div>
-                </div>
-              <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* My Report */}
-                <div>
-                  <p className="text-sm font-bold">{translations.dashboard.aiAlerts.yourReport} ({myReport.type}):</p>
-                  <div className="text-sm p-2 bg-white rounded border">
-                    <p className="font-semibold">{myReport.itemName || myReport.personName}</p>
-                    <p className="text-gray-600 line-clamp-2">{myReport.description}</p>
-                  </div>
-                </div>
-                {/* Found Report */}
-                <div>
-                  <p className="text-sm font-bold">{translations.dashboard.aiAlerts.foundReport} ({foundReport.type}):</p>
-                  <div className="text-sm p-2 bg-white rounded border">
-                     <p className="font-semibold">{foundReport.itemName || foundReport.personName}</p>
-                     <p className="text-gray-600 line-clamp-2">{foundReport.description}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="text-right mt-2">
-                <Button variant="secondary" onClick={() => openDetailsModal(foundReport)}>
-                  {translations.myReports.viewDetails}
-                </Button>
-              </div>
-            </div>
-          ))}
+    <Card className="w-full">
+        <h3 className="text-lg font-bold mb-2">{t.title}</h3>
+        <div className={`p-3 rounded-lg border-l-4 flex items-start transition-all duration-500 ${classes}`}>
+            {icon}
+            <p className="text-sm font-medium">{currentAlert.text}</p>
         </div>
-      </Card>
-      <ReportDetailsModal
-        isOpen={!!selectedReport}
-        onClose={closeDetailsModal}
-        report={selectedReport}
-      />
-    </>
+    </Card>
   );
 };
 

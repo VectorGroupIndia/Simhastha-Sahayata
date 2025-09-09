@@ -1,3 +1,4 @@
+
 import { LostFoundReport } from '../types';
 
 /**
@@ -6,7 +7,7 @@ import { LostFoundReport } from '../types';
  */
 export const generateReportPdf = (report: LostFoundReport) => {
     // FIX: Corrected to use the global jsPDF constructor directly, following standard library usage and the compiler hint.
-    // The global `jsPDF` constructor is provided by the CDN script.
+    // The global `jspdf` constructor is provided by the CDN script.
     const { jsPDF } = jspdf;
     const doc = new jsPDF();
     let y = 15; // Initial Y position for text

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
-import { LostFoundReport, UserRole } from '../../types';
+import { LostFoundReport, UserRole, User } from '../../types';
 import { useAuth } from '../../hooks/useAuth';
 import { useLocalization } from '../../hooks/useLocalization';
 import { MapModal } from '../ui/MapModal';
@@ -12,7 +12,8 @@ interface ReportDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   report: LostFoundReport | null;
-  onUpdateStatus?: (reportId: string, newStatus: LostFoundReport['status']) => void;
+  onUpdateReport?: (reportId: string, updates: Partial<Pick<LostFoundReport, 'status' | 'assignedToId' | 'assignedToName'>>) => void;
+  assignableUsers?: User[];
 }
 
 const DetailRow: React.FC<{ label: string; value?: string | null }> = ({ label, value }) => {
@@ -25,29 +26,39 @@ const DetailRow: React.FC<{ label: string; value?: string | null }> = ({ label, 
     );
 };
 
-export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, onClose, report, onUpdateStatus }) => {
+export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, onClose, report, onUpdateReport, assignableUsers = [] }) => {
   const { user } = useAuth();
   const { translations } = useLocalization();
   const [isMapOpen, setMapOpen] = useState(false);
   const [isZoomOpen, setZoomOpen] = useState(false);
   const [newStatus, setNewStatus] = useState<LostFoundReport['status']>('Open');
+  const [assignedTo, setAssignedTo] = useState<string>(''); // Stores "id,name"
 
   useEffect(() => {
     if (report) {
       setNewStatus(report.status);
+      setAssignedTo(report.assignedToId ? `${report.assignedToId},${report.assignedToName}` : '');
     }
   }, [report]);
 
   if (!report) return null;
 
-  const handleStatusUpdate = () => {
-    if (onUpdateStatus) {
-      onUpdateStatus(report.id, newStatus);
+  const handleUpdate = () => {
+    if (onUpdateReport) {
+      const [idStr, ...nameParts] = assignedTo.split(',');
+      const name = nameParts.join(',');
+      const id = parseInt(idStr, 10);
+      
+      onUpdateReport(report.id, {
+        status: newStatus,
+        assignedToId: assignedTo ? id : undefined,
+        assignedToName: assignedTo ? name : undefined,
+      });
       onClose();
     }
   };
 
-  const canUpdateStatus = user && (user.role === UserRole.ADMIN || user.role === UserRole.AUTHORITY);
+  const canUpdate = user && (user.role === UserRole.ADMIN || user.role === UserRole.AUTHORITY);
 
   const getStatusClasses = (status: LostFoundReport['status']) => {
         switch (status) {
@@ -86,6 +97,7 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
                     <DetailRow label={translations.report.category} value={report.category} />
                     <DetailRow label={translations.myReports.reportedOn} value={new Date(report.timestamp).toLocaleString()} />
                     <DetailRow label={translations.reportDetails.reportedBy} value={report.reportedBy} />
+                    {report.assignedToName && <DetailRow label={translations.reportDetails.assignTo} value={report.assignedToName} />}
                     <hr/>
                     <DetailRow label={translations.report.personAge} value={report.personAge} />
                     <DetailRow label={translations.report.personGender} value={report.personGender} />
@@ -97,20 +109,28 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
                     <DetailRow label={translations.report.description} value={report.description} />
                  </div>
             </div>
-            {canUpdateStatus && onUpdateStatus && (
+            {canUpdate && onUpdateReport && (
                 <div className="bg-gray-50 p-4 rounded-lg mt-4">
                     <h4 className="font-semibold mb-2">{translations.reportDetails.updateStatus}</h4>
-                    <div className="flex gap-4 items-center">
+                    <div className="flex flex-col md:flex-row gap-4 items-center">
                         <select 
                             value={newStatus}
                             onChange={(e) => setNewStatus(e.target.value as LostFoundReport['status'])}
-                            className="flex-grow rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
+                            className="w-full md:w-1/3 rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
                         >
                             <option value="Open">Open</option>
                             <option value="In Progress">In Progress</option>
                             <option value="Resolved">Resolved</option>
                         </select>
-                        <Button onClick={handleStatusUpdate} disabled={newStatus === report.status}>
+                         <select 
+                            value={assignedTo}
+                            onChange={(e) => setAssignedTo(e.target.value)}
+                            className="w-full md:w-1/3 rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
+                        >
+                            <option value="">{translations.reportDetails.unassigned}</option>
+                            {assignableUsers.map(u => <option key={u.id} value={`${u.id},${u.name}`}>{u.name} ({u.role})</option>)}
+                        </select>
+                        <Button onClick={handleUpdate} className="w-full md:w-auto flex-grow">
                             {translations.reportDetails.saveStatus}
                         </Button>
                     </div>

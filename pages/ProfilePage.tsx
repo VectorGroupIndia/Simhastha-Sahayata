@@ -25,11 +25,6 @@ const ProfilePage: React.FC = () => {
   const { translations } = useLocalization();
   const { addToast } = useToast();
   
-  // Settings state
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [powerButtonSosEnabled, setPowerButtonSosEnabled] = useState(false);
-  const [voiceNavEnabled, setVoiceNavEnabled] = useState(false);
-  
   // Modal state
   const [isContactModalOpen, setContactModalOpen] = useState(false);
   const [newContactName, setNewContactName] = useState('');
@@ -48,6 +43,8 @@ const ProfilePage: React.FC = () => {
 
   const contacts = user.emergencyContacts || [];
   const sosHistory = user.sosHistory || [];
+  // Default settings if none are present on the user object
+  const settings = user.settings || { notifications: false, powerButtonSos: false, voiceNav: false };
 
   const triggerAvatarUpload = () => {
     avatarInputRef.current?.click();
@@ -68,7 +65,7 @@ const ProfilePage: React.FC = () => {
   };
   
   const handleNotificationToggle = (enabled: boolean) => {
-    setNotificationsEnabled(enabled);
+    updateUser({ settings: { ...settings, notifications: enabled } });
     addToast(
         enabled ? translations.notifications.enabled : translations.notifications.disabled,
         enabled ? 'success' : 'info'
@@ -76,7 +73,7 @@ const ProfilePage: React.FC = () => {
   };
   
   const handlePowerButtonSosToggle = (enabled: boolean) => {
-    setPowerButtonSosEnabled(enabled);
+    updateUser({ settings: { ...settings, powerButtonSos: enabled } });
     addToast(
         enabled ? 'Power Button SOS has been enabled.' : 'Power Button SOS has been disabled.',
         enabled ? 'success' : 'info'
@@ -84,7 +81,7 @@ const ProfilePage: React.FC = () => {
   };
 
   const handleVoiceNavToggle = (enabled: boolean) => {
-    setVoiceNavEnabled(enabled);
+    updateUser({ settings: { ...settings, voiceNav: enabled } });
     addToast(
         enabled ? 'Voice-guided navigation has been enabled.' : 'Voice-guided navigation has been disabled.',
         enabled ? 'success' : 'info'
@@ -251,7 +248,7 @@ const ProfilePage: React.FC = () => {
                                 <label htmlFor="power-sos" className="font-medium text-gray-800">{translations.profile.powerButtonSos}</label>
                                 <p className="text-sm text-gray-500">{translations.profile.powerButtonSosDesc}</p>
                             </div>
-                            <ToggleSwitch id="power-sos" checked={powerButtonSosEnabled} onChange={handlePowerButtonSosToggle} />
+                            <ToggleSwitch id="power-sos" checked={settings.powerButtonSos} onChange={handlePowerButtonSosToggle} />
                         </div>
                     </div>
                 </div>
@@ -265,7 +262,7 @@ const ProfilePage: React.FC = () => {
                                 <label htmlFor="voice-nav" className="font-medium text-gray-800">{translations.profile.voiceNav}</label>
                                 <p className="text-sm text-gray-500">{translations.profile.voiceNavDesc}</p>
                             </div>
-                            <ToggleSwitch id="voice-nav" checked={voiceNavEnabled} onChange={handleVoiceNavToggle} />
+                            <ToggleSwitch id="voice-nav" checked={settings.voiceNav} onChange={handleVoiceNavToggle} />
                         </div>
                     </div>
                 </div>
@@ -279,7 +276,7 @@ const ProfilePage: React.FC = () => {
                                 <label htmlFor="push-notifications" className="font-medium text-gray-800">{translations.profile.pushNotifications}</label>
                                 <p className="text-sm text-gray-500">{translations.profile.pushNotificationsDesc}</p>
                             </div>
-                            <ToggleSwitch id="push-notifications" checked={notificationsEnabled} onChange={handleNotificationToggle} />
+                            <ToggleSwitch id="push-notifications" checked={settings.notifications} onChange={handleNotificationToggle} />
                         </div>
                     </div>
                 </div>

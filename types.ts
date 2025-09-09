@@ -33,9 +33,15 @@ export interface User {
   name: string;
   role: UserRole;
   avatar: string;
+  status: 'Active' | 'Suspended';
   emergencyContacts?: EmergencyContact[]; // For SOS calls
   sosHistory?: SosAlert[]; // For SOS history tracking
   registeredItems?: RegisteredItem[]; // For the "My Items" feature
+  settings?: {
+    notifications: boolean;
+    powerButtonSos: boolean;
+    voiceNav: boolean;
+  }
 }
 
 // Represents a family member in the Family Hub.
@@ -63,6 +69,8 @@ export interface LostFoundReport {
     timestamp: string;
     status: 'Open' | 'In Progress' | 'Resolved';
     originalItemId?: string; // Link back to the RegisteredItem
+    assignedToId?: number;
+    assignedToName?: string;
 
     // Details for a person
     personName?: string;
