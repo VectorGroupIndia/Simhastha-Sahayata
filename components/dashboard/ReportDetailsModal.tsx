@@ -79,7 +79,7 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
     }
   };
 
-  const canUpdate = user && (user.role === UserRole.ADMIN || user.role === UserRole.AUTHORITY);
+  const canUpdate = user && (user.role === UserRole.ADMIN || user.role === UserRole.AUTHORITY || user.role === UserRole.VOLUNTEER);
 
   const getStatusClasses = (status: LostFoundReport['status']) => {
         switch (status) {
@@ -97,13 +97,14 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {report.imageUrl && (
                     <div className="md:col-span-1">
-                        <p className="text-center text-xs text-gray-400 mb-1">{translations.reportDetails.imageZoom}</p>
                         <img 
                             src={report.imageUrl} 
                             alt="Report" 
-                            className="rounded-lg shadow-md w-full object-cover aspect-square cursor-pointer hover:opacity-80 transition-opacity"
-                            onClick={() => setZoomOpen(true)}
+                            className="rounded-lg shadow-md w-full object-cover aspect-square"
                         />
+                        <Button onClick={() => setZoomOpen(true)} variant="secondary" className="w-full mt-2">
+                            {translations.reportDetails.viewImage}
+                        </Button>
                     </div>
                 )}
                  <div className={`space-y-3 ${report.imageUrl ? 'md:col-span-2' : 'md:col-span-3'}`}>
@@ -143,27 +144,29 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
                         <select 
                             value={newStatus}
                             onChange={(e) => setNewStatus(e.target.value as LostFoundReport['status'])}
-                            className="w-full md:w-1/3 rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
+                            className="w-full md:w-auto flex-grow rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
                         >
                             <option value="Open">Open</option>
                             <option value="In Progress">In Progress</option>
                             <option value="Resolved">Resolved</option>
                         </select>
-                         <select 
-                            value={assignedTo}
-                            onChange={(e) => setAssignedTo(e.target.value)}
-                            className="w-full md:w-1/3 rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
-                        >
-                            <option value="">{translations.reportDetails.unassigned}</option>
-                            {assignableUsers.map(u => <option key={u.id} value={`${u.id},${u.name}`}>{u.name} ({u.role})</option>)}
-                        </select>
-                        <Button onClick={handleUpdate} className="w-full md:w-auto flex-grow">
+                         {user?.role !== UserRole.VOLUNTEER && (
+                            <select 
+                                value={assignedTo}
+                                onChange={(e) => setAssignedTo(e.target.value)}
+                                className="w-full md:w-auto flex-grow rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
+                            >
+                                <option value="">{translations.reportDetails.unassigned}</option>
+                                {assignableUsers.map(u => <option key={u.id} value={`${u.id},${u.name}`}>{u.name} ({u.role})</option>)}
+                            </select>
+                         )}
+                        <Button onClick={handleUpdate} className="w-full md:w-auto">
                             {translations.reportDetails.saveStatus}
                         </Button>
                     </div>
                 </div>
             )}
-             <div className="mt-6 flex flex-wrap justify-end gap-2">
+             <div className="mt-6 border-t pt-4 flex flex-wrap justify-end gap-2">
                 {!aiSummary && (
                   <Button onClick={handleGenerateSummary} variant="secondary" disabled={isSummarizing}>
                     {isSummarizing ? (
@@ -181,6 +184,9 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
                 </Button>
                 <Button onClick={() => generateReportPdf(report)} variant="secondary">
                     {translations.reportDetails.downloadPdf}
+                </Button>
+                 <Button onClick={onClose} variant="secondary">
+                    {translations.reportDetails.close}
                 </Button>
             </div>
         </div>

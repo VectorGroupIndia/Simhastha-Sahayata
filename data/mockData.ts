@@ -1,4 +1,5 @@
-import { RegisteredItem, FamilyMember, LostFoundReport, UserRole } from '../types';
+
+import { RegisteredItem, FamilyMember, LostFoundReport, UserRole, SosAlert } from '../types';
 
 export const MOCK_REGISTERED_ITEMS: RegisteredItem[] = [
   {
@@ -97,6 +98,8 @@ export const MOCK_LOST_FOUND_REPORTS: LostFoundReport[] = [
         timestamp: '2024-07-28T18:00:00Z',
         status: 'Resolved',
         originalItemId: 'item-2736475',
+        assignedToId: 4,
+        assignedToName: 'Officer Singh (Authority)'
     },
      {
         id: 'RPT-1672836598',
@@ -116,6 +119,25 @@ export const MOCK_LOST_FOUND_REPORTS: LostFoundReport[] = [
         status: 'Open',
         assignedToId: 5,
         assignedToName: 'Sunita Devi (Volunteer)'
+    }
+];
+
+export const MOCK_SOS_ALERTS: (SosAlert & { userName: string; userId: number; locationCoords: { lat: number, lng: number } })[] = [
+    {
+        id: 1,
+        userId: 2,
+        userName: 'Priya Sharma (Pilgrim)',
+        timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(), // 5 mins ago
+        status: 'Broadcasted',
+        locationCoords: { lat: 45, lng: 55 }
+    },
+    {
+        id: 2,
+        userId: 6,
+        userName: 'Rohan Mehra (Pilgrim)',
+        timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 mins ago
+        status: 'Responded',
+        locationCoords: { lat: 80, lng: 70 }
     }
 ];
 
@@ -178,6 +200,7 @@ export const translations: { [key: string]: any } = {
           title: 'Admin Control Panel',
           overviewTab: 'Overview',
           userManagementTab: 'User Management',
+          reportingTab: 'Reporting',
           recentReports: 'All Lost & Found Reports',
           reportsByDay: 'Reports in Last 7 Days',
           highPriorityAlerts: 'High Priority Alerts',
@@ -198,17 +221,67 @@ export const translations: { [key: string]: any } = {
               statusFilterAll: 'All Statuses',
               statusFilterActive: 'Active',
               statusFilterSuspended: 'Suspended',
+          },
+          reporting: {
+              title: 'Generate Custom Reports',
+              description: 'Select parameters to generate a downloadable report.',
+              dateRange: 'Date Range',
+              generateReport: 'Generate Report',
+              exportToCsv: 'Export to CSV',
+              resetFilters: 'Reset Filters',
+              reportResults: 'Report Results',
+              noResults: 'No reports found matching your criteria.',
+              showingResults: 'Showing {count} reports',
           }
       },
       authorities: {
           title: 'Authorities Command Center',
-          crowdDensity: 'Live Crowd Density Heatmap',
-          missingPersons: 'Active Missing Person Alerts',
+          kpis: {
+              activeReports: 'Active Reports',
+              missingPersons: 'Missing Persons',
+              sosAlerts: 'Active SOS Alerts',
+              personnel: 'Active Personnel',
+          },
+          map: {
+              title: 'Live Operations Map',
+              personnel: 'Personnel',
+              report: 'Report',
+              sos: 'SOS'
+          },
+          panel: {
+              acknowledge: 'Acknowledge',
+              viewDetails: 'View Details',
+              status: {
+                  available: 'Available',
+                  assigned: 'Assigned to report'
+              },
+              noAlerts: 'No active cases at this time.',
+              noPersonnel: 'No active personnel found.',
+              alerts: 'Active Cases',
+              personnel: 'Personnel',
+              sos: 'SOS',
+              missingPerson: 'MISSING PERSON',
+              report: 'REPORT',
+          }
       },
       volunteer: {
           title: 'Volunteer Action Board',
-          activeAlerts: 'Your Active Alerts',
-          noAlerts: 'No active alerts in your zone. Great job!',
+          kpis: {
+              myAssignments: 'My Active Assignments',
+              nearbyAlerts: 'Nearby Alerts',
+              resolvedToday: 'Resolved Today',
+          },
+          tabs: {
+              assignments: 'My Assignments',
+              nearby: 'Nearby Alerts',
+          },
+          noAssignments: 'You have no active assignments. Check the "Nearby Alerts" tab to find cases to help with.',
+          noNearby: 'No unassigned high-priority alerts nearby. Thank you for your service!',
+          acceptTask: 'Accept Task',
+          taskAccepted: 'Task accepted and added to your assignments!',
+          statusUpdated: 'Report status updated.',
+          viewDetails: 'View Details',
+          updateStatus: 'Update Status',
       },
     },
     familyHub: {
@@ -361,6 +434,8 @@ export const translations: { [key: string]: any } = {
         generateSummary: 'Generate AI Summary',
         aiSummaryTitle: 'AI Generated Summary',
         summarizing: 'Summarizing...',
+        viewImage: 'View Image',
+        close: 'Close',
     },
     filterBar: {
         statusLabel: 'Status',
@@ -435,6 +510,36 @@ export const translations: { [key: string]: any } = {
                 responded: 'Responded',
                 resolved: 'Resolved'
             }
+        },
+        authority: {
+            statsTitle: 'My Operational Stats',
+            totalAssigned: 'Total Assigned Reports',
+            openPriority: 'Open Priority Cases',
+            resolvedCases: 'Resolved Cases',
+            settingsTitle: 'Authority Settings',
+            assignmentNotifications: 'New Assignment Alerts',
+            assignmentNotificationsDesc: 'Get a notification when a new case is assigned to you.',
+            sosZoneAlerts: 'SOS Alerts in Zone',
+            sosZoneAlertsDesc: 'Notify on SOS alerts triggered in your assigned operational zone.',
+            highPriorityOnly: "High-Priority Alerts Only",
+            highPriorityOnlyDesc: "Only receive notifications for critical cases like missing persons.",
+            patrolMode: "Silent Patrol Mode",
+            patrolModeDesc: "Mute all non-critical notifications while on active duty."
+        },
+        volunteer: {
+            statsTitle: "My Volunteer Stats",
+            totalAssigned: "Total Assigned",
+            openCases: "My Open Cases",
+            resolvedThisWeek: "Resolved This Week",
+            settingsTitle: "Volunteer Settings",
+            availability: "Availability Status",
+            availabilityDesc: "Set your status to receive new assignments.",
+            active: "Active",
+            onBreak: "On Break",
+            assignmentNotifications: "New Assignment Alerts",
+            assignmentNotificationsDesc: "Get notified when a new case is assigned directly to you.",
+            nearbyAlerts: "Nearby High-Priority Alerts",
+            nearbyAlertsDesc: "Notify me about unassigned critical cases near my location."
         },
         notificationSettingsAdmin: 'Admin Notifications',
         notificationSettingsAdminDesc: 'Customize which system-wide alerts you receive.',

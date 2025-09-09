@@ -22,6 +22,9 @@ const UsersIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w
 const EditIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg>;
 const CheckCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>;
 const XCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>;
+const ChartBarIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 110 2H3a1 1 0 01-1-1zm5-3a1 1 0 011-1h2a1 1 0 110 2H8a1 1 0 01-1-1zm5-3a1 1 0 011-1h2a1 1 0 110 2h-2a1 1 0 01-1-1zM2 15a1 1 0 011-1h12a1 1 0 110 2H3a1 1 0 01-1-1z" /></svg>;
+const DownloadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" /></svg>;
+
 
 // --- HELPER COMPONENTS ---
 
@@ -211,6 +214,135 @@ const UserManagementView: React.FC<{
     );
 };
 
+const ReportingView: React.FC<{ reports: LostFoundReport[], users: User[] }> = ({ reports, users }) => {
+    const { translations } = useLocalization();
+    const { addToast } = useToast();
+    const t = translations.dashboard.admin.reporting;
+    const filterT = translations.filterBar;
+
+    const initialFilters = {
+        startDate: '',
+        endDate: '',
+        type: 'all',
+        category: 'all',
+        status: 'all',
+        assignedTo: 'all',
+    };
+
+    const [filters, setFilters] = useState(initialFilters);
+    const [generatedReport, setGeneratedReport] = useState<LostFoundReport[] | null>(null);
+
+    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    };
+
+    const handleGenerate = () => {
+        const results = reports.filter(report => {
+            const reportDate = new Date(report.timestamp);
+            const startDate = filters.startDate ? new Date(filters.startDate) : null;
+            const endDate = filters.endDate ? new Date(filters.endDate) : null;
+
+            if (startDate && reportDate < startDate) return false;
+            if (endDate && reportDate > endDate) return false;
+            if (filters.type !== 'all' && report.type !== filters.type) return false;
+            if (filters.category !== 'all' && report.category !== filters.category) return false;
+            if (filters.status !== 'all' && report.status !== filters.status) return false;
+            if (filters.assignedTo !== 'all') {
+                if (filters.assignedTo === 'unassigned' && report.assignedToId) return false;
+                if (filters.assignedTo !== 'unassigned' && report.assignedToId?.toString() !== filters.assignedTo) return false;
+            }
+            return true;
+        });
+        setGeneratedReport(results);
+    };
+
+    const handleReset = () => {
+        setFilters(initialFilters);
+        setGeneratedReport(null);
+    };
+
+    const handleExport = () => {
+        if (!generatedReport || generatedReport.length === 0) {
+            addToast('No report data to export.', 'error');
+            return;
+        }
+
+        const headers = ['ID', 'Timestamp', 'Type', 'Category', 'Description', 'Last Seen', 'Status', 'Reported By', 'Assigned To'];
+        
+        const escapeCsvCell = (cellData: any) => {
+            const stringData = String(cellData ?? '');
+            if (stringData.includes(',') || stringData.includes('"') || stringData.includes('\n')) {
+                return `"${stringData.replace(/"/g, '""')}"`;
+            }
+            return stringData;
+        };
+
+        const csvRows = [
+            headers.join(','),
+            ...generatedReport.map(report => [
+                escapeCsvCell(report.id),
+                escapeCsvCell(new Date(report.timestamp).toLocaleString()),
+                escapeCsvCell(report.type),
+                escapeCsvCell(report.category),
+                escapeCsvCell(report.description),
+                escapeCsvCell(report.lastSeen),
+                escapeCsvCell(report.status),
+                escapeCsvCell(report.reportedBy),
+                escapeCsvCell(report.assignedToName || 'Unassigned'),
+            ].join(','))
+        ];
+
+        const csvContent = "data:text/csv;charset=utf-8," + csvRows.join('\n');
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `simhastha_report_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+    
+    const assignableUsers = useMemo(() => users.filter(u => u.role === UserRole.VOLUNTEER || u.role === UserRole.AUTHORITY), [users]);
+
+    return (
+        <Card>
+            <h3 className="text-xl font-bold mb-2">{t.title}</h3>
+            <p className="text-gray-600 mb-4">{t.description}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 border rounded-lg bg-gray-50">
+                <div>
+                    <label className="block text-sm font-medium">{t.dateRange}</label>
+                    <div className="flex items-center gap-2">
+                        <input type="date" name="startDate" value={filters.startDate} onChange={handleFilterChange} className="w-full p-2 border rounded-md"/>
+                        <input type="date" name="endDate" value={filters.endDate} onChange={handleFilterChange} className="w-full p-2 border rounded-md"/>
+                    </div>
+                </div>
+                <div><label className="block text-sm font-medium">{filterT.typeLabel}</label><select name="type" value={filters.type} onChange={handleFilterChange} className="w-full p-2 border rounded-md"><option value="all">{filterT.all}</option><option value="Lost">{filterT.lost}</option><option value="Found">{filterT.found}</option></select></div>
+                <div><label className="block text-sm font-medium">{filterT.categoryLabel}</label><select name="category" value={filters.category} onChange={handleFilterChange} className="w-full p-2 border rounded-md"><option value="all">{filterT.all}</option><option value="Person">{filterT.person}</option><option value="Item">{filterT.item}</option></select></div>
+                <div><label className="block text-sm font-medium">{filterT.statusLabel}</label><select name="status" value={filters.status} onChange={handleFilterChange} className="w-full p-2 border rounded-md"><option value="all">{filterT.all}</option><option value="Open">{filterT.open}</option><option value="In Progress">{filterT.inProgress}</option><option value="Resolved">{filterT.resolved}</option></select></div>
+                <div><label className="block text-sm font-medium">{filterT.assignmentLabel}</label><select name="assignedTo" value={filters.assignedTo} onChange={handleFilterChange} className="w-full p-2 border rounded-md"><option value="all">{filterT.all}</option><option value="unassigned">{filterT.unassigned}</option>{assignableUsers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}</select></div>
+            </div>
+            <div className="flex gap-4 mt-4">
+                <Button onClick={handleGenerate}>{t.generateReport}</Button>
+                <Button onClick={handleReset} variant="secondary">{t.resetFilters}</Button>
+            </div>
+            {generatedReport && (
+                <div className="mt-6 animate-fade-in">
+                    <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2">
+                        <h3 className="text-lg font-bold">{t.reportResults} <span className="text-gray-600 font-medium">({t.showingResults.replace('{count}', generatedReport.length)})</span></h3>
+                        <Button onClick={handleExport} disabled={generatedReport.length === 0}>{t.exportToCsv}</Button>
+                    </div>
+                    {generatedReport.length > 0 ? (
+                        <div className="overflow-x-auto"><table className="w-full text-left"><thead><tr className="bg-gray-100"><th className="p-3">ID</th><th className="p-3">Date</th><th className="p-3">Type</th><th className="p-3">Category</th><th className="p-3">Status</th><th className="p-3">Assigned To</th></tr></thead><tbody>{generatedReport.map(report => (<tr key={report.id} className="border-b"><td className="p-3 font-mono text-xs">{report.id}</td><td className="p-3">{new Date(report.timestamp).toLocaleDateString()}</td><td className="p-3">{report.type}</td><td className="p-3">{report.category}</td><td className="p-3">{report.status}</td><td className="p-3">{report.assignedToName || 'Unassigned'}</td></tr>))}</tbody></table></div>
+                    ) : (
+                        <p className="text-center py-8 text-gray-500">{t.noResults}</p>
+                    )}
+                </div>
+            )}
+        </Card>
+    );
+};
+
+
 /**
  * Admin Dashboard Component.
  * This is the central control panel for administrators. It provides an overview of
@@ -229,7 +361,7 @@ const AdminDashboard: React.FC = () => {
     const [assignmentFilter, setAssignmentFilter] = useState('all');
     const [sortOption, setSortOption] = useState('dateNewest');
     const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
-    const [activeTab, setActiveTab] = useState<'overview' | 'users'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'reporting'>('overview');
     const [userToEdit, setUserToEdit] = useState<User | null>(null);
 
     const [isAiSearching, setIsAiSearching] = useState(false);
@@ -310,6 +442,48 @@ const AdminDashboard: React.FC = () => {
             case 'dateNewest': default: return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
         }
     });
+    
+    const handleExportToCsv = () => {
+        if (filteredReports.length === 0) {
+            addToast('No data to export for the current filters.', 'error');
+            return;
+        }
+
+        const headers = ['ID', 'Timestamp', 'Type', 'Category', 'Description', 'Last Seen', 'Status', 'Reported By', 'Assigned To'];
+        
+        const escapeCsvCell = (cellData: any) => {
+            const stringData = String(cellData ?? '');
+            if (stringData.includes(',') || stringData.includes('"') || stringData.includes('\n')) {
+                return `"${stringData.replace(/"/g, '""')}"`;
+            }
+            return stringData;
+        };
+
+        const csvRows = [
+            headers.join(','),
+            ...filteredReports.map(report => [
+                escapeCsvCell(report.id),
+                escapeCsvCell(new Date(report.timestamp).toLocaleString()),
+                escapeCsvCell(report.type),
+                escapeCsvCell(report.category),
+                escapeCsvCell(report.description),
+                escapeCsvCell(report.lastSeen),
+                escapeCsvCell(report.status),
+                escapeCsvCell(report.reportedBy),
+                escapeCsvCell(report.assignedToName || 'Unassigned'),
+            ].join(','))
+        ];
+
+        const csvContent = "data:text/csv;charset=utf-8," + csvRows.join('\n');
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `simhastha_filtered_reports_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        addToast('Report exported successfully!', 'success');
+    };
 
     const statusOptions = [{ value: 'all', label: `${translations.filterBar.statusLabel}: ${translations.filterBar.all}` }, { value: 'Open', label: translations.filterBar.open }, { value: 'In Progress', label: translations.filterBar.inProgress }, { value: 'Resolved', label: translations.filterBar.resolved }];
     const categoryOptions = [{ value: 'all', label: `${translations.filterBar.categoryLabel}: ${translations.filterBar.all}` }, { value: 'Person', label: translations.filterBar.person }, { value: 'Item', label: translations.filterBar.item }];
@@ -334,6 +508,9 @@ const AdminDashboard: React.FC = () => {
                         </button>
                         <button onClick={() => setActiveTab('users')} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center ${activeTab === 'users' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
                             <UsersIcon /> {translations.dashboard.admin.userManagementTab}
+                        </button>
+                        <button onClick={() => setActiveTab('reporting')} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center ${activeTab === 'reporting' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
+                            <ChartBarIcon /> {translations.dashboard.admin.reportingTab}
                         </button>
                     </nav>
                 </div>
@@ -363,8 +540,8 @@ const AdminDashboard: React.FC = () => {
                         <Card>
                             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
                                 <h3 className="text-xl font-bold flex-shrink-0">{translations.dashboard.admin.recentReports}</h3>
-                                <div className="w-full sm:w-auto flex-grow grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 items-center justify-end">
-                                    <div className="relative w-full col-span-2 lg:col-span-2">
+                                <div className="w-full sm:w-auto flex-grow flex flex-wrap items-center justify-end gap-2">
+                                    <div className="relative w-full sm:w-64">
                                         <input type="text" placeholder={translations.dashboard.admin.searchPlaceholder} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAiSearch()} className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full" />
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><SearchIcon /></div>
                                         <button onClick={handleAiSearch} disabled={isAiSearching || !searchQuery.trim()} title={translations.dashboard.admin.aiSearchTooltip} className="absolute inset-y-0 right-0 flex items-center justify-center gap-2 w-10 h-10 text-white bg-orange-500 rounded-full hover:bg-orange-600 disabled:bg-orange-300 transition-colors"><SparklesIcon /></button>
@@ -373,9 +550,7 @@ const AdminDashboard: React.FC = () => {
                                     <FilterDropdown label={translations.filterBar.categoryLabel} value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} options={categoryOptions} />
                                     <FilterDropdown label={translations.filterBar.typeLabel} value={typeFilter} onChange={e => setTypeFilter(e.target.value)} options={typeOptions} />
                                     <FilterDropdown label={translations.filterBar.assignmentLabel} value={assignmentFilter} onChange={e => setAssignmentFilter(e.target.value)} options={assignmentOptions} />
-                                    <div className="lg:col-start-4 col-span-2 lg:col-span-3">
-                                        <FilterDropdown label={translations.filterBar.sortLabel} value={sortOption} onChange={e => setSortOption(e.target.value)} options={sortOptions.map(opt => ({...opt, label: `${translations.filterBar.sortLabel}: ${opt.label}`}))} />
-                                    </div>
+                                    <FilterDropdown label={translations.filterBar.sortLabel} value={sortOption} onChange={e => setSortOption(e.target.value)} options={sortOptions.map(opt => ({...opt, label: `${translations.filterBar.sortLabel}: ${opt.label}`}))} />
                                 </div>
                             </div>
                             {aiFilteredReportIds !== null && (
@@ -384,7 +559,13 @@ const AdminDashboard: React.FC = () => {
                                     <button onClick={clearAiSearch} className="text-sm font-semibold hover:underline flex-shrink-0 ml-4">{translations.dashboard.admin.clearAiSearch}</button>
                                 </div>
                             )}
-                            <div className="mb-4"><div className="inline-flex rounded-md shadow-sm bg-gray-100 p-1"><button onClick={() => setViewMode('list')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center ${viewMode === 'list' ? 'bg-white text-orange-600 shadow' : 'text-gray-600'}`}><ListIcon/> {translations.dashboard.admin.listView}</button><button onClick={() => setViewMode('map')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center ${viewMode === 'map' ? 'bg-white text-orange-600 shadow' : 'text-gray-600'}`}><MapIcon/> {translations.dashboard.admin.mapView}</button></div></div>
+                            <div className="mb-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+                                <div className="inline-flex rounded-md shadow-sm bg-gray-100 p-1">
+                                    <button onClick={() => setViewMode('list')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center ${viewMode === 'list' ? 'bg-white text-orange-600 shadow' : 'text-gray-600'}`}><ListIcon/> {translations.dashboard.admin.listView}</button>
+                                    <button onClick={() => setViewMode('map')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center ${viewMode === 'map' ? 'bg-white text-orange-600 shadow' : 'text-gray-600'}`}><MapIcon/> {translations.dashboard.admin.mapView}</button>
+                                </div>
+                                <Button onClick={handleExportToCsv} variant="secondary"><DownloadIcon/> {translations.dashboard.admin.reporting.exportToCsv}</Button>
+                            </div>
                             {viewMode === 'list' ? (
                                 <div className="overflow-x-auto"><table className="w-full text-left"><thead><tr className="bg-gray-100"><th className="p-3">Type</th><th className="p-3">Category</th><th className="p-3">Description</th><th className="p-3">Status</th><th className="p-3">Assigned To</th><th className="p-3">Reported By</th></tr></thead><tbody>{filteredReports.map(report => (<tr key={report.id} className="border-b hover:bg-gray-50 cursor-pointer" onClick={() => openDetails(report)}><td className="p-3">{report.type}</td><td className="p-3">{report.category}</td><td className="p-3 truncate max-w-xs">{report.description}</td><td className="p-3"><span className={`px-2 py-1 text-xs rounded-full ${report.status === 'Open' ? 'bg-yellow-200 text-yellow-800' : report.status === 'In Progress' ? 'bg-blue-200 text-blue-800' : 'bg-green-200 text-green-800'}`}>{report.status}</span></td><td className="p-3">{report.assignedToName || 'Unassigned'}</td><td className="p-3">{report.reportedBy}</td></tr>))}{filteredReports.length === 0 && <tr><td colSpan={6}><p className="text-center py-4 text-gray-500">{translations.myReports.noFilteredReports}</p></td></tr>}</tbody></table></div>
                             ) : ( <ReportsMapView reports={filteredReports} onSelectReport={openDetails} /> )}
@@ -392,6 +573,7 @@ const AdminDashboard: React.FC = () => {
                     </div>
                 )}
                 {activeTab === 'users' && <div className="animate-fade-in"><UserManagementView users={users} onEditUser={setUserToEdit} /></div>}
+                {activeTab === 'reporting' && <div className="animate-fade-in"><ReportingView reports={reports} users={users} /></div>}
             </div>
             <ReportDetailsModal isOpen={!!selectedReport} onClose={closeDetails} report={selectedReport} onUpdateReport={handleUpdateReport} assignableUsers={assignableUsers} />
             <UserEditModal isOpen={!!userToEdit} onClose={() => setUserToEdit(null)} user={userToEdit} onSave={handleSaveUser} />

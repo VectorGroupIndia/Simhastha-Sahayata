@@ -1,3 +1,4 @@
+
 import { User, UserRole } from './types';
 import { MOCK_REGISTERED_ITEMS } from './data/mockData';
 
@@ -34,7 +35,7 @@ export const DEMO_USERS: User[] = [
   { id: 1, name: 'Ravi Kumar (Pilgrim)', role: UserRole.PILGRIM, avatar: 'https://picsum.photos/seed/ravi/100/100', status: 'Active', emergencyContacts: [{ id: 1, name: 'Priya (Wife)', phone: '9876543210' }, { id: 2, name: 'Amit (Brother)', phone: '9876543211' }], sosHistory: [{ id: 1, timestamp: '2024-07-28T14:30:00Z', status: 'Resolved' }, { id: 2, timestamp: '2024-07-26T09:00:00Z', status: 'Broadcasted' }], registeredItems: MOCK_REGISTERED_ITEMS, settings: { notifications: true, powerButtonSos: false, voiceNav: true, theme: 'light' } },
   { id: 2, name: 'Priya Sharma (Pilgrim)', role: UserRole.PILGRIM, avatar: 'https://picsum.photos/seed/priya/100/100', status: 'Active', emergencyContacts: [], sosHistory: [], settings: { notifications: true, powerButtonSos: true, voiceNav: false, theme: 'light' } },
   { id: 3, name: 'Admin User', role: UserRole.ADMIN, avatar: 'https://picsum.photos/seed/admin/100/100', status: 'Active', emergencyContacts: [], settings: { notifications: true, powerButtonSos: false, voiceNav: false, theme: 'light', adminNotifications: { highPriority: true, sosAlerts: true, systemHealth: false }, systemSettings: { aiAutofill: true, aiImageAnalysis: true, maintenanceMode: false } } },
-  { id: 4, name: 'Officer Singh (Authority)', role: UserRole.AUTHORITY, avatar: 'https://picsum.photos/seed/officer/100/100', status: 'Active', emergencyContacts: [], settings: { notifications: true, powerButtonSos: false, voiceNav: false, theme: 'light' } },
-  { id: 5, name: 'Sunita Devi (Volunteer)', role: UserRole.VOLUNTEER, avatar: 'https://picsum.photos/seed/sunita/100/100', status: 'Active', emergencyContacts: [], settings: { notifications: false, powerButtonSos: false, voiceNav: true, theme: 'light' } },
+  { id: 4, name: 'Officer Singh (Authority)', role: UserRole.AUTHORITY, avatar: 'https://picsum.photos/seed/officer/100/100', status: 'Active', emergencyContacts: [], settings: { notifications: true, powerButtonSos: false, voiceNav: false, theme: 'light', sosZoneAlerts: true, highPriorityAlertsOnly: false, patrolMode: false } },
+  { id: 5, name: 'Sunita Devi (Volunteer)', role: UserRole.VOLUNTEER, avatar: 'https://picsum.photos/seed/sunita/100/100', status: 'Active', emergencyContacts: [], settings: { notifications: true, powerButtonSos: false, voiceNav: true, theme: 'light', availabilityStatus: 'Active', nearbyAlertsNotifications: true } },
   { id: 6, name: 'Rohan Mehra (Pilgrim)', role: UserRole.PILGRIM, avatar: 'https://picsum.photos/seed/rohan/100/100', status: 'Suspended', emergencyContacts: [], sosHistory: [], settings: { notifications: true, powerButtonSos: false, voiceNav: true, theme: 'light' } },
 ];

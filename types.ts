@@ -1,3 +1,4 @@
+
 // Defines the user roles within the application.
 export enum UserRole {
   PILGRIM = 'Pilgrim',
@@ -52,7 +53,14 @@ export interface User {
         aiAutofill: boolean;
         aiImageAnalysis: boolean;
         maintenanceMode: boolean;
-    }
+    };
+    // Authority settings
+    sosZoneAlerts?: boolean;
+    highPriorityAlertsOnly?: boolean;
+    patrolMode?: boolean;
+    // Volunteer settings
+    availabilityStatus?: 'Active' | 'On Break';
+    nearbyAlertsNotifications?: boolean;
   }
 }
 
