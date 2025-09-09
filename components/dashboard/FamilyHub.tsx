@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { MOCK_FAMILY_MEMBERS } from '../../data/mockData';
 import { useLocalization } from '../../hooks/useLocalization';
 import { Modal } from '../ui/Modal';
+import { AppContext } from '../../context/AppContext';
 
 // SVG Icon Components defined locally for simplicity
 const UserIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" /></svg>;
@@ -19,14 +20,20 @@ const LostIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-
 const FamilyHub: React.FC = () => {
     const { translations } = useLocalization();
     const [isSosModalOpen, setIsSosModalOpen] = useState(false);
-    const [isSosActive, setIsSosActive] = useState(false);
+    const appContext = useContext(AppContext);
+
+    if (!appContext) {
+        throw new Error("AppContext not found");
+    }
+    const { isSosActive, setSosStatus } = appContext;
+
 
     const handleSOS = () => {
         setIsSosModalOpen(true);
     };
 
     const confirmSOS = () => {
-        setIsSosActive(true);
+        setSosStatus(true);
         setIsSosModalOpen(false);
         // In a real app, this would trigger a backend call
         console.log("SOS Confirmed! Alerting network.");

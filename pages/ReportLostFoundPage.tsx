@@ -8,6 +8,7 @@ import { LostFoundReport } from '../types';
 import { ImageZoomModal } from '../components/ui/ImageZoomModal';
 import { autofillReportForm, analyzeReportImage } from '../services/geminiService';
 import { Spinner } from '../components/ui/Spinner';
+import { MOCK_LOST_FOUND_REPORTS } from '../data/mockData';
 
 type ReportStep = 'instructions' | 'form' | 'review' | 'confirmation';
 type ReportType = 'Lost' | 'Found';
@@ -98,10 +99,8 @@ const ReportLostFoundPage: React.FC = () => {
   }
 
   const handleSubmit = () => {
-      // In a real app, this would submit data to a backend.
       if(!reportToReview) return;
-      // Here you would add the report to your global state or mock data array
-      // e.g., MOCK_LOST_FOUND_REPORTS.unshift(reportToReview);
+      MOCK_LOST_FOUND_REPORTS.unshift(reportToReview);
       setSubmittedReport(reportToReview);
       setStep('confirmation');
   };
@@ -407,14 +406,19 @@ const ReportLostFoundPage: React.FC = () => {
       case 'confirmation':
         if (!submittedReport) return null;
         return (
-            <div className="text-center space-y-4">
-                <h3 className="text-2xl font-bold text-green-600">{translations.report.confirmationTitle}</h3>
-                <p className="text-gray-600">{translations.report.confirmationText}</p>
+            <div className="text-center space-y-6 p-4">
+                <div className="w-20 h-20 bg-green-100 rounded-full mx-auto flex items-center justify-center">
+                    <svg className="w-12 h-12 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-800">{translations.report.confirmationSuccessTitle}</h3>
+                <p className="text-gray-600">{translations.report.confirmationSuccessText}</p>
                 {renderReportSummary(submittedReport)}
-                <div className="flex gap-4 justify-center pt-4">
-                    <Button onClick={handleDownload}>{translations.report.downloadButton}</Button>
-                    <Button onClick={resetForm}>{translations.report.newReport}</Button>
-                    <Button onClick={() => navigate('/dashboard')} variant="secondary">{translations.report.dashboardButton}</Button>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+                    <Button onClick={handleDownload} variant="secondary">{translations.report.downloadButton}</Button>
+                    <Button onClick={resetForm} variant="secondary">{translations.report.newReport}</Button>
+                    <Button onClick={() => navigate('/dashboard')}>{translations.report.dashboardButton}</Button>
                 </div>
             </div>
         )

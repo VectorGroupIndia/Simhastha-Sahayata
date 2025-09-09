@@ -15,7 +15,8 @@ export const MOCK_LOST_FOUND_REPORTS: LostFoundReport[] = [
     { id: 'p001', type: 'Lost', category: 'Person', personName: 'Rohan Sharma', personAge: '5', personGender: 'Male', clothingAppearance: 'Red T-shirt with a cartoon print, blue shorts.', description: 'He was holding a small toy car.', lastSeen: 'Ram Ghat', locationCoords: { lat: 25, lng: 40 }, imageUrl: 'https://picsum.photos/seed/child1/200/200', reportedBy: 'Ravi Kumar', reportedById: 1, timestamp: '2024-07-28T10:00:00Z', status: 'Open' },
     { id: 'i001', type: 'Found', category: 'Item', itemName: 'Wallet', itemBrand: 'Unbranded', itemColor: 'Black', identifyingMarks: 'Has a small scratch on the corner.', description: 'Black leather wallet with an ID card for "Suresh Verma".', lastSeen: 'Food Stall Area', locationCoords: { lat: 70, lng: 65 }, imageUrl: 'https://picsum.photos/seed/wallet/200/200', reportedBy: 'Sunita Devi (Volunteer)', reportedById: 5, timestamp: '2024-07-28T11:30:00Z', status: 'In Progress' },
     { id: 'p002', type: 'Lost', category: 'Person', personName: 'Kamla Devi', personAge: '72', personGender: 'Female', clothingAppearance: 'Wearing a plain white saree and glasses.', description: 'She seems disoriented and might not remember her name.', lastSeen: 'Near Mahakal Temple', locationCoords: { lat: 50, lng: 50 }, imageUrl: 'https://picsum.photos/seed/grandma2/200/200', reportedBy: 'Priya Sharma', reportedById: 2, timestamp: '2024-07-28T09:15:00Z', status: 'Open' },
-    { id: 'i002', type: 'Lost', category: 'Item', itemName: 'Backpack', itemBrand: 'American Tourister', itemColor: 'Red', identifyingMarks: 'A keychain with a Taj Mahal souvenir is attached.', description: 'Contains important travel documents and a water bottle.', lastSeen: 'Bus Station', locationCoords: { lat: 85, lng: 20 }, reportedBy: 'Ravi Kumar', reportedById: 1, timestamp: '2024-07-27T18:00:00Z', status: 'Resolved' },
+    { id: 'i002', type: 'Lost', category: 'Item', itemName: 'Backpack', itemBrand: 'American Tourister', itemColor: 'Red', identifyingMarks: 'A keychain with a Taj Mahal souvenir is attached.', description: 'Red backpack with travel documents.', lastSeen: 'Bus Station', locationCoords: { lat: 85, lng: 20 }, reportedBy: 'Ravi Kumar', reportedById: 1, timestamp: '2024-07-27T18:00:00Z', status: 'Resolved' },
+    { id: 'i003', type: 'Found', category: 'Item', itemName: 'Red Bag', itemBrand: 'Unknown', itemColor: 'Red', identifyingMarks: 'Seems to be a travel bag.', description: 'Found a red travel backpack near the bus station. Looks like it has documents inside.', lastSeen: 'Bus Station Drop-off', locationCoords: { lat: 86, lng: 22 }, reportedBy: 'Officer Singh (Authority)', reportedById: 4, timestamp: '2024-07-28T14:00:00Z', status: 'Open' }
 ];
 
 
@@ -23,6 +24,11 @@ export const MOCK_LOST_FOUND_REPORTS: LostFoundReport[] = [
 // This is a simple implementation of internationalization (i18n).
 export const translations: { [key: string]: any } = {
     en: {
+        header: {
+            sosButton: 'SOS',
+            sosConfirmTitle: 'Confirm SOS Alert',
+            sosConfirmText: 'Are you in an emergency? This will alert nearby authorities.',
+        },
         auth: {
             loginRegister: 'Login / Register',
             loginTitle: 'Login to Simhastha Sahayata',
@@ -55,6 +61,20 @@ export const translations: { [key: string]: any } = {
             },
             authorities: { title: 'Authorities Dashboard', crowdDensity: 'Real-time Crowd Density', missingPersons: 'High-Priority: Missing Persons' },
             volunteer: { title: 'Volunteer Dashboard', activeAlerts: 'Active Alerts in Your Zone', noAlerts: 'No active alerts. Thank you for your service!' },
+            crowdDensity: {
+                title: 'Crowd Density',
+                low: 'Low',
+                moderate: 'Moderate',
+                high: 'High',
+                extreme: 'Extreme',
+            },
+            aiAlerts: {
+                title: 'AI-Powered Alerts',
+                noAlerts: 'No potential matches for your reports found yet. We are actively monitoring.',
+                potentialMatch: 'Potential Match Found!',
+                yourReport: 'Your Report',
+                foundReport: 'Matching Report',
+            },
         },
         familyHub: {
             title: 'Family Hub',
@@ -119,6 +139,8 @@ export const translations: { [key: string]: any } = {
             removeImage: 'Remove',
             confirmationTitle: 'Report Submitted!',
             confirmationText: 'Your report has been filed. You can track its status in the "My Reports" section of your dashboard.',
+            confirmationSuccessTitle: 'Report Submitted Successfully!',
+            confirmationSuccessText: 'Your report is now active. We will notify you of any updates. You can track its status on your dashboard.',
             reportSummary: 'Report Summary',
             newReport: 'File Another Report',
             personName: "Person's Name",
@@ -182,6 +204,14 @@ export const translations: { [key: string]: any } = {
         profile: {
             title: 'User Profile',
             changeAvatar: 'Change Avatar',
+            settings: 'Settings',
+            emergencySettings: 'Emergency Settings',
+            powerButtonSos: 'Power Button SOS',
+            powerButtonSosDesc: 'Press your phone\'s power button 3 times quickly to activate SOS.',
+            navigationSettings: 'Navigation Settings',
+            voiceNav: 'Voice Input Navigation',
+            voiceNavDesc: 'Enable microphone input for hands-free navigation commands.',
+            featureComingSoon: 'Feature coming soon',
         },
         cookieBanner: {
             message: 'We use cookies to enhance your experience, analyze site traffic, and personalize content. Your privacy is important to us.',
@@ -207,6 +237,11 @@ export const translations: { [key: string]: any } = {
         }
     },
     hi: {
+        header: {
+            sosButton: 'SOS',
+            sosConfirmTitle: 'SOS अलर्ट की पुष्टि करें',
+            sosConfirmText: 'क्या आप आपात स्थिति में हैं? यह आस-पास के अधिकारियों को सचेत करेगा।',
+        },
         auth: {
             loginRegister: 'लॉगिन / रजिस्टर',
             loginTitle: 'सिंहस्थ सहायता में लॉगिन करें',
@@ -239,6 +274,20 @@ export const translations: { [key: string]: any } = {
             },
             authorities: { title: 'अधिकारी डैशबोर्ड', crowdDensity: 'वास्तविक समय में भीड़ घनत्व', missingPersons: 'उच्च प्राथमिकता: लापता व्यक्ति' },
             volunteer: { title: 'स्वयंसेवक डैशबोर्ड', activeAlerts: 'आपके क्षेत्र में सक्रिय अलर्ट', noAlerts: 'कोई सक्रिय अलर्ट नहीं। आपकी सेवा के लिए धन्यवाद!' },
+            crowdDensity: {
+                title: 'भीड़ घनत्व',
+                low: 'कम',
+                moderate: 'मध्यम',
+                high: 'अधिक',
+                extreme: 'अत्यधिक',
+            },
+            aiAlerts: {
+                title: 'AI-संचालित अलर्ट',
+                noAlerts: 'आपकी रिपोर्ट के लिए अभी तक कोई संभावित मिलान नहीं मिला है। हम सक्रिय रूप से निगरानी कर रहे हैं।',
+                potentialMatch: 'संभावित मिलान मिला!',
+                yourReport: 'आपकी रिपोर्ट',
+                foundReport: 'मिलान रिपोर्ट',
+            },
         },
         familyHub: {
             title: 'परिवार हब',
@@ -303,6 +352,8 @@ export const translations: { [key: string]: any } = {
             removeImage: 'हटाएं',
             confirmationTitle: 'रिपोर्ट जमा हो गई!',
             confirmationText: 'आपकी रिपोर्ट दर्ज कर ली गई है। आप अपने डैशबोर्ड के "मेरी रिपोर्ट" अनुभाग में इसकी स्थिति को ट्रैक कर सकते हैं।',
+            confirmationSuccessTitle: 'रिपोर्ट सफलतापूर्वक जमा हो गई!',
+            confirmationSuccessText: 'आपकी रिपोर्ट अब सक्रिय है। हम आपको किसी भी अपडेट के बारे में सूचित करेंगे। आप अपने डैशबोर्ड पर इसकी स्थिति को ट्रैक कर सकते हैं।',
             reportSummary: 'रिपोर्ट सारांश',
             newReport: 'एक और रिपोर्ट दर्ज करें',
             personName: 'व्यक्ति का नाम',
@@ -366,6 +417,14 @@ export const translations: { [key: string]: any } = {
         profile: {
             title: 'उपयोगकर्ता प्रोफ़ाइल',
             changeAvatar: 'अवतार बदलें',
+            settings: 'सेटिंग्स',
+            emergencySettings: 'आपातकालीन सेटिंग्स',
+            powerButtonSos: 'पावर बटन SOS',
+            powerButtonSosDesc: 'SOS सक्रिय करने के लिए अपने फ़ोन का पावर बटन 3 बार जल्दी से दबाएं।',
+            navigationSettings: 'नेविगेशन सेटिंग्स',
+            voiceNav: 'आवाज इनपुट नेविगेशन',
+            voiceNavDesc: 'हैंड्स-फ्री नेविगेशन कमांड के लिए माइक्रोफ़ोन इनपुट सक्षम करें।',
+            featureComingSoon: 'सुविधा जल्द ही आ रही है',
         },
         cookieBanner: {
             message: 'हम आपके अनुभव को बेहतर बनाने, साइट ट्रैफिक का विश्लेषण करने और सामग्री को वैयक्तिकृत करने के लिए कुकीज़ का उपयोग करते हैं। आपकी गोपनीयता हमारे लिए महत्वपूर्ण है।',

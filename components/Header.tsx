@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useLocalization } from '../hooks/useLocalization';
 import LanguageSelector from './LanguageSelector';
 import LoginModal from './LoginModal';
 import { Button } from './ui/Button';
+import { Modal } from './ui/Modal';
+import { AppContext } from '../context/AppContext';
 import { NAV_LINKS } from '../constants';
+
+const SosIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>;
 
 /**
  * The main application header.
@@ -15,9 +19,16 @@ import { NAV_LINKS } from '../constants';
 const Header: React.FC = () => {
   const [isLoginModalOpen, setLoginModalOpen] = useState(false);
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isSosModalOpen, setIsSosModalOpen] = useState(false);
   const { user, logout } = useAuth();
   const { language, translations } = useLocalization();
+  const appContext = useContext(AppContext);
   const navigate = useNavigate();
+
+  if (!appContext) {
+    throw new Error("AppContext not found");
+  }
+  const { isSosActive, setSosStatus } = appContext;
 
   const handleLogout = () => {
     logout();
@@ -31,6 +42,16 @@ const Header: React.FC = () => {
       setLoginModalOpen(true);
     }
   };
+  
+  const handleSosClick = () => {
+    setIsSosModalOpen(true);
+  };
+
+  const confirmSOS = () => {
+    setSosStatus(true);
+    setIsSosModalOpen(false);
+  };
+
 
   const navLinks = NAV_LINKS[language] || NAV_LINKS.en;
 
@@ -56,6 +77,7 @@ const Header: React.FC = () => {
               </div>
               {user ? (
                 <div className="hidden md:flex items-center space-x-4">
+                   <Button onClick={handleSosClick} variant="danger" className={`px-3 ${isSosActive ? 'animate-pulse' : ''}`} disabled={isSosActive}><SosIcon/><span className="ml-1.5">{translations.header.sosButton}</span></Button>
                    <NavLink to="/profile" className="text-sm font-semibold text-gray-700 hover:text-orange-500">{translations.dashboard.greeting}, {user.name.split(' ')[0]}!</NavLink>
                    <Button onClick={handleLogout} variant="secondary" className="px-4 py-1.5 text-sm">{translations.auth.logout}</Button>
                 </div>
@@ -77,15 +99,16 @@ const Header: React.FC = () => {
                 <NavLink key={link.name} to={link.path} className={({ isActive }) => `text-gray-600 hover:text-orange-500 p-2 rounded ${isActive ? 'bg-orange-100 text-orange-600' : ''}`} onClick={() => setMobileMenuOpen(false)}>{link.name}</NavLink>
               ))}
                <div className="border-t pt-4 flex flex-col items-start space-y-3">
-                    <Button onClick={() => {handleReportClick(); setMobileMenuOpen(false);}} className="w-full" variant="primary">{translations.home.reportButton}</Button>
+                    <Button onClick={() => {handleReportClick(); setMobileMenuOpen(false);}} className="w-full" variant="secondary">{translations.home.reportButton}</Button>
                     {user ? (
                         <>
+                           <Button onClick={() => {handleSosClick(); setMobileMenuOpen(false);}} variant="danger" className={`w-full ${isSosActive ? 'animate-pulse' : ''}`} disabled={isSosActive}>{translations.header.sosButton}</Button>
                            <NavLink to="/profile" className="font-semibold text-gray-700 w-full text-center p-2 rounded hover:bg-gray-100" onClick={() => setMobileMenuOpen(false)}>{translations.dashboard.greeting}, {user.name.split(' ')[0]}!</NavLink>
                            <NavLink to="/dashboard" className="text-gray-600 hover:text-orange-500 w-full text-center p-2 rounded" onClick={() => setMobileMenuOpen(false)}>{translations.dashboard.title}</NavLink>
                            <Button onClick={()=>{handleLogout(); setMobileMenuOpen(false);}} variant="secondary" className="w-full">{translations.auth.logout}</Button>
                         </>
                     ) : (
-                        <Button onClick={() => {setLoginModalOpen(true); setMobileMenuOpen(false);}} variant="secondary" className="w-full">{translations.auth.loginRegister}</Button>
+                        <Button onClick={() => {setLoginModalOpen(true); setMobileMenuOpen(false);}} variant="primary" className="w-full">{translations.auth.loginRegister}</Button>
                     )}
                 </div>
             </nav>
@@ -93,6 +116,23 @@ const Header: React.FC = () => {
         )}
       </header>
       <LoginModal isOpen={isLoginModalOpen} onClose={() => setLoginModalOpen(false)} />
+       <Modal
+        isOpen={isSosModalOpen}
+        onClose={() => setIsSosModalOpen(false)}
+        title={translations.header.sosConfirmTitle}
+      >
+        <div className="text-center">
+          <p className="text-gray-600 mb-6">{translations.header.sosConfirmText}</p>
+          <div className="flex justify-center gap-4">
+            <Button variant="secondary" onClick={() => setIsSosModalOpen(false)}>
+              {translations.familyHub.sosCancelButton}
+            </Button>
+            <Button variant="danger" onClick={confirmSOS}>
+              {translations.familyHub.sosConfirmButton}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 };

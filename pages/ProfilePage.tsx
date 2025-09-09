@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useLocalization } from '../hooks/useLocalization';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import { ToggleSwitch } from '../components/ui/ToggleSwitch';
 
 /**
  * User Profile Page.
@@ -28,7 +29,7 @@ const ProfilePage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <div className="max-w-md mx-auto">
+      <div className="max-w-xl mx-auto space-y-6">
         <Card>
           <div className="flex flex-col items-center text-center">
             <h2 className="text-3xl font-bold mb-6">{translations.profile.title}</h2>
@@ -46,6 +47,41 @@ const ProfilePage: React.FC = () => {
               {translations.profile.changeAvatar}
             </Button>
           </div>
+        </Card>
+
+        <Card>
+            <h2 className="text-2xl font-bold mb-4">{translations.profile.settings}</h2>
+            <div className="space-y-4">
+                {/* Emergency Settings */}
+                <div>
+                    <h3 className="text-lg font-semibold text-gray-700">{translations.profile.emergencySettings}</h3>
+                    <div className="mt-2 p-4 border rounded-lg">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <label htmlFor="power-sos" className="font-medium text-gray-800">{translations.profile.powerButtonSos}</label>
+                                <p className="text-sm text-gray-500">{translations.profile.powerButtonSosDesc}</p>
+                            </div>
+                            <ToggleSwitch id="power-sos" checked={false} onChange={() => {}} disabled={true} />
+                        </div>
+                        <p className="text-xs text-orange-500 mt-2">{translations.profile.featureComingSoon}</p>
+                    </div>
+                </div>
+
+                {/* Navigation Settings */}
+                <div>
+                    <h3 className="text-lg font-semibold text-gray-700">{translations.profile.navigationSettings}</h3>
+                    <div className="mt-2 p-4 border rounded-lg">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <label htmlFor="voice-nav" className="font-medium text-gray-800">{translations.profile.voiceNav}</label>
+                                <p className="text-sm text-gray-500">{translations.profile.voiceNavDesc}</p>
+                            </div>
+                            <ToggleSwitch id="voice-nav" checked={false} onChange={() => {}} disabled={true} />
+                        </div>
+                         <p className="text-xs text-orange-500 mt-2">{translations.profile.featureComingSoon}</p>
+                    </div>
+                </div>
+            </div>
         </Card>
       </div>
     </div>
