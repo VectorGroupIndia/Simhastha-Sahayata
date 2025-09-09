@@ -42,6 +42,17 @@ export interface User {
     powerButtonSos: boolean;
     voiceNav: boolean;
     theme?: 'light' | 'dark';
+    // Admin settings
+    adminNotifications?: {
+        highPriority: boolean;
+        sosAlerts: boolean;
+        systemHealth: boolean;
+    };
+    systemSettings?: {
+        aiAutofill: boolean;
+        aiImageAnalysis: boolean;
+        maintenanceMode: boolean;
+    }
   }
 }
 

@@ -18,6 +18,11 @@ import ReportDetailsModal from '../components/dashboard/ReportDetailsModal';
 const PencilIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 text-gray-500 hover:text-orange-500 cursor-pointer" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5l12.232-12.232z" /></svg>;
 const CheckIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>;
 const XIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>;
+const BellIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>;
+const ShieldExclamationIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>;
+const CogIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
+const WrenchScrewdriverIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.023 2.033a1 1 0 01.954 0l6 3a1 1 0 01.023 1.732l-6 11a1 1 0 01-1.732-.954l6-11a1 1 0 01.755-.778zM11 5v.01M13 19.967a1 1 0 01-.954 0l-6-3a1 1 0 01-.023-1.732l6-11a1 1 0 011.732.954l-6 11a1 1 0 01-.755.778zM13 19v-.01" /></svg>;
+const SparklesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 17l-4 4 4-4 2.293-2.293a1 1 0 011.414 0L17 14m-5-5l2.293 2.293a1 1 0 010 1.414L10 17" /></svg>;
 
 // --- COMMON PROFILE COMPONENTS ---
 interface ProfileHeaderProps {
@@ -61,34 +66,47 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onUpdateUser }) => 
         <Card>
           <div className="flex flex-col items-center text-center">
              <div className="relative mb-4">
-                <img src={user.avatar} alt={user.name} className="w-32 h-32 rounded-full object-cover shadow-lg border-4 border-orange-200" />
+                <img src={user.avatar} alt={user.name} className="w-32 h-32 rounded-full object-cover shadow-lg border-4 border-orange-200 dark:border-orange-700" />
                 <input type="file" ref={avatarInputRef} onChange={handleAvatarFileChange} className="hidden" accept="image/png, image/jpeg" />
              </div>
              {!isEditingName ? (
                  <div className="flex items-center">
-                     <h3 className="text-2xl font-bold text-gray-800">{user.name}</h3>
+                     <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{user.name}</h3>
                      <button onClick={() => setIsEditingName(true)} aria-label="Edit name"><PencilIcon /></button>
                  </div>
                ) : (
                  <div className="flex items-center gap-2">
-                     <input type="text" value={editingNameValue} onChange={(e) => setEditingNameValue(e.target.value)} className="text-2xl font-bold text-center border-b-2 border-orange-500 focus:outline-none bg-orange-50" autoFocus onKeyDown={(e) => e.key === 'Enter' && handleSaveName()} />
+                     <input type="text" value={editingNameValue} onChange={(e) => setEditingNameValue(e.target.value)} className="text-2xl font-bold text-center border-b-2 border-orange-500 focus:outline-none bg-orange-50 dark:bg-gray-700" autoFocus onKeyDown={(e) => e.key === 'Enter' && handleSaveName()} />
                      <button onClick={handleSaveName} aria-label="Save name"><CheckIcon /></button>
                      <button onClick={() => setIsEditingName(false)} aria-label="Cancel edit name"><XIcon /></button>
                  </div>
                )}
-             <p className="text-lg text-gray-500 mb-6">{user.role}</p>
+             <p className="text-lg text-gray-500 dark:text-gray-400 mb-6">{user.role}</p>
              <Button onClick={triggerAvatarUpload}>{translations.profile.changeAvatar}</Button>
            </div>
         </Card>
     );
 };
 
+const SettingRow: React.FC<{ id: string; label: string; description: string; checked: boolean; onToggle: (checked: boolean) => void; icon: React.ReactNode; }> = ({ id, label, description, checked, onToggle, icon }) => (
+    <div className="flex items-start gap-4 p-4 first:pt-0 last:pb-0">
+        <div className="flex-shrink-0 text-orange-500 mt-1">{icon}</div>
+        <div className="flex-grow">
+            <label htmlFor={id} className="font-medium text-gray-800 dark:text-gray-200">{label}</label>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{description}</p>
+        </div>
+        <div className="flex-shrink-0">
+            <ToggleSwitch id={id} checked={checked} onChange={onToggle} />
+        </div>
+    </div>
+);
+
 // --- ROLE-SPECIFIC PROFILE BODY COMPONENTS ---
 
 const AdminProfileBody: React.FC<{ user: User, onUpdateUser: (data: Partial<User>) => void }> = ({ user, onUpdateUser }) => {
     const { translations } = useLocalization();
     const t = translations.profile;
-    const settings = user.settings || { theme: 'light' };
+    const settings = user.settings || { theme: 'light', notifications: false, powerButtonSos: false, voiceNav: false };
     
     useEffect(() => {
         if (settings.theme === 'dark') {
@@ -102,6 +120,18 @@ const AdminProfileBody: React.FC<{ user: User, onUpdateUser: (data: Partial<User
         onUpdateUser({ settings: { ...user.settings, theme: newTheme } });
     };
 
+    const handleAdminNotificationToggle = (key: keyof NonNullable<typeof settings.adminNotifications>, value: boolean) => {
+        onUpdateUser({
+            settings: { ...settings, adminNotifications: { ...settings.adminNotifications, [key]: value } }
+        });
+    };
+    
+    const handleSystemSettingToggle = (key: keyof NonNullable<typeof settings.systemSettings>, value: boolean) => {
+        onUpdateUser({
+            settings: { ...settings, systemSettings: { ...settings.systemSettings, [key]: value } }
+        });
+    };
+
     const MOCK_ACTIVITY = [
       { id: 1, action: 'Assigned RPT-1672837462 to Officer Singh.', time: '2h ago' },
       { id: 2, action: 'Suspended user Rohan Mehra.', time: '1d ago' },
@@ -111,33 +141,51 @@ const AdminProfileBody: React.FC<{ user: User, onUpdateUser: (data: Partial<User
     return (
         <>
             <Card>
-                <h2 className="text-2xl font-bold mb-4">{t.systemStats}</h2>
+                <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{t.systemStats}</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-                    <div><p className="text-3xl font-bold">{DEMO_USERS.length}</p><p className="text-gray-500">{t.totalUsers}</p></div>
-                    <div><p className="text-3xl font-bold">{MOCK_LOST_FOUND_REPORTS.length}</p><p className="text-gray-500">{t.totalReports}</p></div>
-                    <div><p className="text-3xl font-bold text-green-600">{DEMO_USERS.filter(u => (u.role === UserRole.VOLUNTEER || u.role === UserRole.AUTHORITY) && u.status === 'Active').length}</p><p className="text-gray-500">{t.activePersonnel}</p></div>
+                    <div><p className="text-3xl font-bold">{DEMO_USERS.length}</p><p className="text-gray-500 dark:text-gray-400">{t.totalUsers}</p></div>
+                    <div><p className="text-3xl font-bold">{MOCK_LOST_FOUND_REPORTS.length}</p><p className="text-gray-500 dark:text-gray-400">{t.totalReports}</p></div>
+                    <div><p className="text-3xl font-bold text-green-600">{DEMO_USERS.filter(u => (u.role === UserRole.VOLUNTEER || u.role === UserRole.AUTHORITY) && u.status === 'Active').length}</p><p className="text-gray-500 dark:text-gray-400">{t.activePersonnel}</p></div>
                 </div>
             </Card>
              <Card>
-                <h2 className="text-2xl font-bold mb-4">{t.dashboardSettings}</h2>
+                <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{t.dashboardSettings}</h2>
                  <div className="flex justify-between items-center">
                     <div>
-                        <p className="font-medium text-gray-800">{t.theme}</p>
-                        <p className="text-sm text-gray-500">{t.themeDesc}</p>
+                        <p className="font-medium text-gray-800 dark:text-gray-200">{t.theme}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{t.themeDesc}</p>
                     </div>
-                    <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
+                    <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
                         <Button variant={settings.theme === 'light' ? 'primary' : 'secondary'} onClick={() => handleThemeChange('light')} className="text-sm py-1 px-3">{t.light}</Button>
                         <Button variant={settings.theme === 'dark' ? 'primary' : 'secondary'} onClick={() => handleThemeChange('dark')} className="text-sm py-1 px-3">{t.dark}</Button>
                     </div>
                  </div>
             </Card>
              <Card>
-                <h2 className="text-2xl font-bold mb-4">{t.activityLog}</h2>
+                <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">{t.notificationSettingsAdmin}</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{t.notificationSettingsAdminDesc}</p>
+                <div className="divide-y divide-gray-200 dark:divide-gray-700 -m-6">
+                    <SettingRow id="high-priority" label={t.highPriority} description={t.highPriorityDesc} checked={settings.adminNotifications?.highPriority ?? true} onToggle={(c) => handleAdminNotificationToggle('highPriority', c)} icon={<ShieldExclamationIcon />} />
+                    <SettingRow id="sos-alerts" label={t.sosAlerts} description={t.sosAlertsDesc} checked={settings.adminNotifications?.sosAlerts ?? true} onToggle={(c) => handleAdminNotificationToggle('sosAlerts', c)} icon={<BellIcon />} />
+                    <SettingRow id="system-health" label={t.systemHealth} description={t.systemHealthDesc} checked={settings.adminNotifications?.systemHealth ?? false} onToggle={(c) => handleAdminNotificationToggle('systemHealth', c)} icon={<CogIcon />} />
+                </div>
+            </Card>
+             <Card>
+                <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">{t.systemConfig}</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{t.systemConfigDesc}</p>
+                <div className="divide-y divide-gray-200 dark:divide-gray-700 -m-6">
+                    <SettingRow id="ai-autofill" label={t.aiAutofill} description={t.aiAutofillDesc} checked={settings.systemSettings?.aiAutofill ?? true} onToggle={(c) => handleSystemSettingToggle('aiAutofill', c)} icon={<SparklesIcon />} />
+                    <SettingRow id="ai-image-analysis" label={t.aiImageAnalysis} description={t.aiImageAnalysisDesc} checked={settings.systemSettings?.aiImageAnalysis ?? true} onToggle={(c) => handleSystemSettingToggle('aiImageAnalysis', c)} icon={<SparklesIcon />} />
+                    <SettingRow id="maintenance-mode" label={t.maintenanceMode} description={t.maintenanceModeDesc} checked={settings.systemSettings?.maintenanceMode ?? false} onToggle={(c) => handleSystemSettingToggle('maintenanceMode', c)} icon={<WrenchScrewdriverIcon />} />
+                </div>
+            </Card>
+             <Card>
+                <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{t.activityLog}</h2>
                 <div className="space-y-3">
                     {MOCK_ACTIVITY.map(act => (
-                        <div key={act.id} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
-                            <p className="text-gray-700">{act.action}</p>
-                            <p className="text-xs text-gray-500 flex-shrink-0 ml-4">{act.time}</p>
+                        <div key={act.id} className="flex justify-between items-center bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                            <p className="text-gray-700 dark:text-gray-300">{act.action}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0 ml-4">{act.time}</p>
                         </div>
                     ))}
                 </div>
@@ -153,20 +201,20 @@ const StaffProfileBody: React.FC<{ user: User; onSelectReport: (report: LostFoun
 
     return (
         <Card>
-            <h2 className="text-2xl font-bold mb-4">{t.myAssignments}</h2>
+            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{t.myAssignments}</h2>
             <div className="space-y-3">
                 {myAssignments.length > 0 ? (
                     myAssignments.map(report => (
-                        <div key={report.id} className="flex flex-col sm:flex-row justify-between sm:items-center bg-gray-50 p-3 rounded-lg gap-2">
+                        <div key={report.id} className="flex flex-col sm:flex-row justify-between sm:items-center bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg gap-2">
                             <div>
-                                <p className="font-semibold text-gray-800">{report.personName || report.itemName}</p>
-                                <p className="text-sm text-gray-600 truncate max-w-sm">{report.description}</p>
+                                <p className="font-semibold text-gray-800 dark:text-gray-200">{report.personName || report.itemName}</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 truncate max-w-sm">{report.description}</p>
                             </div>
                             <Button onClick={() => onSelectReport(report)} variant="secondary" className="text-sm py-1 px-3 self-end sm:self-center">{t.viewReport}</Button>
                         </div>
                     ))
                 ) : (
-                     <p className="text-gray-500 italic text-center py-4">{t.noAssignments}</p>
+                     <p className="text-gray-500 dark:text-gray-400 italic text-center py-4">{t.noAssignments}</p>
                 )}
             </div>
         </Card>
@@ -215,30 +263,30 @@ const PilgrimProfileBody: React.FC<{ user: User; onUpdateUser: (data: Partial<Us
     return (
       <>
         <Card>
-            <h2 className="text-2xl font-bold mb-4">{t.emergencyContacts.title}</h2>
-            <p className="text-sm text-gray-500 mb-4">{t.emergencyContacts.description}</p>
+            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{t.emergencyContacts.title}</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{t.emergencyContacts.description}</p>
             <div className="space-y-3 mb-4">
                 {contacts.length > 0 ? (
-                    contacts.map(c => <div key={c.id} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg"><div><p className="font-semibold text-gray-800">{c.name}</p><p className="text-sm text-gray-600">{c.phone}</p></div><Button onClick={() => handleRemoveContact(c.id)} variant="danger" className="text-xs px-3 py-1">{t.emergencyContacts.remove}</Button></div>)
-                ) : <p className="text-gray-500 italic text-center py-2">{t.emergencyContacts.noContacts}</p>}
+                    contacts.map(c => <div key={c.id} className="flex justify-between items-center bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg"><div><p className="font-semibold text-gray-800 dark:text-gray-200">{c.name}</p><p className="text-sm text-gray-600 dark:text-gray-400">{c.phone}</p></div><Button onClick={() => handleRemoveContact(c.id)} variant="danger" className="text-xs px-3 py-1">{t.emergencyContacts.remove}</Button></div>)
+                ) : <p className="text-gray-500 dark:text-gray-400 italic text-center py-2">{t.emergencyContacts.noContacts}</p>}
             </div>
             <Button onClick={() => setContactModalOpen(true)} className="w-full" variant="secondary">{t.emergencyContacts.addContact}</Button>
         </Card>
         <Card>
-            <h2 className="text-2xl font-bold mb-2">{t.sosHistory.title}</h2>
-            <p className="text-sm text-gray-500 mb-4">{t.sosHistory.description}</p>
+            <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">{t.sosHistory.title}</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{t.sosHistory.description}</p>
             <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
               {sosHistory.length > 0 ? (
-                sosHistory.sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map(alert => <div key={alert.id} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg"><div><p className="font-semibold text-gray-800">{new Date(alert.timestamp).toLocaleString()}</p><p className="text-sm text-gray-500">{t.sosHistory.triggeredOn}</p></div><span className={`px-3 py-1 text-xs font-semibold rounded-full ${getSosStatusClasses(alert.status)}`}>{t.sosHistory.statuses[alert.status.toLowerCase() as keyof typeof t.sosHistory.statuses]}</span></div>)
-              ) : <p className="text-gray-500 italic text-center py-2">{t.sosHistory.noHistory}</p>}
+                sosHistory.sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map(alert => <div key={alert.id} className="flex justify-between items-center bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg"><div><p className="font-semibold text-gray-800 dark:text-gray-200">{new Date(alert.timestamp).toLocaleString()}</p><p className="text-sm text-gray-500 dark:text-gray-400">{t.sosHistory.triggeredOn}</p></div><span className={`px-3 py-1 text-xs font-semibold rounded-full ${getSosStatusClasses(alert.status)}`}>{t.sosHistory.statuses[alert.status.toLowerCase() as keyof typeof t.sosHistory.statuses]}</span></div>)
+              ) : <p className="text-gray-500 dark:text-gray-400 italic text-center py-2">{t.sosHistory.noHistory}</p>}
             </div>
         </Card>
         <Card>
-            <h2 className="text-2xl font-bold mb-4">{t.settings}</h2>
+            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{t.settings}</h2>
             <div className="space-y-4">
-                <div className="p-4 border rounded-lg"><div className="flex justify-between items-center"><div><label htmlFor="power-sos" className="font-medium text-gray-800">{t.powerButtonSos}</label><p className="text-sm text-gray-500">{t.powerButtonSosDesc}</p></div><ToggleSwitch id="power-sos" checked={settings.powerButtonSos} onChange={c => handleToggle('powerButtonSos', c)} /></div></div>
-                <div className="p-4 border rounded-lg"><div className="flex justify-between items-center"><div><label htmlFor="voice-nav" className="font-medium text-gray-800">{t.voiceNav}</label><p className="text-sm text-gray-500">{t.voiceNavDesc}</p></div><ToggleSwitch id="voice-nav" checked={settings.voiceNav} onChange={c => handleToggle('voiceNav', c)} /></div></div>
-                <div className="p-4 border rounded-lg"><div className="flex justify-between items-center"><div><label htmlFor="push-notifications" className="font-medium text-gray-800">{t.pushNotifications}</label><p className="text-sm text-gray-500">{t.pushNotificationsDesc}</p></div><ToggleSwitch id="push-notifications" checked={settings.notifications} onChange={c => handleToggle('notifications', c)} /></div></div>
+                <div className="p-4 border dark:border-gray-700 rounded-lg"><div className="flex justify-between items-center"><div><label htmlFor="power-sos" className="font-medium text-gray-800 dark:text-gray-200">{t.powerButtonSos}</label><p className="text-sm text-gray-500 dark:text-gray-400">{t.powerButtonSosDesc}</p></div><ToggleSwitch id="power-sos" checked={settings.powerButtonSos} onChange={c => handleToggle('powerButtonSos', c)} /></div></div>
+                <div className="p-4 border dark:border-gray-700 rounded-lg"><div className="flex justify-between items-center"><div><label htmlFor="voice-nav" className="font-medium text-gray-800 dark:text-gray-200">{t.voiceNav}</label><p className="text-sm text-gray-500 dark:text-gray-400">{t.voiceNavDesc}</p></div><ToggleSwitch id="voice-nav" checked={settings.voiceNav} onChange={c => handleToggle('voiceNav', c)} /></div></div>
+                <div className="p-4 border dark:border-gray-700 rounded-lg"><div className="flex justify-between items-center"><div><label htmlFor="push-notifications" className="font-medium text-gray-800 dark:text-gray-200">{t.pushNotifications}</label><p className="text-sm text-gray-500 dark:text-gray-400">{t.pushNotificationsDesc}</p></div><ToggleSwitch id="push-notifications" checked={settings.notifications} onChange={c => handleToggle('notifications', c)} /></div></div>
             </div>
         </Card>
         <Modal isOpen={isContactModalOpen} onClose={() => setContactModalOpen(false)} title={t.emergencyContacts.addModalTitle}>
@@ -281,7 +329,7 @@ const ProfilePage: React.FC = () => {
   return (
     <>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="max-w-xl mx-auto space-y-6">
+          <div className="max-w-2xl mx-auto space-y-6">
               <ProfileHeader user={user} onUpdateUser={updateUser} />
               {renderProfileBody()}
           </div>

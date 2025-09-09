@@ -16,6 +16,9 @@ import CookieConsentBanner from './components/CookieConsentBanner';
 import CookieSettingsModal from './components/CookieSettingsModal';
 import ToastContainer from './components/ToastContainer';
 import { SosCallModal } from './components/dashboard/SosCallModal';
+import { useAuth } from './hooks/useAuth';
+import { DEMO_USERS } from './constants';
+import { UserRole } from './types';
 
 /**
  * The root component of the application.
@@ -39,6 +42,13 @@ const MainApp = () => {
   const [showCookieBanner, setShowCookieBanner] = useState(false);
   const [isCookieModalOpen, setIsCookieModalOpen] = useState(false);
   const appContext = useContext(AppContext);
+  const { user } = useAuth();
+  
+  // --- Maintenance Mode Check ---
+  // In a real app, this would be a global setting fetched from a backend.
+  // Here, we simulate it by checking the settings of the first admin user in our mock data.
+  const adminUser = DEMO_USERS.find(u => u.role === UserRole.ADMIN);
+  const isMaintenanceMode = adminUser?.settings?.systemSettings?.maintenanceMode || false;
 
   useEffect(() => {
     const consent = localStorage.getItem('cookie_consent');
@@ -71,7 +81,12 @@ const MainApp = () => {
 
   return (
     <HashRouter>
-      <div className="flex flex-col min-h-screen bg-orange-50 text-gray-800 font-sans">
+      <div className="flex flex-col min-h-screen bg-orange-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans">
+        {isMaintenanceMode && user?.role !== UserRole.ADMIN && (
+            <div className="bg-yellow-500 text-white text-center p-2 font-semibold z-50">
+                {appContext.translations.profile.maintenanceModeBanner}
+            </div>
+        )}
         <Header />
         <main className="flex-grow">
           <Routes>

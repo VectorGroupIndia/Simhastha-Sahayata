@@ -435,7 +435,25 @@ export const translations: { [key: string]: any } = {
                 responded: 'Responded',
                 resolved: 'Resolved'
             }
-        }
+        },
+        notificationSettingsAdmin: 'Admin Notifications',
+        notificationSettingsAdminDesc: 'Customize which system-wide alerts you receive.',
+        highPriority: 'High-Priority Reports',
+        highPriorityDesc: 'Notify on new missing child or other critical reports.',
+        sosAlerts: 'SOS Alerts',
+        sosAlertsDesc: 'Notify whenever any user triggers an SOS alert.',
+        systemHealth: 'System Health',
+        systemHealthDesc: 'Receive alerts for potential system issues (e.g., high server load).',
+        systemConfig: 'System Configuration',
+        systemConfigDesc: 'Manage global settings for the application.',
+        aiFeatures: 'AI Features',
+        aiAutofill: 'Enable AI Form Autofill',
+        aiAutofillDesc: 'Allow users to autofill reports from natural language.',
+        aiImageAnalysis: 'Enable AI Image Analysis',
+        aiImageAnalysisDesc: 'Allow users to analyze images for report details.',
+        maintenanceMode: 'Maintenance Mode',
+        maintenanceModeDesc: 'Temporarily disable non-admin access for system updates.',
+        maintenanceModeBanner: 'The app is currently under maintenance. Please check back later.'
     },
     notifications: {
         enabled: 'Notifications have been enabled.',
