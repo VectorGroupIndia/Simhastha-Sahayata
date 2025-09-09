@@ -1,0 +1,325 @@
+import { FamilyMember, LostFoundReport } from '../types';
+
+// This file centralizes all mock data used in the application.
+// This approach simulates a backend/database and makes it easy to manage
+// sample data for development and demonstration.
+
+export const MOCK_FAMILY_MEMBERS: FamilyMember[] = [
+  { id: 1, name: 'Ravi Kumar', avatar: 'https://picsum.photos/seed/ravi/100/100', location: { lat: 40, lng: 50 }, status: 'Safe' },
+  { id: 2, name: 'Grandma Sita', avatar: 'https://picsum.photos/seed/sita/100/100', location: { lat: 65, lng: 30 }, status: 'Alert' },
+  { id: 3, name: 'Little Anjali', avatar: 'https://picsum.photos/seed/anjali/100/100', location: { lat: 20, lng: 75 }, status: 'Lost' },
+  { id: 4, name: 'Uncle Mohan', avatar: 'https://picsum.photos/seed/mohan/100/100', location: { lat: 80, lng: 60 }, status: 'Safe' },
+];
+
+export const MOCK_LOST_FOUND_REPORTS: LostFoundReport[] = [
+    { id: 'p001', type: 'Lost', category: 'Person', personName: 'Rohan Sharma', personAge: '5', personGender: 'Male', clothingAppearance: 'Red T-shirt with a cartoon print, blue shorts.', description: 'He was holding a small toy car.', lastSeen: 'Ram Ghat', locationCoords: { lat: 25, lng: 40 }, imageUrl: 'https://picsum.photos/seed/child1/200/200', reportedBy: 'Ravi Kumar', reportedById: 1, timestamp: '2024-07-28T10:00:00Z', status: 'Open' },
+    { id: 'i001', type: 'Found', category: 'Item', itemName: 'Wallet', itemBrand: 'Unbranded', itemColor: 'Black', identifyingMarks: 'Has a small scratch on the corner.', description: 'Black leather wallet with an ID card for "Suresh Verma".', lastSeen: 'Food Stall Area', locationCoords: { lat: 70, lng: 65 }, imageUrl: 'https://picsum.photos/seed/wallet/200/200', reportedBy: 'Sunita Devi (Volunteer)', reportedById: 5, timestamp: '2024-07-28T11:30:00Z', status: 'In Progress' },
+    { id: 'p002', type: 'Lost', category: 'Person', personName: 'Kamla Devi', personAge: '72', personGender: 'Female', clothingAppearance: 'Wearing a plain white saree and glasses.', description: 'She seems disoriented and might not remember her name.', lastSeen: 'Near Mahakal Temple', locationCoords: { lat: 50, lng: 50 }, imageUrl: 'https://picsum.photos/seed/grandma2/200/200', reportedBy: 'Priya Sharma', reportedById: 2, timestamp: '2024-07-28T09:15:00Z', status: 'Open' },
+    { id: 'i002', type: 'Lost', category: 'Item', itemName: 'Backpack', itemBrand: 'American Tourister', itemColor: 'Red', identifyingMarks: 'A keychain with a Taj Mahal souvenir is attached.', description: 'Contains important travel documents and a water bottle.', lastSeen: 'Bus Station', locationCoords: { lat: 85, lng: 20 }, reportedBy: 'Ravi Kumar', reportedById: 1, timestamp: '2024-07-27T18:00:00Z', status: 'Resolved' },
+];
+
+
+// Contains all UI text for different languages.
+// This is a simple implementation of internationalization (i18n).
+export const translations: { [key: string]: any } = {
+    en: {
+        auth: {
+            loginRegister: 'Login / Register',
+            loginTitle: 'Login to Simhastha Sahayata',
+            loginSubtitle: 'For this demo, please select a user profile to continue.',
+            loginAs: 'Login as',
+            logout: 'Logout',
+        },
+        home: {
+            welcome: 'Welcome to Simhastha Sahayata',
+            tagline: 'Your AI-powered companion for a safe and fulfilling pilgrimage.',
+            reportButton: 'Report Lost or Found',
+            otherWays: 'Other ways to connect',
+        },
+        dashboard: {
+            title: "Dashboard",
+            greeting: "Welcome",
+            fileReport: "File a New Report",
+            myReports: "My Reports",
+            admin: { title: 'Admin Dashboard', recentReports: 'Recent Lost & Found Reports', searchPlaceholder: 'Search all reports...' },
+            authorities: { title: 'Authorities Dashboard', crowdDensity: 'Real-time Crowd Density', missingPersons: 'High-Priority: Missing Persons' },
+            volunteer: { title: 'Volunteer Dashboard', activeAlerts: 'Active Alerts in Your Zone', noAlerts: 'No active alerts. Thank you for your service!' },
+        },
+        familyHub: {
+            title: 'Family Hub',
+            members: 'Group Members',
+            liveLocation: 'Live Location',
+            sosButton: 'SOS - IMMEDIATE ALERT',
+            sosAlert: 'SOS signal sent to your family and nearby volunteers! Stay put, help is on the way.',
+            addGroup: 'Invite to Group',
+            status: { safe: 'Safe', alert: 'Out of Safe Zone', lost: 'SOS Activated' }
+        },
+        navigation: {
+            title: 'Intelligent Navigation',
+            placeholder: 'Ask "Where is the nearest toilet away from crowds?"',
+            search: 'Find Route',
+            routeFound: 'Route Found!',
+            error: 'Sorry, I could not find a route. Please try again.'
+        },
+        guide: {
+            title: 'AI Pilgrim Guide',
+            welcomeMessage: "Namaste! I am your personal guide for the Mahakumbh. How can I assist you today?",
+            placeholder: 'Ask me anything...',
+            error: 'I am having trouble connecting. Please try again in a moment.'
+        },
+        report: {
+            title: 'Report Lost or Found',
+            instructions: 'Instructions',
+            accept: 'I have read and agree to the terms.',
+            next: 'Next',
+            submit: 'Submit Report',
+            type: 'Report Type',
+            lost: 'I Lost Something/Someone',
+            found: 'I Found Something/Someone',
+            category: 'Category',
+            person: 'Person',
+            item: 'Item',
+            description: 'Additional Description',
+            descriptionPlaceholder: 'e.g., Wearing a blue bracelet, has a scar on the left hand.',
+            lastSeen: 'Last Seen Location',
+            lastSeenPlaceholder: 'e.g., Near Ram Ghat, food stall area',
+            upload: 'Upload Image',
+            uploadPrompt: 'Upload a file',
+            uploadOrDrag: 'or drag and drop',
+            uploadHint: 'PNG, JPG, GIF up to 10MB',
+            removeImage: 'Remove',
+            confirmationTitle: 'Report Submitted!',
+            confirmationText: 'Your report has been filed. You can track its status in the "My Reports" section of your dashboard.',
+            reportSummary: 'Report Summary',
+            newReport: 'File Another Report',
+            personName: "Person's Name",
+            personNamePlaceholder: "e.g., Rohan Kumar",
+            personAge: "Approximate Age",
+            personAgePlaceholder: "e.g., 5",
+            personGender: "Gender",
+            selectGender: 'Select Gender',
+            male: 'Male',
+            female: 'Female',
+            other: 'Other',
+            itemName: 'Item Name',
+            itemNamePlaceholder: 'e.g., Backpack, Phone',
+            itemBrand: 'Brand (if known)',
+            itemBrandPlaceholder: 'e.g., Samsung, American Tourister',
+            itemColor: 'Primary Color',
+            itemColorPlaceholder: 'e.g., Red, Blue',
+            clothingAppearance: "Clothing & Appearance",
+            clothingAppearancePlaceholder: "e.g., Red T-shirt, blue jeans, carrying a black bag.",
+            identifyingMarks: "Identifying Marks / Serial No.",
+            identifyingMarksPlaceholder: "e.g., Scratch on screen, sticker on the back.",
+        },
+        myReports: {
+            title: 'My Submitted Reports',
+            noReports: 'You have not filed any reports yet.',
+            noFilteredReports: 'No reports found for the selected filter or search query.',
+            reportedOn: 'Reported on',
+            status: 'Status',
+            id: 'Report ID',
+            viewDetails: 'View Details',
+            searchPlaceholder: 'Search my reports by name, description, ID...',
+        },
+        filterBar: {
+            statusLabel: 'Status',
+            categoryLabel: 'Category',
+            typeLabel: 'Type',
+            all: 'All',
+            open: 'Open',
+            inProgress: 'In Progress',
+            resolved: 'Resolved',
+            person: 'Person',
+            item: 'Item',
+            lost: 'Lost',
+            found: 'Found',
+        },
+        reportDetails: {
+            title: 'Report Details',
+            viewOnMap: 'View on Map',
+            updateStatus: 'Update Status',
+            currentStatus: 'Current Status',
+            saveStatus: 'Save Status',
+            statusUpdated: 'Status updated successfully!',
+            imageZoom: 'Click image to zoom',
+            locationOnMap: 'Last Seen Location on Map'
+        },
+        profile: {
+            title: 'User Profile',
+            changeAvatar: 'Change Avatar',
+        },
+        cookieBanner: {
+            message: 'We use cookies to enhance your experience, analyze site traffic, and personalize content. Your privacy is important to us.',
+            accept: 'Accept',
+            reject: 'Reject',
+            modify: 'Modify',
+        },
+        cookieModal: {
+            title: 'Cookie Preferences',
+            save: 'Save Preferences',
+            necessary: {
+                title: 'Strictly Necessary Cookies',
+                description: 'These cookies are essential for the website to function and cannot be switched off. They are usually set in response to your actions, such as setting privacy preferences, logging in, or filling forms.'
+            },
+            performance: {
+                title: 'Performance & Analytics Cookies',
+                description: 'These cookies allow us to count visits and traffic sources so we can measure and improve the performance of our site. They help us know which pages are the most and least popular.'
+            },
+            targeting: {
+                title: 'Targeting & Advertising Cookies',
+                description: 'These cookies may be set through our site by our advertising partners. They may be used by those companies to build a profile of your interests and show you relevant adverts on other sites.'
+            }
+        }
+    },
+    hi: {
+        auth: {
+            loginRegister: 'लॉगिन / रजिस्टर',
+            loginTitle: 'सिंहस्थ सहायता में लॉगिन करें',
+            loginSubtitle: 'इस डेमो के लिए, कृपया जारी रखने के लिए एक उपयोगकर्ता प्रोफ़ाइल चुनें।',
+            loginAs: 'के रूप में लॉगिन करें',
+            logout: 'लॉग आउट',
+        },
+        home: {
+            welcome: 'सिंहस्थ सहायता में आपका स्वागत है',
+            tagline: 'एक सुरक्षित और सफल तीर्थयात्रा के लिए आपका AI-संचालित साथी।',
+            reportButton: 'खोया/पाया की रिपोर्ट करें',
+            otherWays: 'जुड़ने के अन्य तरीके',
+        },
+        dashboard: {
+            title: "डैशबोर्ड",
+            greeting: "नमस्ते",
+            fileReport: "नई रिपोर्ट दर्ज करें",
+            myReports: "मेरी रिपोर्ट",
+            admin: { title: 'एडमिन डैशबोर्ड', recentReports: 'हाल की खोया-पाया रिपोर्ट', searchPlaceholder: 'सभी रिपोर्ट खोजें...' },
+            authorities: { title: 'अधिकारी डैशबोर्ड', crowdDensity: 'वास्तविक समय में भीड़ घनत्व', missingPersons: 'उच्च प्राथमिकता: लापता व्यक्ति' },
+            volunteer: { title: 'स्वयंसेवक डैशबोर्ड', activeAlerts: 'आपके क्षेत्र में सक्रिय अलर्ट', noAlerts: 'कोई सक्रिय अलर्ट नहीं। आपकी सेवा के लिए धन्यवाद!' },
+        },
+        familyHub: {
+            title: 'परिवार हब',
+            members: 'समूह के सदस्य',
+            liveLocation: 'लाइव लोकेशन',
+            sosButton: 'SOS - तत्काल चेतावनी',
+            sosAlert: 'आपके परिवार और आस-पास के स्वयंसेवकों को SOS सिग्नल भेजा गया! वहीं रहें, मदद आ रही है।',
+            addGroup: 'समूह में आमंत्रित करें',
+            status: { safe: 'सुरक्षित', alert: 'सुरक्षित क्षेत्र से बाहर', lost: 'SOS सक्रिय' }
+        },
+        navigation: {
+            title: 'इंटेलिजेंट नेविगेशन',
+            placeholder: 'पूछें "भीड़ से दूर निकटतम शौचालय कहाँ है?"',
+            search: 'मार्ग खोजें',
+            routeFound: 'मार्ग मिल गया!',
+            error: 'क्षमा करें, मुझे कोई मार्ग नहीं मिला। कृपया पुनः प्रयास करें।'
+        },
+        guide: {
+            title: 'AI तीर्थयात्री गाइड',
+            welcomeMessage: "नमस्ते! मैं महाकुंभ के लिए आपका व्यक्तिगत गाइड हूँ। मैं आज आपकी कैसे सहायता कर सकता हूँ?",
+            placeholder: 'मुझसे कुछ भी पूछें...',
+            error: 'मुझे कनेक्ट होने में समस्या आ रही है। कृपया कुछ देर में पुनः प्रयास करें।'
+        },
+        report: {
+            title: 'खोया/पाया की रिपोर्ट करें',
+            instructions: 'निर्देश',
+            accept: 'मैंने शर्तें पढ़ ली हैं और उनसे सहमत हूं।',
+            next: 'अगला',
+            submit: 'रिपोर्ट जमा करें',
+            type: 'रिपोर्ट का प्रकार',
+            lost: 'मैंने कुछ/किसी को खो दिया',
+            found: 'मुझे कुछ/कोई मिला',
+            category: 'श्रेणी',
+            person: 'व्यक्ति',
+            item: 'वस्तु',
+            description: 'अतिरिक्त विवरण',
+            descriptionPlaceholder: 'उदा., नीले रंग का ब्रेसलेट पहना है, बाएं हाथ पर निशान है।',
+            lastSeen: 'अंतिम बार देखा गया स्थान',
+            lastSeenPlaceholder: 'उदा., राम घाट के पास, भोजन स्टाल क्षेत्र',
+            upload: 'छवि अपलोड करें',
+            uploadPrompt: 'फ़ाइल अपलोड करें',
+            uploadOrDrag: 'या खींच कर छोड़ें',
+            uploadHint: 'PNG, JPG, GIF 10MB तक',
+            removeImage: 'हटाएं',
+            confirmationTitle: 'रिपोर्ट जमा हो गई!',
+            confirmationText: 'आपकी रिपोर्ट दर्ज कर ली गई है। आप अपने डैशबोर्ड के "मेरी रिपोर्ट" अनुभाग में इसकी स्थिति को ट्रैक कर सकते हैं।',
+            reportSummary: 'रिपोर्ट सारांश',
+            newReport: 'एक और रिपोर्ट दर्ज करें',
+            personName: 'व्यक्ति का नाम',
+            personNamePlaceholder: 'उदा., रोहन कुमार',
+            personAge: 'अनुमानित आयु',
+            personAgePlaceholder: 'उदा., 5',
+            personGender: 'लिंग',
+            selectGender: 'लिंग चुनें',
+            male: 'पुरुष',
+            female: 'महिला',
+            other: 'अन्य',
+            itemName: 'वस्तु का नाम',
+            itemNamePlaceholder: 'उदा., बैग, फ़ोन',
+            itemBrand: 'ब्रांड (यदि ज्ञात हो)',
+            itemBrandPlaceholder: 'उदा., सैमसंग, अमेरिकन टूरिस्टर',
+            itemColor: 'मुख्य रंग',
+            itemColorPlaceholder: 'उदा., लाल, नीला',
+            clothingAppearance: "कपड़े और रूप",
+            clothingAppearancePlaceholder: "उदा., लाल टी-शर्ट, नीली जींस, काला बैग।",
+            identifyingMarks: "पहचान चिह्न / सीरियल नंबर",
+            identifyingMarksPlaceholder: "उदा., स्क्रीन पर खरोंच, पीछे स्टिकर।",
+        },
+        myReports: {
+            title: 'मेरी प्रस्तुत रिपोर्ट',
+            noReports: 'आपने अभी तक कोई रिपोर्ट दर्ज नहीं की है।',
+            noFilteredReports: 'चयनित फ़िल्टर या खोज क्वेरी के लिए कोई रिपोर्ट नहीं मिली।',
+            reportedOn: 'रिपोर्ट किया गया',
+            status: 'स्थिति',
+            id: 'रिपोर्ट आईडी',
+            viewDetails: 'विवरण देखें',
+            searchPlaceholder: 'नाम, विवरण, आईडी द्वारा मेरी रिपोर्ट खोजें...',
+        },
+        filterBar: {
+            statusLabel: 'स्थिति',
+            categoryLabel: 'श्रेणी',
+            typeLabel: 'प्रकार',
+            all: 'सभी',
+            open: 'खुला',
+            inProgress: 'प्रगति में',
+            resolved: 'हल',
+            person: 'व्यक्ति',
+            item: 'वस्तु',
+            lost: 'खोया',
+            found: 'पाया',
+        },
+        reportDetails: {
+            title: 'रिपोर्ट विवरण',
+            viewOnMap: 'मानचित्र पर देखें',
+            updateStatus: 'स्थिति अपडेट करें',
+            currentStatus: 'वर्तमान स्थिति',
+            saveStatus: 'स्थिति सहेजें',
+            statusUpdated: 'स्थिति सफलतापूर्वक अपडेट हो गई!',
+            imageZoom: 'ज़ूम करने के लिए छवि पर क्लिक करें',
+            locationOnMap: 'मानचित्र पर अंतिम देखा गया स्थान'
+        },
+        profile: {
+            title: 'उपयोगकर्ता प्रोफ़ाइल',
+            changeAvatar: 'अवतार बदलें',
+        },
+        cookieBanner: {
+            message: 'हम आपके अनुभव को बेहतर बनाने, साइट ट्रैफिक का विश्लेषण करने और सामग्री को वैयक्तिकृत करने के लिए कुकीज़ का उपयोग करते हैं। आपकी गोपनीयता हमारे लिए महत्वपूर्ण है।',
+            accept: 'स्वीकार करें',
+            reject: 'अस्वीकार करें',
+            modify: 'संशोधित करें',
+        },
+        cookieModal: {
+            title: 'कुकी प्राथमिकताएं',
+            save: 'प्राथमिकताएं सहेजें',
+            necessary: {
+                title: 'अत्यंत आवश्यक कुकीज़',
+                description: 'ये कुकीज़ वेबसाइट के काम करने के लिए आवश्यक हैं और इन्हें बंद नहीं किया जा सकता है। वे आमतौर पर आपकी गोपनीयता प्राथमिकताओं को सेट करने, लॉग इन करने या फ़ॉर्म भरने जैसी आपकी कार्रवाइयों के जवाब में सेट की जाती हैं।'
+            },
+            performance: {
+                title: 'प्रदर्शन और विश्लेषण कुकीज़',
+                description: 'ये कुकीज़ हमें विज़िट और ट्रैफ़िक स्रोतों की गणना करने की अनुमति देती हैं ताकि हम अपनी साइट के प्रदर्शन को माप और सुधार सकें। वे हमें यह जानने में मदद करते हैं कि कौन से पेज सबसे अधिक और सबसे कम लोकप्रिय हैं।'
+            },
+            targeting: {
+                title: 'लक्ष्यीकरण और विज्ञापन कुकीज़',
+                description: 'ये कुकीज़ हमारे विज्ञापन भागीदारों द्वारा हमारी साइट के माध्यम से सेट की जा सकती हैं। उन कंपनियों द्वारा उनका उपयोग आपकी रुचियों की एक प्रोफ़ाइल बनाने और आपको अन्य साइटों पर प्रासंगिक विज्ञापन दिखाने के लिए किया जा सकता है।'
+            }
+        }
+    }
+};
