@@ -4,8 +4,12 @@ import { useLocalization } from '../../hooks/useLocalization';
 import { MOCK_LOST_FOUND_REPORTS } from '../../data/mockData';
 import { LostFoundReport } from '../../types';
 import ReportDetailsModal from './ReportDetailsModal';
+import { getAiSearchResults } from '../../services/geminiService';
+import { Spinner } from '../ui/Spinner';
 
 const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" /></svg>;
+const SparklesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 17l-4 4 4-4 2.293-2.293a1 1 0 011.414 0L17 14m-5-5l2.293 2.293a1 1 0 010 1.414L10 17" /></svg>;
+
 
 const FilterDropdown: React.FC<{label: string, value: string, onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void, options: {value: string, label: string}[]}> = ({label, value, onChange, options}) => (
     <div className="w-full md:w-auto">
@@ -30,9 +34,12 @@ const AdminDashboard: React.FC = () => {
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [typeFilter, setTypeFilter] = useState('all');
 
+    const [isAiSearching, setIsAiSearching] = useState(false);
+    const [aiFilteredReportIds, setAiFilteredReportIds] = useState<string[] | null>(null);
+    const [aiSearchQuery, setAiSearchQuery] = useState('');
+
     const handleUpdateStatus = (reportId: string, newStatus: LostFoundReport['status']) => {
         setReports(prevReports => prevReports.map(r => r.id === reportId ? { ...r, status: newStatus } : r));
-        // Note: This updates local state. In a real app, you'd also want to update the master mock data or make an API call.
         const reportIndex = MOCK_LOST_FOUND_REPORTS.findIndex(report => report.id === reportId);
         if (reportIndex !== -1) {
             MOCK_LOST_FOUND_REPORTS[reportIndex].status = newStatus;
@@ -40,12 +47,41 @@ const AdminDashboard: React.FC = () => {
         alert(translations.reportDetails.statusUpdated);
     };
 
+    const handleAiSearch = async () => {
+        if (!searchQuery.trim()) return;
+        setIsAiSearching(true);
+        setAiFilteredReportIds(null);
+        try {
+            const resultIds = await getAiSearchResults(searchQuery, reports);
+            setAiFilteredReportIds(resultIds);
+            setAiSearchQuery(searchQuery);
+        } catch (error) {
+            console.error("AI Search failed:", error);
+            alert('AI Search failed. Please try again.');
+        } finally {
+            setIsAiSearching(false);
+        }
+    };
+    
+    const clearAiSearch = () => {
+        setAiFilteredReportIds(null);
+        setAiSearchQuery('');
+        setSearchQuery('');
+    };
+
     const openDetails = (report: LostFoundReport) => setSelectedReport(report);
     const closeDetails = () => setSelectedReport(null);
 
     const filteredReports = reports.filter(report => {
+        // AI search results override all other filters
+        if (aiFilteredReportIds !== null) {
+            return aiFilteredReportIds.includes(report.id);
+        }
+
+        // Standard filters
         const query = searchQuery.toLowerCase();
         const searchMatch = (
+            !query ||
             report.id.toLowerCase().includes(query) ||
             (report.personName && report.personName.toLowerCase().includes(query)) ||
             (report.itemName && report.itemName.toLowerCase().includes(query)) ||
@@ -59,7 +95,14 @@ const AdminDashboard: React.FC = () => {
         
         return searchMatch && statusMatch && categoryMatch && typeMatch;
 
-    }).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    }).sort((a, b) => {
+        // If AI search is active, maintain the order from the AI result
+        if (aiFilteredReportIds !== null) {
+            return aiFilteredReportIds.indexOf(a.id) - aiFilteredReportIds.indexOf(b.id);
+        }
+        // Otherwise, sort by timestamp
+        return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+    });
 
     const statusOptions = [
         { value: 'all', label: `${translations.filterBar.statusLabel}: ${translations.filterBar.all}` },
@@ -98,17 +141,37 @@ const AdminDashboard: React.FC = () => {
                                     placeholder={translations.dashboard.admin.searchPlaceholder}
                                     value={searchQuery}
                                     onChange={e => setSearchQuery(e.target.value)}
+                                    onKeyDown={e => e.key === 'Enter' && handleAiSearch()}
                                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full"
                                 />
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <SearchIcon />
                                 </div>
                             </div>
+                            <button
+                                onClick={handleAiSearch}
+                                disabled={isAiSearching || !searchQuery.trim()}
+                                title={translations.dashboard.admin.aiSearchTooltip}
+                                className="flex items-center justify-center gap-2 w-full md:w-auto px-4 py-2 text-sm font-medium text-white bg-orange-500 rounded-full hover:bg-orange-600 disabled:bg-orange-300 transition-colors"
+                            >
+                                {isAiSearching ? <Spinner size="sm" /> : <SparklesIcon />}
+                                <span>{isAiSearching ? translations.dashboard.admin.aiSearching : translations.dashboard.admin.aiSearch}</span>
+                            </button>
                             <FilterDropdown label={translations.filterBar.statusLabel} value={statusFilter} onChange={e => setStatusFilter(e.target.value)} options={statusOptions} />
                             <FilterDropdown label={translations.filterBar.categoryLabel} value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} options={categoryOptions} />
                             <FilterDropdown label={translations.filterBar.typeLabel} value={typeFilter} onChange={e => setTypeFilter(e.target.value)} options={typeOptions} />
                         </div>
                     </div>
+                    {aiFilteredReportIds !== null && (
+                        <div className="flex justify-between items-center bg-orange-100 border border-orange-200 text-orange-800 rounded-md p-3 mb-4">
+                            <p className="text-sm font-medium">
+                                {translations.dashboard.admin.aiSearchResults}: <span className="italic">"{aiSearchQuery}"</span>
+                            </p>
+                            <button onClick={clearAiSearch} className="text-sm font-semibold hover:underline flex-shrink-0 ml-4">
+                                {translations.dashboard.admin.clearAiSearch}
+                            </button>
+                        </div>
+                    )}
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>

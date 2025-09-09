@@ -1,5 +1,4 @@
-
-import { ChatMessage } from '../types';
+import { ChatMessage, LostFoundReport } from '../types';
 
 // This file simulates interactions with the Google Gemini API.
 // In a real application, this would contain the actual logic for making API calls
@@ -56,4 +55,71 @@ export const getChatResponse = async (history: ChatMessage[], message: string): 
   }
 
   return "That's a great question. The Ujjain Simhastha Kumbh is held once every 12 years when Jupiter enters the Leo sign (Simha rashi). It's a time for spiritual cleansing and renewal for millions of devotees.";
+};
+
+/**
+ * Simulates a Gemini API call to perform a semantic search on reports.
+ * @param query - The user's natural language search query.
+ * @param reports - The list of all reports to search through.
+ * @returns A promise that resolves to an array of matching report IDs, sorted by relevance.
+ */
+export const getAiSearchResults = async (query: string, reports: LostFoundReport[]): Promise<string[]> => {
+  console.log("Simulating Gemini AI Semantic Search with query:", query);
+  await sleep(2000); // Simulate longer processing for AI search
+
+  const lowerCaseQuery = query.toLowerCase();
+
+  // This is a simplified mock of what a real AI would do.
+  // It checks for keywords and semantic concepts.
+  const rankedResults: { id: string, score: number }[] = [];
+
+  reports.forEach(report => {
+    let score = 0;
+    const reportText = JSON.stringify(report).toLowerCase();
+
+    // Simple keyword matching for demonstration
+    if (lowerCaseQuery.includes('old woman') || lowerCaseQuery.includes('elderly lady') || (lowerCaseQuery.includes('woman') && (report.personAge && parseInt(report.personAge, 10) > 60))) {
+      if (report.personGender?.toLowerCase() === 'female' && report.personAge && parseInt(report.personAge, 10) > 60) {
+        score += 5;
+      }
+    }
+    if (lowerCaseQuery.includes('saree') && report.clothingAppearance?.toLowerCase().includes('saree')) {
+      score += 4;
+    }
+    if (lowerCaseQuery.includes('temple') && report.lastSeen?.toLowerCase().includes('temple')) {
+      score += 3;
+    }
+    if (lowerCaseQuery.includes('child') || lowerCaseQuery.includes('boy')) {
+        if(report.personAge && parseInt(report.personAge, 10) < 10){
+            score += 5;
+        }
+    }
+    if (lowerCaseQuery.includes('red t-shirt') && report.clothingAppearance?.toLowerCase().includes('red t-shirt')) {
+        score += 4;
+    }
+    if (lowerCaseQuery.includes('wallet') && report.itemName?.toLowerCase().includes('wallet')) {
+        score += 5;
+    }
+     if (lowerCaseQuery.includes('black') && report.itemColor?.toLowerCase().includes('black')) {
+        score += 2;
+    }
+
+    // Generic word matching
+    lowerCaseQuery.split(' ').forEach(word => {
+        if(word.length > 2 && reportText.includes(word)) {
+            score += 1;
+        }
+    });
+
+    if (score > 0) {
+      rankedResults.push({ id: report.id, score });
+    }
+  });
+
+  // Sort by score descending
+  const sortedResults = rankedResults.sort((a, b) => b.score - a.score);
+
+  console.log("AI Search ranked results:", sortedResults);
+
+  return sortedResults.map(r => r.id);
 };
