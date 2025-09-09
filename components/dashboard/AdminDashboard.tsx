@@ -135,11 +135,13 @@ const UserManagementView: React.FC<{
     const t = translations.dashboard.admin;
     const [searchQuery, setSearchQuery] = useState('');
     const [roleFilter, setRoleFilter] = useState('all');
+    const [statusFilter, setStatusFilter] = useState('all');
 
     const filteredUsers = users.filter(user => {
         const searchMatch = user.name.toLowerCase().includes(searchQuery.toLowerCase());
         const roleMatch = roleFilter === 'all' || user.role === roleFilter;
-        return searchMatch && roleMatch;
+        const statusMatch = statusFilter === 'all' || user.status === statusFilter;
+        return searchMatch && roleMatch && statusMatch;
     });
 
     return (
@@ -160,6 +162,15 @@ const UserManagementView: React.FC<{
                 >
                     <option value="all">All Roles</option>
                     {Object.values(UserRole).map(role => <option key={role} value={role}>{role}</option>)}
+                </select>
+                <select
+                    value={statusFilter}
+                    onChange={e => setStatusFilter(e.target.value)}
+                    className="w-full md:w-1/4 p-2 border rounded-md"
+                >
+                    <option value="all">{t.userManagement.statusFilterAll}</option>
+                    <option value="Active">{t.userManagement.statusFilterActive}</option>
+                    <option value="Suspended">{t.userManagement.statusFilterSuspended}</option>
                 </select>
             </div>
             <div className="overflow-x-auto">
@@ -225,7 +236,7 @@ const AdminDashboard: React.FC = () => {
     const [aiFilteredReportIds, setAiFilteredReportIds] = useState<string[] | null>(null);
     const [aiSearchQuery, setAiSearchQuery] = useState('');
     
-    const assignableUsers = users.filter(u => u.role === UserRole.VOLUNTEER || u.role === UserRole.AUTHORITY);
+    const assignableUsers = useMemo(() => users.filter(u => u.role === UserRole.VOLUNTEER || u.role === UserRole.AUTHORITY), [users]);
 
     const handleUpdateReport = (reportId: string, updates: Partial<Pick<LostFoundReport, 'status' | 'assignedToId' | 'assignedToName'>>) => {
         const updatedReports = reports.map(r => r.id === reportId ? { ...r, ...updates } : r);
@@ -284,7 +295,7 @@ const AdminDashboard: React.FC = () => {
         const statusMatch = statusFilter === 'all' || report.status === statusFilter;
         const categoryMatch = categoryFilter === 'all' || report.category === categoryFilter;
         const typeMatch = typeFilter === 'all' || report.type === typeFilter;
-        const assignmentMatch = assignmentFilter === 'all' || (assignmentFilter === 'assigned' && !!report.assignedToId) || (assignmentFilter === 'unassigned' && !report.assignedToId);
+        const assignmentMatch = assignmentFilter === 'all' || (assignmentFilter === 'unassigned' && !report.assignedToId) || (report.assignedToId?.toString() === assignmentFilter);
         
         return searchMatch && statusMatch && categoryMatch && typeMatch && assignmentMatch;
 
@@ -295,6 +306,7 @@ const AdminDashboard: React.FC = () => {
             case 'status': return a.status.localeCompare(b.status);
             case 'category': return a.category.localeCompare(b.category);
             case 'type': return a.type.localeCompare(b.type);
+            case 'assignment': return (a.assignedToName || 'Z').localeCompare(b.assignedToName || 'Z');
             case 'dateNewest': default: return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
         }
     });
@@ -302,8 +314,12 @@ const AdminDashboard: React.FC = () => {
     const statusOptions = [{ value: 'all', label: `${translations.filterBar.statusLabel}: ${translations.filterBar.all}` }, { value: 'Open', label: translations.filterBar.open }, { value: 'In Progress', label: translations.filterBar.inProgress }, { value: 'Resolved', label: translations.filterBar.resolved }];
     const categoryOptions = [{ value: 'all', label: `${translations.filterBar.categoryLabel}: ${translations.filterBar.all}` }, { value: 'Person', label: translations.filterBar.person }, { value: 'Item', label: translations.filterBar.item }];
     const typeOptions = [{ value: 'all', label: `${translations.filterBar.typeLabel}: ${translations.filterBar.all}` }, { value: 'Lost', label: translations.filterBar.lost }, { value: 'Found', label: translations.filterBar.found }];
-    const assignmentOptions = [{ value: 'all', label: `${translations.filterBar.assignmentLabel}: ${translations.filterBar.all}` }, { value: 'assigned', label: translations.filterBar.assigned }, { value: 'unassigned', label: translations.filterBar.unassigned }];
-    const sortOptions = [{ value: 'dateNewest', label: translations.filterBar.dateNewest }, { value: 'dateOldest', label: translations.filterBar.dateOldest }, { value: 'status', label: translations.filterBar.statusSort }, { value: 'category', label: translations.filterBar.categorySort }, { value: 'type', label: translations.filterBar.typeSort }];
+    const assignmentOptions = useMemo(() => ([
+        { value: 'all', label: `${translations.filterBar.assignmentLabel}: ${translations.filterBar.all}` },
+        { value: 'unassigned', label: translations.filterBar.unassigned },
+        ...assignableUsers.map(u => ({ value: String(u.id), label: u.name }))
+    ]), [assignableUsers, translations]);
+    const sortOptions = [{ value: 'dateNewest', label: translations.filterBar.dateNewest }, { value: 'dateOldest', label: translations.filterBar.dateOldest }, { value: 'status', label: translations.filterBar.statusSort }, { value: 'category', label: translations.filterBar.categorySort }, { value: 'type', label: translations.filterBar.typeSort }, { value: 'assignment', label: translations.filterBar.assignmentSort }];
 
     const highPriorityReports = reports.filter(r => r.status === 'Open' && r.category === 'Person');
 

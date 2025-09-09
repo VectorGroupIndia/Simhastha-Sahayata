@@ -1,4 +1,3 @@
-
 import { RegisteredItem, FamilyMember, LostFoundReport, UserRole } from '../types';
 
 export const MOCK_REGISTERED_ITEMS: RegisteredItem[] = [
@@ -80,6 +79,8 @@ export const MOCK_LOST_FOUND_REPORTS: LostFoundReport[] = [
         reportedById: 5,
         timestamp: '2024-07-29T09:30:00Z',
         status: 'In Progress',
+        assignedToId: 5,
+        assignedToName: 'Sunita Devi (Volunteer)'
     },
     {
         id: 'RPT-2736475',
@@ -113,6 +114,8 @@ export const MOCK_LOST_FOUND_REPORTS: LostFoundReport[] = [
         reportedById: 2,
         timestamp: '2024-07-29T08:45:00Z',
         status: 'Open',
+        assignedToId: 5,
+        assignedToName: 'Sunita Devi (Volunteer)'
     }
 ];
 
@@ -191,7 +194,10 @@ export const translations: { [key: string]: any } = {
               role: 'Role',
               status: 'Status',
               actions: 'Actions',
-              userUpdated: 'User updated successfully'
+              userUpdated: 'User updated successfully',
+              statusFilterAll: 'All Statuses',
+              statusFilterActive: 'Active',
+              statusFilterSuspended: 'Suspended',
           }
       },
       authorities: {
@@ -351,7 +357,10 @@ export const translations: { [key: string]: any } = {
         downloadPdf: 'Download PDF',
         reportedBy: 'Reported By',
         statusUpdated: 'Report status updated successfully!',
-        imageZoom: 'Click to zoom'
+        imageZoom: 'Click to zoom',
+        generateSummary: 'Generate AI Summary',
+        aiSummaryTitle: 'AI Generated Summary',
+        summarizing: 'Summarizing...',
     },
     filterBar: {
         statusLabel: 'Status',
@@ -373,12 +382,28 @@ export const translations: { [key: string]: any } = {
         dateOldest: 'Oldest First',
         statusSort: 'Status',
         categorySort: 'Category',
-        typeSort: 'Type'
+        typeSort: 'Type',
+        assignmentSort: 'Assignment',
     },
     profile: {
         title: 'My Profile',
+        adminTitle: 'Admin Profile',
+        staffTitle: 'Staff Profile',
         changeAvatar: 'Change Avatar',
         settings: 'Settings',
+        dashboardSettings: 'Dashboard Settings',
+        theme: 'Interface Theme',
+        themeDesc: 'Choose your preferred dashboard interface.',
+        light: 'Light',
+        dark: 'Dark',
+        systemStats: 'System Statistics',
+        totalUsers: 'Total Users',
+        totalReports: 'Total Reports',
+        activePersonnel: 'Active Personnel',
+        activityLog: 'My Recent Activity',
+        myAssignments: 'My Assignments',
+        noAssignments: 'You have no active assignments.',
+        viewReport: 'View Report',
         emergencySettings: 'Emergency Settings',
         powerButtonSos: 'Power Button SOS',
         powerButtonSosDesc: 'Press power button 5 times to trigger SOS alert.',

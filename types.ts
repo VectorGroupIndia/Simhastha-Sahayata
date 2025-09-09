@@ -41,6 +41,7 @@ export interface User {
     notifications: boolean;
     powerButtonSos: boolean;
     voiceNav: boolean;
+    theme?: 'light' | 'dark';
   }
 }
 

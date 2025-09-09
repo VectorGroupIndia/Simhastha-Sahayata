@@ -352,3 +352,41 @@ export const analyzeReportImage = async (imageBase64: string): Promise<Partial<L
     console.log("AI Image Analysis result:", analysisResult);
     return analysisResult;
 };
+
+/**
+ * Simulates a Gemini API call to summarize a report.
+ * @param report - The report to be summarized.
+ * @returns A promise that resolves to a string summary.
+ */
+export const getAiReportSummary = async (report: LostFoundReport): Promise<string> => {
+  console.log("Simulating Gemini API call for report summarization:", report.id);
+  await sleep(1500); // Simulate API latency
+
+  const { type, category, personName, itemName, description, lastSeen, status, assignedToName } = report;
+
+  let summary = `This is a report for a ${type.toLowerCase()} ${category.toLowerCase()}. `;
+
+  if (category === 'Person') {
+    summary += `The missing person is ${personName || 'unnamed'}`;
+    if(report.personAge) summary += `, approximately ${report.personAge} years old. `;
+    else summary += `. `;
+    if(report.clothingAppearance) summary += `They were last seen wearing: ${report.clothingAppearance}. `;
+  } else {
+    summary += `The item is a ${itemName || 'unspecified item'}. `;
+    if(report.itemColor) summary += `Primary color is ${report.itemColor}. `;
+    if(report.itemBrand) summary += `Brand is ${report.itemBrand}. `;
+    if(report.identifyingMarks) summary += `Unique marks: ${report.identifyingMarks}. `;
+  }
+
+  summary += `It was last seen at/near "${lastSeen}". `;
+  summary += `The core of the report states: "${description}". `;
+  summary += `Current status is "${status}". `;
+
+  if (assignedToName) {
+    summary += `The case is assigned to ${assignedToName}.`;
+  } else {
+    summary += `The case is currently unassigned.`;
+  }
+  
+  return summary;
+};

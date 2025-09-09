@@ -7,6 +7,8 @@ import { useLocalization } from '../../hooks/useLocalization';
 import { MapModal } from '../ui/MapModal';
 import { ImageZoomModal } from '../ui/ImageZoomModal';
 import { generateReportPdf } from '../../services/pdfService';
+import { getAiReportSummary } from '../../services/geminiService';
+import { Spinner } from '../ui/Spinner';
 
 interface ReportDetailsModalProps {
   isOpen: boolean;
@@ -33,11 +35,15 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
   const [isZoomOpen, setZoomOpen] = useState(false);
   const [newStatus, setNewStatus] = useState<LostFoundReport['status']>('Open');
   const [assignedTo, setAssignedTo] = useState<string>(''); // Stores "id,name"
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [isSummarizing, setIsSummarizing] = useState(false);
 
   useEffect(() => {
     if (report) {
       setNewStatus(report.status);
       setAssignedTo(report.assignedToId ? `${report.assignedToId},${report.assignedToName}` : '');
+      setAiSummary(null);
+      setIsSummarizing(false);
     }
   }, [report]);
 
@@ -55,6 +61,21 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
         assignedToName: assignedTo ? name : undefined,
       });
       onClose();
+    }
+  };
+
+  const handleGenerateSummary = async () => {
+    if (!report) return;
+    setIsSummarizing(true);
+    setAiSummary(null);
+    try {
+        const summary = await getAiReportSummary(report);
+        setAiSummary(summary);
+    } catch (error) {
+        console.error("Failed to generate AI summary", error);
+        setAiSummary("Failed to generate summary. Please try again.");
+    } finally {
+        setIsSummarizing(false);
     }
   };
 
@@ -109,6 +130,12 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
                     <DetailRow label={translations.report.description} value={report.description} />
                  </div>
             </div>
+            {aiSummary && (
+                <div className="bg-orange-50/50 p-4 rounded-lg mt-4 border border-orange-200 animate-fade-in">
+                    <h4 className="font-semibold mb-2 text-orange-700">{translations.reportDetails.aiSummaryTitle}</h4>
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{aiSummary}</p>
+                </div>
+            )}
             {canUpdate && onUpdateReport && (
                 <div className="bg-gray-50 p-4 rounded-lg mt-4">
                     <h4 className="font-semibold mb-2">{translations.reportDetails.updateStatus}</h4>
@@ -136,7 +163,19 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
                     </div>
                 </div>
             )}
-             <div className="mt-6 flex justify-end gap-2">
+             <div className="mt-6 flex flex-wrap justify-end gap-2">
+                {!aiSummary && (
+                  <Button onClick={handleGenerateSummary} variant="secondary" disabled={isSummarizing}>
+                    {isSummarizing ? (
+                        <>
+                            <Spinner size="sm" className="mr-2" />
+                            {translations.reportDetails.summarizing}
+                        </>
+                    ) : (
+                        translations.reportDetails.generateSummary
+                    )}
+                  </Button>
+                )}
                 <Button onClick={() => setMapOpen(true)} variant="secondary" disabled={!report.locationCoords}>
                     {translations.reportDetails.viewOnMap}
                 </Button>
