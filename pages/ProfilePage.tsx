@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useLocalization } from '../hooks/useLocalization';
@@ -9,19 +9,36 @@ import { useToast } from '../hooks/useToast';
 import { EmergencyContact, SosAlert } from '../types';
 import { Modal } from '../components/ui/Modal';
 
+// Icons for editing name
+const PencilIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 text-gray-500 hover:text-orange-500 cursor-pointer" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5l12.232-12.232z" /></svg>;
+const CheckIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>;
+const XIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>;
+
+
 /**
  * User Profile Page.
  * This component is protected and only accessible to authenticated users.
- * It displays user information and allows for basic profile updates like changing the avatar.
+ * It displays user information and allows for profile updates like name and avatar.
  */
 const ProfilePage: React.FC = () => {
   const { user, isAuthenticated, updateUser } = useAuth();
   const { translations } = useLocalization();
   const { addToast } = useToast();
+  
+  // Settings state
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [powerButtonSosEnabled, setPowerButtonSosEnabled] = useState(false);
+  const [voiceNavEnabled, setVoiceNavEnabled] = useState(false);
+  
+  // Modal state
   const [isContactModalOpen, setContactModalOpen] = useState(false);
   const [newContactName, setNewContactName] = useState('');
   const [newContactPhone, setNewContactPhone] = useState('');
+
+  // Editing state
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editingNameValue, setEditingNameValue] = useState(user?.name || '');
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
 
   if (!isAuthenticated || !user) {
@@ -32,21 +49,65 @@ const ProfilePage: React.FC = () => {
   const contacts = user.emergencyContacts || [];
   const sosHistory = user.sosHistory || [];
 
+  const triggerAvatarUpload = () => {
+    avatarInputRef.current?.click();
+  };
 
-  const handleChangeAvatar = () => {
-    // Simulate updating the avatar with a new random image from picsum.photos
-    // Using Date.now() as a seed to get a different image each time
-    const newAvatarUrl = `https://picsum.photos/seed/${Date.now()}/100/100`;
-    updateUser({ avatar: newAvatarUrl });
+  const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            updateUser({ avatar: reader.result as string });
+            addToast('Avatar updated successfully!', 'success');
+        };
+        reader.readAsDataURL(file);
+    } else if (file) {
+        addToast('Please select a valid image file.', 'error');
+    }
   };
   
   const handleNotificationToggle = (enabled: boolean) => {
     setNotificationsEnabled(enabled);
-    if (enabled) {
-        addToast(translations.notifications.enabled, 'success');
-    } else {
-        addToast(translations.notifications.disabled, 'info');
-    }
+    addToast(
+        enabled ? translations.notifications.enabled : translations.notifications.disabled,
+        enabled ? 'success' : 'info'
+    );
+  };
+  
+  const handlePowerButtonSosToggle = (enabled: boolean) => {
+    setPowerButtonSosEnabled(enabled);
+    addToast(
+        enabled ? 'Power Button SOS has been enabled.' : 'Power Button SOS has been disabled.',
+        enabled ? 'success' : 'info'
+    );
+  };
+
+  const handleVoiceNavToggle = (enabled: boolean) => {
+    setVoiceNavEnabled(enabled);
+    addToast(
+        enabled ? 'Voice-guided navigation has been enabled.' : 'Voice-guided navigation has been disabled.',
+        enabled ? 'success' : 'info'
+    );
+  };
+
+  const handleEditName = () => {
+      setEditingNameValue(user.name);
+      setIsEditingName(true);
+  };
+
+  const handleSaveName = () => {
+      if (editingNameValue.trim()) {
+          updateUser({ name: editingNameValue.trim() });
+          addToast('Name updated successfully!', 'success');
+          setIsEditingName(false);
+      } else {
+          addToast('Name cannot be empty.', 'error');
+      }
+  };
+
+  const handleCancelEditName = () => {
+      setIsEditingName(false);
   };
 
   const handleAddContact = () => {
@@ -92,11 +153,38 @@ const ProfilePage: React.FC = () => {
                 alt={user.name}
                 className="w-32 h-32 rounded-full object-cover shadow-lg border-4 border-orange-200"
               />
+               <input
+                  type="file"
+                  ref={avatarInputRef}
+                  onChange={handleAvatarFileChange}
+                  className="hidden"
+                  accept="image/png, image/jpeg"
+                />
             </div>
-            <h3 className="text-2xl font-bold text-gray-800">{user.name}</h3>
+            {!isEditingName ? (
+                <div className="flex items-center">
+                    <h3 className="text-2xl font-bold text-gray-800">{user.name}</h3>
+                    <button onClick={handleEditName} aria-label="Edit name">
+                        <PencilIcon />
+                    </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                    <input
+                        type="text"
+                        value={editingNameValue}
+                        onChange={(e) => setEditingNameValue(e.target.value)}
+                        className="text-2xl font-bold text-center border-b-2 border-orange-500 focus:outline-none bg-orange-50"
+                        autoFocus
+                        onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
+                    />
+                    <button onClick={handleSaveName} aria-label="Save name"><CheckIcon /></button>
+                    <button onClick={handleCancelEditName} aria-label="Cancel edit name"><XIcon /></button>
+                </div>
+              )}
             <p className="text-lg text-gray-500 mb-6">{user.role}</p>
 
-            <Button onClick={handleChangeAvatar}>
+            <Button onClick={triggerAvatarUpload}>
               {translations.profile.changeAvatar}
             </Button>
           </div>
@@ -163,9 +251,8 @@ const ProfilePage: React.FC = () => {
                                 <label htmlFor="power-sos" className="font-medium text-gray-800">{translations.profile.powerButtonSos}</label>
                                 <p className="text-sm text-gray-500">{translations.profile.powerButtonSosDesc}</p>
                             </div>
-                            <ToggleSwitch id="power-sos" checked={false} onChange={() => {}} disabled={true} />
+                            <ToggleSwitch id="power-sos" checked={powerButtonSosEnabled} onChange={handlePowerButtonSosToggle} />
                         </div>
-                        <p className="text-xs text-orange-500 mt-2">{translations.profile.featureComingSoon}</p>
                     </div>
                 </div>
 
@@ -178,9 +265,8 @@ const ProfilePage: React.FC = () => {
                                 <label htmlFor="voice-nav" className="font-medium text-gray-800">{translations.profile.voiceNav}</label>
                                 <p className="text-sm text-gray-500">{translations.profile.voiceNavDesc}</p>
                             </div>
-                            <ToggleSwitch id="voice-nav" checked={false} onChange={() => {}} disabled={true} />
+                            <ToggleSwitch id="voice-nav" checked={voiceNavEnabled} onChange={handleVoiceNavToggle} />
                         </div>
-                         <p className="text-xs text-orange-500 mt-2">{translations.profile.featureComingSoon}</p>
                     </div>
                 </div>
                 

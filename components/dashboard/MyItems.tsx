@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
@@ -91,8 +92,10 @@ const MyItems: React.FC = () => {
         MOCK_LOST_FOUND_REPORTS.unshift(newReport);
 
         // 2. Update the status of the registered item
+        // FIX: Cast 'Lost' to its literal type to prevent TypeScript from widening it to a generic 'string'.
+        // This ensures the updated item correctly matches the 'RegisteredItem' type.
         const updatedItems = items.map(item =>
-            item.id === itemToMarkLost.id ? { ...item, status: 'Lost' } : item
+            item.id === itemToMarkLost.id ? { ...item, status: 'Lost' as 'Lost' } : item
         );
         updateUser({ registeredItems: updatedItems });
         
