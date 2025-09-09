@@ -407,7 +407,7 @@ const ReportLostFoundPage: React.FC = () => {
         if (!submittedReport) return null;
         return (
             <div className="text-center space-y-6 p-4">
-                <div className="w-20 h-20 bg-green-100 rounded-full mx-auto flex items-center justify-center">
+                <div className="w-20 h-20 bg-green-100 rounded-full mx-auto flex items-center justify-center animate-pulse">
                     <svg className="w-12 h-12 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                     </svg>

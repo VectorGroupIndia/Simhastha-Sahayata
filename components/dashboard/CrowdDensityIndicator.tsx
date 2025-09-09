@@ -24,31 +24,31 @@ const CrowdDensityIndicator: React.FC = () => {
         return {
           text: translations.dashboard.crowdDensity.low,
           color: 'bg-green-500',
-          width: 'w-1/4',
+          width: '25%',
         };
       case 'moderate':
         return {
           text: translations.dashboard.crowdDensity.moderate,
           color: 'bg-yellow-500',
-          width: 'w-2/4',
+          width: '50%',
         };
       case 'high':
         return {
           text: translations.dashboard.crowdDensity.high,
           color: 'bg-orange-500',
-          width: 'w-3/4',
+          width: '75%',
         };
       case 'extreme':
         return {
           text: translations.dashboard.crowdDensity.extreme,
           color: 'bg-red-500',
-          width: 'w-full',
+          width: '100%',
         };
       default:
         return {
           text: '',
           color: 'bg-gray-500',
-          width: 'w-0',
+          width: '0%',
         };
     }
   };
@@ -65,7 +65,7 @@ const CrowdDensityIndicator: React.FC = () => {
         <div className="w-full bg-gray-200 rounded-full h-4 flex-grow">
           <div
             className={`h-4 rounded-full transition-all duration-500 ease-in-out ${color}`}
-            style={{ width: width.replace('w-', '').replace('/', '%') }}
+            style={{ width: width }}
           ></div>
         </div>
       </div>

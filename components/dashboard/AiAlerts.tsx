@@ -33,10 +33,15 @@ const findPotentialMatches = (
         score += 2;
       }
 
-      // Rule 3: Check for keywords
+      // Rule 3: Check for keywords in item name
       const lostKeywords = (lostReport.itemName?.toLowerCase() || '').split(' ');
       if (lostKeywords.some(kw => kw.length > 2 && foundText.includes(kw))) {
         score += 3;
+      }
+
+      // Rule 4: Check for keywords in description
+      if (lostReport.description.toLowerCase().split(' ').some(kw => kw.length > 3 && foundText.includes(kw))) {
+          score += 1;
       }
       
       if (score > 3) {
