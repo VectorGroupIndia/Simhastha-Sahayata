@@ -31,10 +31,19 @@ export const translations: { [key: string]: any } = {
         },
         auth: {
             loginRegister: 'Login / Register',
-            loginTitle: 'Login to Simhastha Sahayata',
+            loginTitle: 'Welcome to Simhastha Sahayata',
             loginSubtitle: 'For this demo, please select a user profile to continue.',
             loginAs: 'Login as',
             logout: 'Logout',
+            loginTab: 'Login',
+            registerTab: 'Register',
+            emailLabel: 'Email Address',
+            passwordLabel: 'Password',
+            nameLabel: 'Full Name',
+            confirmPasswordLabel: 'Confirm Password',
+            loginButton: 'Login (Disabled)',
+            registerButton: 'Register (Disabled)',
+            demoLoginSeparator: 'Or for demo purposes'
         },
         home: {
             welcome: 'Welcome to Simhastha Sahayata',
@@ -273,10 +282,19 @@ export const translations: { [key: string]: any } = {
         },
         auth: {
             loginRegister: 'लॉगिन / रजिस्टर',
-            loginTitle: 'सिंहस्थ सहायता में लॉगिन करें',
+            loginTitle: 'सिंहस्थ सहायता में आपका स्वागत है',
             loginSubtitle: 'इस डेमो के लिए, कृपया जारी रखने के लिए एक उपयोगकर्ता प्रोफ़ाइल चुनें।',
             loginAs: 'के रूप में लॉगिन करें',
             logout: 'लॉग आउट',
+            loginTab: 'लॉगिन',
+            registerTab: 'रजिस्टर',
+            emailLabel: 'ईमेल पता',
+            passwordLabel: 'पासवर्ड',
+            nameLabel: 'पूरा नाम',
+            confirmPasswordLabel: 'पासवर्ड की पुष्टि करें',
+            loginButton: 'लॉगिन (निष्क्रिय)',
+            registerButton: 'रजिस्टर (निष्क्रिय)',
+            demoLoginSeparator: 'या डेमो के लिए'
         },
         home: {
             welcome: 'सिंहस्थ सहायता में आपका स्वागत है',
