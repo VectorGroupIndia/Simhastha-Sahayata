@@ -6,9 +6,14 @@ import { LostFoundReport } from '../../types';
 import ReportDetailsModal from './ReportDetailsModal';
 import { getAiSearchResults } from '../../services/geminiService';
 import { Spinner } from '../ui/Spinner';
+import { ReportsMapView } from './ReportsMapView';
 
 const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" /></svg>;
-const SparklesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 17l-4 4 4-4 2.293-2.293a1 1 0 011.414 0L17 14m-5-5l2.293 2.293a1 1 0 010 1.414L10 17" /></svg>;
+// FIX: Corrected SparklesIcon size for UI consistency.
+const SparklesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 17l-4 4 4-4 2.293-2.293a1 1 0 011.414 0L17 14m-5-5l2.293 2.293a1 1 0 010 1.414L10 17" /></svg>;
+const ListIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" /></svg>;
+// FIX: Corrected the broken SVG for MapIcon which had multiple 'd' attributes.
+const MapIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M11.95 2.006a.75.75 0 00-.9-.053l-4.25 2.5a.75.75 0 00-.45.698v10.198l-2.022-1.179a.75.75 0 00-.956.114l-2 2.5a.75.75 0 00.114.956l2.022 1.179v.699a.75.75 0 00.45.698l4.25 2.5a.75.75 0 00.9-.053l4.25-2.5a.75.75 0 00.45-.698V6.302l2.022 1.179a.75.75 0 00.956-.114l2-2.5a.75.75 0 00-.114-.956L14.022 3.03v-.699a.75.75 0 00-.45-.698l-4.25-2.5a.75.75 0 00-.372 0zM12.75 16.23v-9.69l-4.5 2.64v9.69l4.5-2.64z" clipRule="evenodd" /></svg>;
 
 
 const FilterDropdown: React.FC<{label: string, value: string, onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void, options: {value: string, label: string}[]}> = ({label, value, onChange, options}) => (
@@ -33,6 +38,7 @@ const AdminDashboard: React.FC = () => {
     const [statusFilter, setStatusFilter] = useState('all');
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [typeFilter, setTypeFilter] = useState('all');
+    const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
 
     const [isAiSearching, setIsAiSearching] = useState(false);
     const [aiFilteredReportIds, setAiFilteredReportIds] = useState<string[] | null>(null);
@@ -172,35 +178,49 @@ const AdminDashboard: React.FC = () => {
                             </button>
                         </div>
                     )}
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead>
-                                <tr className="bg-gray-100">
-                                    <th className="p-3">Type</th>
-                                    <th className="p-3">Category</th>
-                                    <th className="p-3">Description</th>
-                                    <th className="p-3">Status</th>
-                                    <th className="p-3">Reported By</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredReports.map(report => (
-                                    <tr key={report.id} className="border-b hover:bg-gray-50 cursor-pointer" onClick={() => openDetails(report)}>
-                                        <td className="p-3">{report.type}</td>
-                                        <td className="p-3">{report.category}</td>
-                                        <td className="p-3 truncate max-w-xs">{report.description}</td>
-                                        <td className="p-3">
-                                            <span className={`px-2 py-1 text-xs rounded-full ${report.status === 'Open' ? 'bg-yellow-200 text-yellow-800' : report.status === 'In Progress' ? 'bg-blue-200 text-blue-800' : 'bg-green-200 text-green-800'}`}>
-                                                {report.status}
-                                            </span>
-                                        </td>
-                                        <td className="p-3">{report.reportedBy}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                        {filteredReports.length === 0 && <p className="text-center py-4 text-gray-500">{translations.myReports.noFilteredReports}</p>}
+                    <div className="mb-4">
+                        <div className="inline-flex rounded-md shadow-sm bg-gray-100 p-1">
+                            <button onClick={() => setViewMode('list')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center ${viewMode === 'list' ? 'bg-white text-orange-600 shadow' : 'text-gray-600'}`}>
+                                <ListIcon/> {translations.dashboard.admin.listView}
+                            </button>
+                            <button onClick={() => setViewMode('map')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center ${viewMode === 'map' ? 'bg-white text-orange-600 shadow' : 'text-gray-600'}`}>
+                                <MapIcon/> {translations.dashboard.admin.mapView}
+                            </button>
+                        </div>
                     </div>
+                    {viewMode === 'list' ? (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left">
+                                <thead>
+                                    <tr className="bg-gray-100">
+                                        <th className="p-3">Type</th>
+                                        <th className="p-3">Category</th>
+                                        <th className="p-3">Description</th>
+                                        <th className="p-3">Status</th>
+                                        <th className="p-3">Reported By</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredReports.map(report => (
+                                        <tr key={report.id} className="border-b hover:bg-gray-50 cursor-pointer" onClick={() => openDetails(report)}>
+                                            <td className="p-3">{report.type}</td>
+                                            <td className="p-3">{report.category}</td>
+                                            <td className="p-3 truncate max-w-xs">{report.description}</td>
+                                            <td className="p-3">
+                                                <span className={`px-2 py-1 text-xs rounded-full ${report.status === 'Open' ? 'bg-yellow-200 text-yellow-800' : report.status === 'In Progress' ? 'bg-blue-200 text-blue-800' : 'bg-green-200 text-green-800'}`}>
+                                                    {report.status}
+                                                </span>
+                                            </td>
+                                            <td className="p-3">{report.reportedBy}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                            {filteredReports.length === 0 && <p className="text-center py-4 text-gray-500">{translations.myReports.noFilteredReports}</p>}
+                        </div>
+                    ) : (
+                       <ReportsMapView reports={filteredReports} onSelectReport={openDetails} />
+                    )}
                 </Card>
             </div>
             <ReportDetailsModal

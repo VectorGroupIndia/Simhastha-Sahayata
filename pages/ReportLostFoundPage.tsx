@@ -5,6 +5,7 @@ import { useLocalization } from '../hooks/useLocalization';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { LostFoundReport } from '../types';
+import { ImageZoomModal } from '../components/ui/ImageZoomModal';
 
 type ReportStep = 'instructions' | 'form' | 'confirmation';
 type ReportType = 'Lost' | 'Found';
@@ -29,6 +30,7 @@ const ReportLostFoundPage: React.FC = () => {
   const [lastSeen, setLastSeen] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
+  const [isZoomModalOpen, setIsZoomModalOpen] = useState(false);
 
   // Person-specific state
   const [personName, setPersonName] = useState('');
@@ -126,6 +128,7 @@ const ReportLostFoundPage: React.FC = () => {
         );
       case 'form':
         return (
+         <>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">{translations.report.type}</label>
@@ -168,7 +171,13 @@ const ReportLostFoundPage: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700">{translations.report.upload}</label>
               {imageBase64 ? (
                   <div className="mt-2 relative">
-                      <img src={imageBase64} alt="Upload preview" className="w-full h-auto max-h-60 object-contain rounded-md bg-gray-100 p-2" />
+                      <p className="text-center text-xs text-gray-400 mb-1">{translations.reportDetails.imageZoom}</p>
+                      <img 
+                        src={imageBase64} 
+                        alt="Upload preview" 
+                        className="w-full h-auto max-h-60 object-contain rounded-md bg-gray-100 p-2 cursor-pointer hover:opacity-80 transition-opacity" 
+                        onClick={() => setIsZoomModalOpen(true)}
+                      />
                       <Button
                           type="button"
                           variant="danger"
@@ -190,6 +199,14 @@ const ReportLostFoundPage: React.FC = () => {
             </div>
             <Button type="submit" className="w-full">{translations.report.submit}</Button>
           </form>
+          {imageBase64 && (
+            <ImageZoomModal 
+                isOpen={isZoomModalOpen}
+                onClose={() => setIsZoomModalOpen(false)}
+                imageUrl={imageBase64}
+            />
+          )}
+          </>
         );
       case 'confirmation':
         if (!submittedReport) return null;

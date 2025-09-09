@@ -13,14 +13,28 @@ import ReportDetailsModal from '../components/dashboard/ReportDetailsModal';
 import { Button } from '../components/ui/Button';
 import { MOCK_LOST_FOUND_REPORTS } from '../data/mockData';
 import { Card } from '../components/ui/Card';
+import { getAiSearchResults } from '../services/geminiService';
+import { Spinner } from '../components/ui/Spinner';
+import { ImageZoomModal } from '../components/ui/ImageZoomModal';
 
 // Icon Components defined locally
 const HeartIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>;
 const MapIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13v-6m0 6l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 16.382V5.618a1 1 0 00-1.447-.894L15 7m0 10v-6m0 6l-6-3" /></svg>;
+// FIX: Updated icon size to h-6 w-6 for consistency with other tab icons.
 const SparklesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 17l-4 4 4-4 2.293-2.293a1 1 0 011.414 0L17 14m-5-5l2.293 2.293a1 1 0 010 1.414L10 17" /></svg>;
 const PlusCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
 const ArchiveIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 001.414 0l2.414-2.414a1 1 0 01.707-.293H21" /></svg>;
 const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" /></svg>;
+
+const FilterDropdown: React.FC<{label: string, value: string, onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void, options: {value: string, label: string}[]}> = ({label, value, onChange, options}) => (
+    <div className="w-full">
+        <label htmlFor={label} className="sr-only">{label}</label>
+        <select id={label} value={value} onChange={onChange} className="w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 py-2 pl-3 pr-8 text-base">
+            {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+        </select>
+    </div>
+);
+
 
 /**
  * MyReports Component - Shows a user's submitted reports with filtering and search.
@@ -34,6 +48,46 @@ const MyReports: React.FC = () => {
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [typeFilter, setTypeFilter] = useState('all');
     
+    const [isAiSearching, setIsAiSearching] = useState(false);
+    const [aiFilteredReportIds, setAiFilteredReportIds] = useState<string[] | null>(null);
+    const [aiSearchQuery, setAiSearchQuery] = useState('');
+
+    const [isZoomModalOpen, setIsZoomModalOpen] = useState(false);
+    const [zoomedImageUrl, setZoomedImageUrl] = useState('');
+
+    const openZoomModal = (report: LostFoundReport) => {
+        if(report.imageUrl) {
+            setZoomedImageUrl(report.imageUrl);
+            setIsZoomModalOpen(true);
+        }
+    }
+
+    const myReports = MOCK_LOST_FOUND_REPORTS.filter(
+        report => report.reportedById === user?.id
+    );
+
+    const handleAiSearch = async () => {
+        if (!searchQuery.trim()) return;
+        setIsAiSearching(true);
+        setAiFilteredReportIds(null);
+        try {
+            const resultIds = await getAiSearchResults(searchQuery, myReports);
+            setAiFilteredReportIds(resultIds);
+            setAiSearchQuery(searchQuery);
+        } catch (error) {
+            console.error("AI Search failed:", error);
+            alert('AI Search failed. Please try again.');
+        } finally {
+            setIsAiSearching(false);
+        }
+    };
+    
+    const clearAiSearch = () => {
+        setAiFilteredReportIds(null);
+        setAiSearchQuery('');
+        setSearchQuery('');
+    };
+
     const getStatusClasses = (status: LostFoundReport['status']) => {
         switch (status) {
             case 'Open': return 'bg-yellow-200 text-yellow-800';
@@ -46,11 +100,11 @@ const MyReports: React.FC = () => {
     const openDetailsModal = (report: LostFoundReport) => setSelectedReport(report);
     const closeDetailsModal = () => setSelectedReport(null);
 
-    const myReports = MOCK_LOST_FOUND_REPORTS.filter(
-        report => report.reportedById === user?.id
-    ).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-
     const filteredReports = myReports.filter(report => {
+        if (aiFilteredReportIds !== null) {
+            return aiFilteredReportIds.includes(report.id);
+        }
+
         const query = searchQuery.toLowerCase();
         const searchMatch = query === '' ||
             report.id.toLowerCase().includes(query) ||
@@ -63,30 +117,26 @@ const MyReports: React.FC = () => {
         const typeMatch = typeFilter === 'all' || report.type === typeFilter;
 
         return searchMatch && statusMatch && categoryMatch && typeMatch;
+    }).sort((a, b) => {
+        if (aiFilteredReportIds !== null) {
+            return aiFilteredReportIds.indexOf(a.id) - aiFilteredReportIds.indexOf(b.id);
+        }
+        return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     });
 
-    const FilterDropdown: React.FC<{label: string, value: string, onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void, options: {value: string, label: string}[]}> = ({label, value, onChange, options}) => (
-        <div>
-            <label htmlFor={label} className="block text-sm font-medium text-gray-700">{label}</label>
-            <select id={label} value={value} onChange={onChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 py-2 pl-3 pr-10 text-base">
-                {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-            </select>
-        </div>
-    );
-
     const statusOptions = [
-        { value: 'all', label: translations.filterBar.all },
+        { value: 'all', label: `${translations.filterBar.statusLabel}: ${translations.filterBar.all}` },
         { value: 'Open', label: translations.filterBar.open },
         { value: 'In Progress', label: translations.filterBar.inProgress },
         { value: 'Resolved', label: translations.filterBar.resolved },
     ];
     const categoryOptions = [
-        { value: 'all', label: translations.filterBar.all },
+        { value: 'all', label: `${translations.filterBar.categoryLabel}: ${translations.filterBar.all}` },
         { value: 'Person', label: translations.filterBar.person },
         { value: 'Item', label: translations.filterBar.item },
     ];
     const typeOptions = [
-        { value: 'all', label: translations.filterBar.all },
+        { value: 'all', label: `${translations.filterBar.typeLabel}: ${translations.filterBar.all}` },
         { value: 'Lost', label: translations.filterBar.lost },
         { value: 'Found', label: translations.filterBar.found },
     ];
@@ -94,32 +144,47 @@ const MyReports: React.FC = () => {
     return (
         <>
             <Card>
-                <h3 className="text-2xl font-bold mb-4">{translations.myReports.title}</h3>
-                
-                <div className="bg-gray-50 p-4 rounded-lg border mb-6">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                        <div className="md:col-span-4">
-                            <label htmlFor="search-reports" className="block text-sm font-medium text-gray-700">Search</label>
-                            <div className="relative mt-1">
-                                <input
-                                    id="search-reports"
-                                    type="text"
-                                    placeholder={translations.myReports.searchPlaceholder}
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full"
-                                />
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <SearchIcon />
-                                </div>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
+                    <h3 className="text-2xl font-bold">{translations.myReports.title}</h3>
+                     <div className="w-full md:w-auto flex-grow flex flex-col md:flex-row gap-2 items-center justify-end">
+                        <div className="relative w-full md:flex-grow">
+                            <input
+                                type="text"
+                                placeholder={translations.myReports.searchPlaceholder}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && handleAiSearch()}
+                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full"
+                            />
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <SearchIcon />
                             </div>
                         </div>
-
+                         <button
+                            onClick={handleAiSearch}
+                            disabled={isAiSearching || !searchQuery.trim()}
+                            title={translations.myReports.aiSearchTooltip}
+                            className="flex items-center justify-center gap-2 w-full md:w-auto px-4 py-2 text-sm font-medium text-white bg-orange-500 rounded-full hover:bg-orange-600 disabled:bg-orange-300 transition-colors"
+                        >
+                            {isAiSearching ? <Spinner size="sm" /> : <SparklesIcon />}
+                            <span className="hidden sm:inline">{isAiSearching ? translations.myReports.aiSearching : translations.myReports.aiSearch}</span>
+                        </button>
                         <FilterDropdown label={translations.filterBar.statusLabel} value={statusFilter} onChange={e => setStatusFilter(e.target.value)} options={statusOptions} />
                         <FilterDropdown label={translations.filterBar.categoryLabel} value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} options={categoryOptions} />
                         <FilterDropdown label={translations.filterBar.typeLabel} value={typeFilter} onChange={e => setTypeFilter(e.target.value)} options={typeOptions} />
                     </div>
                 </div>
+                
+                {aiFilteredReportIds !== null && (
+                    <div className="flex justify-between items-center bg-orange-100 border border-orange-200 text-orange-800 rounded-md p-3 mb-4">
+                        <p className="text-sm font-medium">
+                            {translations.myReports.aiSearchResults}: <span className="italic">"{aiSearchQuery}"</span>
+                        </p>
+                        <button onClick={clearAiSearch} className="text-sm font-semibold hover:underline flex-shrink-0 ml-4">
+                            {translations.myReports.clearAiSearch}
+                        </button>
+                    </div>
+                )}
 
                 {filteredReports.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -127,8 +192,8 @@ const MyReports: React.FC = () => {
                             <div key={report.id} className="bg-white p-4 rounded-lg border border-gray-200 shadow-lg flex flex-col justify-between">
                                 <div className="flex-grow">
                                     {report.imageUrl && (
-                                        <div className="mb-4">
-                                            <img src={report.imageUrl} alt={report.category === 'Person' ? report.personName : report.itemName} className="rounded-md w-full h-40 object-cover" />
+                                        <div className="mb-4" onClick={() => openZoomModal(report)}>
+                                            <img src={report.imageUrl} alt={report.category === 'Person' ? report.personName : report.itemName} className="rounded-md w-full h-40 object-cover cursor-pointer hover:opacity-80 transition-opacity" title={translations.reportDetails.imageZoom} />
                                         </div>
                                     )}
                                     <div className="flex justify-between items-start gap-2">
@@ -169,6 +234,11 @@ const MyReports: React.FC = () => {
                 onClose={closeDetailsModal}
                 report={selectedReport}
             />
+            <ImageZoomModal 
+                isOpen={isZoomModalOpen}
+                onClose={() => setIsZoomModalOpen(false)}
+                imageUrl={zoomedImageUrl}
+            />
         </>
     );
 };
@@ -194,6 +264,7 @@ const DashboardPage: React.FC = () => {
     const tabs = [
       { id: 'hub', name: translations.familyHub.title, icon: <HeartIcon /> },
       { id: 'nav', name: translations.navigation.title, icon: <MapIcon /> },
+      // FIX: Removed invalid 'style' prop. The component's class was updated for correct sizing.
       { id: 'guide', name: translations.guide.title, icon: <SparklesIcon /> },
       { id: 'reports', name: translations.dashboard.myReports, icon: <ArchiveIcon /> },
     ];
