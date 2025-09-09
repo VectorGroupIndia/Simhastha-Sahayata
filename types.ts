@@ -1,4 +1,5 @@
 
+
 // Defines the user roles within the application.
 export enum UserRole {
   PILGRIM = 'Pilgrim',
@@ -35,6 +36,7 @@ export interface User {
   role: UserRole;
   avatar: string;
   status: 'Active' | 'Suspended';
+  locationCoords?: { lat: number; lng: number }; // For map view of personnel
   emergencyContacts?: EmergencyContact[]; // For SOS calls
   sosHistory?: SosAlert[]; // For SOS history tracking
   registeredItems?: RegisteredItem[]; // For the "My Items" feature
@@ -61,6 +63,7 @@ export interface User {
     // Volunteer settings
     availabilityStatus?: 'Active' | 'On Break';
     nearbyAlertsNotifications?: boolean;
+    workingRadius?: number; // in kilometers
   }
 }
 
@@ -125,9 +128,24 @@ export interface EmergencyContact {
   phone: string;
 }
 
+// Represents a Point of Interest on the map
+export interface MapPointOfInterest {
+    id: string;
+    name: string;
+    type: 'Help Center' | 'Medical' | 'Lost/Found Center';
+    locationCoords: { lat: number; lng: number };
+}
+
+// A generic type for any object that can be a navigation destination
+export type Navigatable = {
+    name: string;
+    locationCoords: { lat: number; lng: number };
+}
+
+
 // Props for the IntelligentNav component
 export interface IntelligentNavProps {
-  destinationMember?: FamilyMember;
+  destination?: Navigatable;
 }
 
 

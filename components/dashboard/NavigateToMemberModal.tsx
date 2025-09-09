@@ -1,3 +1,5 @@
+
+
 import React from 'react';
 import { Modal } from '../ui/Modal';
 import { useLocalization } from '../../hooks/useLocalization';
@@ -18,11 +20,20 @@ export const NavigateToMemberModal: React.FC<NavigateToMemberModalProps> = ({ is
     }
 
     const title = translations.navigation.routeTo.replace('{name}', member.name);
+    
+    // Adapt the FamilyMember object to the generic Navigatable type for IntelligentNav
+    const destination = {
+        name: member.name,
+        locationCoords: {
+            lat: member.location.lat,
+            lng: member.location.lng,
+        }
+    };
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={title}>
             {/* The IntelligentNav component is re-used here to show the route */}
-            <IntelligentNav destinationMember={member} />
+            <IntelligentNav destination={destination} />
         </Modal>
     );
 };

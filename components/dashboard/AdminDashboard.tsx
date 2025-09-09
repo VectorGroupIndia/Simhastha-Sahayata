@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { Card } from '../ui/Card';
 import { useLocalization } from '../../hooks/useLocalization';
@@ -24,6 +25,39 @@ const CheckCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className=
 const XCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>;
 const ChartBarIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 110 2H3a1 1 0 01-1-1zm5-3a1 1 0 011-1h2a1 1 0 110 2H8a1 1 0 01-1-1zm5-3a1 1 0 011-1h2a1 1 0 110 2h-2a1 1 0 01-1-1zM2 15a1 1 0 011-1h12a1 1 0 110 2H3a1 1 0 01-1-1z" /></svg>;
 const DownloadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" /></svg>;
+const ClipboardCheckIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" /><path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>;
+
+
+// --- Time Utility ---
+const timeSince = (date: Date) => {
+  const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
+  let interval = seconds / 31536000;
+  if (interval > 1) {
+    const years = Math.floor(interval);
+    return `${years} year${years > 1 ? 's' : ''}`;
+  }
+  interval = seconds / 2592000;
+  if (interval > 1) {
+    const months = Math.floor(interval);
+    return `${months} month${months > 1 ? 's' : ''}`;
+  }
+  interval = seconds / 86400;
+  if (interval > 1) {
+    const days = Math.floor(interval);
+    return `${days} day${days > 1 ? 's' : ''}`;
+  }
+  interval = seconds / 3600;
+  if (interval > 1) {
+    const hours = Math.floor(interval);
+    return `${hours} hour${hours > 1 ? 's' : ''}`;
+  }
+  interval = seconds / 60;
+  if (interval > 1) {
+    const minutes = Math.floor(interval);
+    return `${minutes} minute${minutes > 1 ? 's' : ''}`;
+  }
+  return `${Math.floor(seconds)} second${seconds !== 1 ? 's' : ''}`;
+};
 
 
 // --- HELPER COMPONENTS ---
@@ -342,6 +376,195 @@ const ReportingView: React.FC<{ reports: LostFoundReport[], users: User[] }> = (
     );
 };
 
+const VolunteerOpsMapView: React.FC<{
+    volunteers: User[];
+    unassignedAlerts: LostFoundReport[];
+    assignmentsByVolunteer: Map<number, LostFoundReport[]>;
+    onSelectReport: (report: LostFoundReport) => void;
+}> = ({ volunteers, unassignedAlerts, assignmentsByVolunteer, onSelectReport }) => {
+    const { translations } = useLocalization();
+    const t = translations.dashboard.admin.volunteerOpsMap;
+    const [activePin, setActivePin] = useState<User | LostFoundReport | null>(null);
+
+    const Pin: React.FC<{ item: User | LostFoundReport; type: 'volunteer' | 'alert' }> = ({ item, type }) => {
+        if (!item.locationCoords) return null;
+        const pinColor = type === 'volunteer' ? 'blue' : 'orange';
+        const isActive = activePin && activePin.id === item.id;
+        return (
+            <div
+                className="absolute cursor-pointer"
+                style={{ top: `${item.locationCoords.lat}%`, left: `${item.locationCoords.lng}%`, transform: 'translate(-50%, -100%)', zIndex: isActive ? 10 : 1 }}
+                onClick={(e) => { e.stopPropagation(); setActivePin(item); }}
+            >
+                <div className="relative flex flex-col items-center group">
+                    <svg xmlns="http://www.w3.org/2000/svg" className={`h-8 w-8 text-${pinColor}-500 drop-shadow-lg transition-transform group-hover:scale-110 ${isActive ? 'scale-125' : ''}`} viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 20l-4.95-5.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                    </svg>
+                    <div className="bg-white text-xs px-1.5 py-0.5 rounded-full shadow -mt-1 whitespace-nowrap">{ 'name' in item ? item.name.split(' ')[0] : (item.personName || item.itemName) }</div>
+                </div>
+            </div>
+        );
+    };
+    
+    const Popover: React.FC<{ item: User | LostFoundReport }> = ({ item }) => {
+        if (!item.locationCoords) return null;
+        const isVolunteer = 'role' in item;
+        const assignedTasks = isVolunteer ? assignmentsByVolunteer.get(item.id) : undefined;
+        return (
+             <div className="absolute p-3 bg-white rounded-lg shadow-xl border w-64 animate-fade-in-up" style={{ top: `${item.locationCoords.lat}%`, left: `${item.locationCoords.lng}%`, transform: 'translate(-50%, -115%)', zIndex: 20 }}>
+                 <button onClick={() => setActivePin(null)} className="absolute -top-2 -right-2 bg-white rounded-full text-gray-600 w-6 h-6 flex items-center justify-center shadow">&times;</button>
+                 {isVolunteer ? (
+                     <>
+                        <div className="flex items-center mb-2"><img src={item.avatar} alt={item.name} className="w-8 h-8 rounded-full mr-2" /><p className="font-bold">{item.name}</p></div>
+                        <p className="text-sm"><span className="font-semibold">{t.volunteerStatus}:</span> {assignedTasks && assignedTasks.length > 0 ? <span className="text-blue-600">{t.activeOnTask}</span> : <span className="text-green-600">{t.available}</span>}</p>
+                        {assignedTasks && assignedTasks.length > 0 && (<div className="text-xs mt-2 space-y-1">
+                            {assignedTasks.map(task => (<div key={task.id} className="p-1 bg-gray-100 rounded">
+                                <p className="font-semibold truncate">{task.personName || task.itemName}</p>
+                                <p className="text-gray-500">ID: {task.id}</p>
+                            </div>))}
+                        </div>)}
+                     </>
+                 ) : (
+                     <>
+                        <h4 className="font-bold text-orange-600 truncate">{item.personName || item.itemName}</h4>
+                        <p className="text-sm text-gray-600 truncate">{item.description}</p>
+                        <p className="text-xs text-gray-500 mt-1">{t.unassignedAlert}</p>
+                        <Button onClick={() => onSelectReport(item)} variant="secondary" className="w-full mt-2 text-xs py-1 h-auto">View & Assign</Button>
+                     </>
+                 )}
+             </div>
+        );
+    }
+
+    return (
+        <Card>
+            <h3 className="text-xl font-bold mb-4">{t.title}</h3>
+            <div className="aspect-video bg-gray-200 rounded-lg relative overflow-hidden" onClick={() => setActivePin(null)}>
+                <img src="https://i.imgur.com/3Z3tV8C.png" alt="Map" className="w-full h-full object-cover" />
+                {volunteers.filter(v => v.locationCoords).map(v => <Pin key={v.id} item={v} type="volunteer" />)}
+                {unassignedAlerts.filter(a => a.locationCoords).map(a => <Pin key={a.id} item={a} type="alert" />)}
+                {activePin && <Popover item={activePin} />}
+            </div>
+        </Card>
+    );
+};
+
+const VolunteerOpsView: React.FC<{
+    reports: LostFoundReport[];
+    users: User[];
+    onSelectReport: (report: LostFoundReport) => void;
+}> = ({ reports, users, onSelectReport }) => {
+    const { translations } = useLocalization();
+    const t = translations.dashboard.admin;
+    const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+
+    const volunteers = useMemo(() => 
+        users.filter(u => u.role === UserRole.VOLUNTEER && u.status === 'Active'), 
+        [users]
+    );
+
+    const assignmentsByVolunteer = useMemo(() => {
+        const assignmentsMap = new Map<number, LostFoundReport[]>();
+        reports.forEach(report => {
+            if (report.assignedToId && report.status !== 'Resolved') {
+                const volunteer = users.find(u => u.id === report.assignedToId);
+                if (volunteer?.role === UserRole.VOLUNTEER) {
+                    const existing = assignmentsMap.get(report.assignedToId) || [];
+                    const sorted = [...existing, report].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+                    assignmentsMap.set(report.assignedToId, sorted);
+                }
+            }
+        });
+        return assignmentsMap;
+    }, [reports, users]);
+
+    const volunteersWithAssignments = useMemo(() =>
+        volunteers.filter(v => assignmentsByVolunteer.has(v.id)),
+        [volunteers, assignmentsByVolunteer]
+    );
+
+    const unassignedAlerts = useMemo(() =>
+        reports.filter(r => !r.assignedToId && r.status === 'Open' && r.category === 'Person')
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
+        [reports]
+    );
+
+    return (
+        <>
+        <div className="flex justify-between items-center mb-4">
+             <h3 className="text-xl font-bold">{t.volunteerOpsTab}</h3>
+             <div className="inline-flex rounded-md shadow-sm bg-gray-100 p-1">
+                <button onClick={() => setViewMode('list')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center ${viewMode === 'list' ? 'bg-white text-orange-600 shadow' : 'text-gray-600'}`}><ListIcon/> {t.listView}</button>
+                <button onClick={() => setViewMode('map')} className={`px-4 py-2 text-sm font-medium rounded-md flex items-center ${viewMode === 'map' ? 'bg-white text-orange-600 shadow' : 'text-gray-600'}`}><MapIcon/> {t.mapView}</button>
+            </div>
+        </div>
+
+        {viewMode === 'list' ? (
+             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
+                <Card>
+                    <h3 className="text-xl font-bold mb-4">{t.activeAssignments}</h3>
+                    <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                        {volunteersWithAssignments.length > 0 ? volunteersWithAssignments.map(volunteer => (
+                            <div key={volunteer.id} className="p-3 bg-gray-50 rounded-lg">
+                                <div className="flex items-center mb-3 pb-2 border-b">
+                                    <img src={volunteer.avatar} alt={volunteer.name} className="w-10 h-10 rounded-full mr-3" />
+                                    <div>
+                                        <p className="font-semibold text-gray-800">{volunteer.name}</p>
+                                        <p className="text-xs text-gray-500">
+                                            {assignmentsByVolunteer.get(volunteer.id)?.length || 0} {t.activeTasks}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    {assignmentsByVolunteer.get(volunteer.id)?.map(report => (
+                                        <div key={report.id} className="text-sm flex justify-between items-center bg-white p-2 rounded-md shadow-sm">
+                                            <div>
+                                                <p className="font-mono text-xs text-gray-500">{t.reportId}: {report.id}</p>
+                                                <p className="text-gray-800 font-medium">
+                                                    {t.task}: {report.personName || report.itemName}
+                                                </p>
+                                            </div>
+                                            <Button onClick={() => onSelectReport(report)} variant="secondary" className="text-xs py-1 px-2 flex-shrink-0 ml-2">{translations.myReports.viewDetails}</Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )) : (
+                            <p className="text-center text-gray-500 py-10">{t.noActiveAssignments}</p>
+                        )}
+                    </div>
+                </Card>
+                <Card>
+                    <h3 className="text-xl font-bold mb-4">{t.unassignedAlerts}</h3>
+                     <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
+                        {unassignedAlerts.length > 0 ? unassignedAlerts.map(report => (
+                            <div key={report.id} className="p-3 bg-red-50 border-l-4 border-red-400 rounded-r-lg flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                                <div>
+                                    <p className="font-semibold">{report.personName || report.itemName}</p>
+                                    <p className="text-sm text-red-700">Reported {timeSince(new Date(report.timestamp))} ago</p>
+                                </div>
+                                <Button onClick={() => onSelectReport(report)} variant="primary" className="text-xs py-1 px-2 self-end sm:self-center">{t.viewAndAssign}</Button>
+                            </div>
+                        )) : (
+                            <p className="text-center text-gray-500 py-10">{t.noUnassignedAlerts}</p>
+                        )}
+                    </div>
+                </Card>
+            </div>
+        ) : (
+            <div className="animate-fade-in">
+                <VolunteerOpsMapView
+                    volunteers={volunteers}
+                    unassignedAlerts={unassignedAlerts}
+                    assignmentsByVolunteer={assignmentsByVolunteer}
+                    onSelectReport={onSelectReport}
+                />
+            </div>
+        )}
+        </>
+    );
+};
+
 
 /**
  * Admin Dashboard Component.
@@ -361,7 +584,7 @@ const AdminDashboard: React.FC = () => {
     const [assignmentFilter, setAssignmentFilter] = useState('all');
     const [sortOption, setSortOption] = useState('dateNewest');
     const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
-    const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'reporting'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'volunteerOps' | 'reporting'>('overview');
     const [userToEdit, setUserToEdit] = useState<User | null>(null);
 
     const [isAiSearching, setIsAiSearching] = useState(false);
@@ -502,12 +725,15 @@ const AdminDashboard: React.FC = () => {
             <div className="space-y-6">
                 <h2 className="text-3xl font-bold">{translations.dashboard.admin.title}</h2>
                 <div className="border-b border-gray-200">
-                    <nav className="-mb-px flex space-x-6">
+                    <nav className="-mb-px flex space-x-6 overflow-x-auto">
                         <button onClick={() => setActiveTab('overview')} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center ${activeTab === 'overview' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
                             <LayoutDashboardIcon /> {translations.dashboard.admin.overviewTab}
                         </button>
                         <button onClick={() => setActiveTab('users')} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center ${activeTab === 'users' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
                             <UsersIcon /> {translations.dashboard.admin.userManagementTab}
+                        </button>
+                        <button onClick={() => setActiveTab('volunteerOps')} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center ${activeTab === 'volunteerOps' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
+                            <ClipboardCheckIcon /> {translations.dashboard.admin.volunteerOpsTab}
                         </button>
                         <button onClick={() => setActiveTab('reporting')} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center ${activeTab === 'reporting' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
                             <ChartBarIcon /> {translations.dashboard.admin.reportingTab}
@@ -573,6 +799,7 @@ const AdminDashboard: React.FC = () => {
                     </div>
                 )}
                 {activeTab === 'users' && <div className="animate-fade-in"><UserManagementView users={users} onEditUser={setUserToEdit} /></div>}
+                {activeTab === 'volunteerOps' && <div className="animate-fade-in"><VolunteerOpsView reports={reports} users={users} onSelectReport={openDetails} /></div>}
                 {activeTab === 'reporting' && <div className="animate-fade-in"><ReportingView reports={reports} users={users} /></div>}
             </div>
             <ReportDetailsModal isOpen={!!selectedReport} onClose={closeDetails} report={selectedReport} onUpdateReport={handleUpdateReport} assignableUsers={assignableUsers} />

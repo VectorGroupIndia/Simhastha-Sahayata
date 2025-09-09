@@ -1,10 +1,12 @@
+
+
 import React, { useState, useEffect } from 'react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Spinner } from '../ui/Spinner';
 import { getNavigationRoute } from '../../services/geminiService';
 import { useLocalization } from '../../hooks/useLocalization';
-import { IntelligentNavProps, FamilyMember } from '../../types';
+import { IntelligentNavProps } from '../../types';
 
 
 // SVG Icon Components
@@ -17,7 +19,7 @@ const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 
  * in natural language, and the system (simulated via Gemini service) provides a route
  * on a custom event map, considering factors like crowd levels.
  */
-const IntelligentNav: React.FC<IntelligentNavProps> = ({ destinationMember }) => {
+const IntelligentNav: React.FC<IntelligentNavProps> = ({ destination }) => {
   const [query, setQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [route, setRoute] = useState<{ text: string; path: string } | null>(null);
@@ -40,23 +42,24 @@ const IntelligentNav: React.FC<IntelligentNavProps> = ({ destinationMember }) =>
   };
   
   useEffect(() => {
-    if (destinationMember) {
-      // Trigger navigation automatically when a destination member is provided
-      const memberQuery = `Route to ${destinationMember.name}`;
-      handleSearch(memberQuery);
+    if (destination) {
+      // Trigger navigation automatically when a destination is provided
+      const destinationQuery = `Route to ${destination.name}`;
+      setQuery(destinationQuery);
+      handleSearch(destinationQuery);
     }
-  }, [destinationMember]);
+  }, [destination]);
 
 
   return (
     <Card>
       <h3 className="text-2xl font-bold mb-4">
-        {destinationMember 
-          ? translations.navigation.routeTo.replace('{name}', destinationMember.name) 
+        {destination 
+          ? translations.navigation.routeTo.replace('{name}', destination.name) 
           : translations.navigation.title
         }
       </h3>
-      {!destinationMember && (
+      {!destination && (
         <div className="flex flex-col md:flex-row gap-4 mb-4">
           <div className="flex-grow relative">
             <input

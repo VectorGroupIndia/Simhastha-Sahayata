@@ -15,7 +15,7 @@ const CookiePreferenceItem: React.FC<{ title: string, description: string, id: s
         <div className="py-4 border-b last:border-b-0">
             <div className="flex justify-between items-start">
                 <h4 className="font-semibold text-gray-800">{title}</h4>
-                <ToggleSwitch id={id} checked={checked} onChange={onChange} disabled={disabled} />
+                <ToggleSwitch id={id} checked={checked} onChange={onChange} disabled={!!disabled} />
             </div>
             <p className="text-sm text-gray-600 mt-1 pr-16">{description}</p>
         </div>

@@ -1,5 +1,6 @@
 
-import { RegisteredItem, FamilyMember, LostFoundReport, UserRole, SosAlert } from '../types';
+
+import { RegisteredItem, FamilyMember, LostFoundReport, UserRole, SosAlert, MapPointOfInterest } from '../types';
 
 export const MOCK_REGISTERED_ITEMS: RegisteredItem[] = [
   {
@@ -117,8 +118,6 @@ export const MOCK_LOST_FOUND_REPORTS: LostFoundReport[] = [
         reportedById: 2,
         timestamp: '2024-07-29T08:45:00Z',
         status: 'Open',
-        assignedToId: 5,
-        assignedToName: 'Sunita Devi (Volunteer)'
     }
 ];
 
@@ -138,8 +137,25 @@ export const MOCK_SOS_ALERTS: (SosAlert & { userName: string; userId: number; lo
         timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 mins ago
         status: 'Responded',
         locationCoords: { lat: 80, lng: 70 }
+    },
+    {
+        id: 3,
+        userId: 1,
+        userName: 'Ravi Kumar (Pilgrim)',
+        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+        status: 'Resolved',
+        locationCoords: { lat: 15, lng: 25 }
     }
 ];
+
+export const MOCK_POINTS_OF_INTEREST: MapPointOfInterest[] = [
+    { id: 'hc1', name: 'Help Center - Sector A', type: 'Help Center', locationCoords: { lat: 10, lng: 15 } },
+    { id: 'hc2', name: 'Help Center - Ram Ghat', type: 'Help Center', locationCoords: { lat: 90, lng: 30 } },
+    { id: 'med1', name: 'First Aid - Sector C', type: 'Medical', locationCoords: { lat: 50, lng: 80 } },
+    { id: 'med2', name: 'Ambulance Point', type: 'Medical', locationCoords: { lat: 15, lng: 90 } },
+    { id: 'lf1', name: 'Lost & Found - Main Gate', type: 'Lost/Found Center', locationCoords: { lat: 48, lng: 18 } },
+];
+
 
 export const translations: { [key: string]: any } = {
   en: {
@@ -191,7 +207,7 @@ export const translations: { [key: string]: any } = {
       pilgrim: {
           welcome: 'Here is your central hub for a safe pilgrimage.',
           familyHub: 'Family Hub',
-          navigation: 'Intelligent Nav',
+          liveMap: 'Live Map',
           guide: 'AI Guide',
           myItems: 'My Items',
           myReports: 'My Reports',
@@ -200,6 +216,7 @@ export const translations: { [key: string]: any } = {
           title: 'Admin Control Panel',
           overviewTab: 'Overview',
           userManagementTab: 'User Management',
+          volunteerOpsTab: 'Volunteer Ops',
           reportingTab: 'Reporting',
           recentReports: 'All Lost & Found Reports',
           reportsByDay: 'Reports in Last 7 Days',
@@ -212,6 +229,22 @@ export const translations: { [key: string]: any } = {
           listView: 'List View',
           mapView: 'Map View',
           searchUsers: 'Search users by name...',
+          activeAssignments: 'Active Volunteer Assignments',
+          unassignedAlerts: 'Unassigned High-Priority Alerts',
+          noActiveAssignments: 'No volunteers are currently on active assignments.',
+          noUnassignedAlerts: 'All high-priority alerts are currently assigned.',
+          timeAgo: '{time} ago',
+          viewAndAssign: 'View & Assign',
+          activeTasks: 'Active Tasks',
+          task: 'Task',
+          reportId: 'Report ID',
+          volunteerOpsMap: {
+            title: 'Volunteer Operations Map',
+            unassignedAlert: 'Unassigned Alert',
+            volunteerStatus: 'Status',
+            activeOnTask: 'Active on Task',
+            available: 'Available',
+          },
           userManagement: {
               title: 'User Management',
               role: 'Role',
@@ -246,7 +279,14 @@ export const translations: { [key: string]: any } = {
               title: 'Live Operations Map',
               personnel: 'Personnel',
               report: 'Report',
-              sos: 'SOS'
+              sos: 'SOS',
+              crowdDensity: 'Crowd Density',
+              densityLevels: {
+                low: 'Low',
+                moderate: 'Moderate',
+                high: 'High',
+                extreme: 'Extreme'
+              }
           },
           panel: {
               acknowledge: 'Acknowledge',
@@ -262,6 +302,8 @@ export const translations: { [key: string]: any } = {
               sos: 'SOS',
               missingPerson: 'MISSING PERSON',
               report: 'REPORT',
+              sosLog: 'SOS Log',
+              triggeredBy: 'Triggered by',
           }
       },
       volunteer: {
@@ -275,6 +317,10 @@ export const translations: { [key: string]: any } = {
               assignments: 'My Assignments',
               nearby: 'Nearby Alerts',
           },
+          mapView: 'Map View',
+          listView: 'List View',
+          yourLocation: 'Your Location',
+          workingRadius: 'Working Radius',
           noAssignments: 'You have no active assignments. Check the "Nearby Alerts" tab to find cases to help with.',
           noNearby: 'No unassigned high-priority alerts nearby. Thank you for your service!',
           acceptTask: 'Accept Task',
@@ -308,6 +354,15 @@ export const translations: { [key: string]: any } = {
             copyLink: 'Copy',
             linkCopied: 'Invitation link copied!'
         }
+    },
+    liveMap: {
+        title: 'Live Event Map',
+        layers: 'Map Layers',
+        layerFamily: 'Family',
+        layerHelp: 'Help Centers',
+        layerMedical: 'Medical Aid',
+        layerReports: 'My Reports',
+        navigationModalTitle: 'Route to {name}',
     },
     navigation: {
         title: 'Intelligent Navigation',
@@ -539,7 +594,10 @@ export const translations: { [key: string]: any } = {
             assignmentNotifications: "New Assignment Alerts",
             assignmentNotificationsDesc: "Get notified when a new case is assigned directly to you.",
             nearbyAlerts: "Nearby High-Priority Alerts",
-            nearbyAlertsDesc: "Notify me about unassigned critical cases near my location."
+            nearbyAlertsDesc: "Notify me about unassigned critical cases near my location.",
+            workingRadius: "Working Radius",
+            workingRadiusDesc: "Set your maximum travel distance for new alerts.",
+            km: "km",
         },
         notificationSettingsAdmin: 'Admin Notifications',
         notificationSettingsAdminDesc: 'Customize which system-wide alerts you receive.',

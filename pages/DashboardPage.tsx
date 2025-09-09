@@ -1,14 +1,14 @@
 
+
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useLocalization } from '../hooks/useLocalization';
-import { LostFoundReport, UserRole } from '../types';
+import { LostFoundReport, UserRole, Navigatable } from '../types';
 import AdminDashboard from '../components/dashboard/AdminDashboard';
 import AuthoritiesDashboard from '../components/dashboard/AuthoritiesDashboard';
 import VolunteerDashboard from '../components/dashboard/VolunteerDashboard';
 import FamilyHub from '../components/dashboard/FamilyHub';
-import IntelligentNav from '../components/dashboard/IntelligentNav';
 import PilgrimGuide from '../components/dashboard/PilgrimGuide';
 import MyItems from '../components/dashboard/MyItems';
 import AiAlerts from '../components/dashboard/AiAlerts';
@@ -18,6 +18,8 @@ import ReportDetailsModal from '../components/dashboard/ReportDetailsModal';
 import { MOCK_LOST_FOUND_REPORTS } from '../data/mockData';
 import { UserGuideModal } from '../components/dashboard/UserGuideModal';
 import { Button } from '../components/ui/Button';
+import LiveMapView from '../components/dashboard/LiveMapView';
+import { NavigationModal } from '../components/dashboard/NavigationModal';
 
 // --- MyReports Component (for Pilgrim Dashboard) ---
 const MyReports: React.FC = () => {
@@ -80,10 +82,11 @@ const PilgrimDashboard: React.FC = () => {
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState('familyHub');
     const [isGuideOpen, setGuideOpen] = useState(false);
+    const [navigationTarget, setNavigationTarget] = useState<Navigatable | null>(null);
 
     const tabs = {
         familyHub: { name: translations.dashboard.pilgrim.familyHub, component: <FamilyHub /> },
-        navigation: { name: translations.dashboard.pilgrim.navigation, component: <IntelligentNav /> },
+        liveMap: { name: translations.dashboard.pilgrim.liveMap, component: <LiveMapView onNavigate={setNavigationTarget} /> },
         guide: { name: translations.dashboard.pilgrim.guide, component: <PilgrimGuide /> },
         myItems: { name: translations.dashboard.pilgrim.myItems, component: <MyItems /> },
         myReports: { name: translations.dashboard.pilgrim.myReports, component: <MyReports /> },
@@ -129,6 +132,11 @@ const PilgrimDashboard: React.FC = () => {
             </div>
         </div>
         <UserGuideModal isOpen={isGuideOpen} onClose={() => setGuideOpen(false)} />
+        <NavigationModal
+            isOpen={!!navigationTarget}
+            onClose={() => setNavigationTarget(null)}
+            destination={navigationTarget}
+        />
         </>
     );
 };
