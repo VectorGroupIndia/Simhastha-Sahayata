@@ -22,8 +22,12 @@ const HomePage: React.FC = () => {
   const { translations } = useLocalization();
 
   useEffect(() => {
-    // Show the popup once when the component mounts.
-    setWelcomePopupOpen(true);
+    // Show the popup only on the very first visit by checking localStorage.
+    const welcomePopupShown = localStorage.getItem('welcomePopupShown');
+    if (!welcomePopupShown) {
+      setWelcomePopupOpen(true);
+      localStorage.setItem('welcomePopupShown', 'true');
+    }
   }, []);
 
   const handleReportClick = () => {

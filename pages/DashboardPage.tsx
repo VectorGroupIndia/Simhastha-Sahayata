@@ -48,12 +48,16 @@ const PilgrimDashboardOverview: React.FC<{ setActiveTab: (tab: string) => void; 
     const { translations } = useLocalization();
 
     const familyInAlert = MOCK_FAMILY_MEMBERS.filter(m => m.status === 'Alert' || m.status === 'Lost');
+    const locatedReports = MOCK_LOST_FOUND_REPORTS.filter(r => r.reportedById === user?.id && r.status === 'Located');
     const userReports = MOCK_LOST_FOUND_REPORTS.filter(r => r.reportedById === user?.id).slice(0, 3);
     const criticalAiAlert = {
         id: 3,
         text: translations.dashboard.aiAlerts.alerts.child,
         level: 'critical',
     };
+
+    const hasPriorityAlert = familyInAlert.length > 0 || locatedReports.length > 0;
+
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -79,15 +83,21 @@ const PilgrimDashboardOverview: React.FC<{ setActiveTab: (tab: string) => void; 
                 <Card>
                     <div className="flex justify-between items-center mb-2">
                         <h3 className="text-xl font-bold">Priority Alerts</h3>
-                        <Button variant="secondary" className="text-xs py-1 px-2" onClick={() => setActiveTab('familyHub')}>View Family Hub</Button>
                     </div>
                     <div className="space-y-3">
-                         {familyInAlert.length > 0 ? familyInAlert.map(member => (
+                         {locatedReports.map(report => (
+                            <div key={report.id} className="p-3 bg-green-50 border-l-4 border-green-500 rounded-r-lg">
+                                <p className="font-semibold">Update on your report: <span className="text-green-600">{report.personName} has been located!</span></p>
+                                <p className="text-sm text-gray-600">Check 'My Reports' for their current location and details.</p>
+                            </div>
+                         ))}
+                         {familyInAlert.map(member => (
                             <div key={member.id} className="p-3 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
                                 <p className="font-semibold">{member.name} has status: <span className="text-red-600">{member.status}</span></p>
                                 <p className="text-sm text-gray-600">Please check the Family Hub for their last known location.</p>
                             </div>
-                         )) : (
+                         ))}
+                         {!hasPriorityAlert && (
                             <div className="p-3 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
                                <p className="font-semibold">AI Alert: <span className="text-blue-600">Critical</span></p>
                                <p className="text-sm text-gray-600">{criticalAiAlert.text}</p>
@@ -101,7 +111,7 @@ const PilgrimDashboardOverview: React.FC<{ setActiveTab: (tab: string) => void; 
                 <Card>
                     <div className="flex justify-between items-center mb-2">
                         <h3 className="text-xl font-bold">Family Status</h3>
-                        <Button variant="secondary" className="text-xs py-1 px-2" onClick={() => setActiveTab('liveMap')}>View on Map</Button>
+                        <Button variant="secondary" className="text-xs py-1 px-2" onClick={() => setActiveTab('familyHub')}>View Family Hub</Button>
                     </div>
                     <div className="space-y-2">
                         {MOCK_FAMILY_MEMBERS.map(member => (

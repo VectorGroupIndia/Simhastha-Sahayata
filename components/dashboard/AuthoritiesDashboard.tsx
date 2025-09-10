@@ -504,6 +504,19 @@ const AuthoritiesDashboard: React.FC = () => {
         }
     };
     
+    const handleUpdateReport = (reportId: string, updates: Partial<LostFoundReport>) => {
+        const updatedReports = reports.map(r => r.id === reportId ? { ...r, ...updates } : r);
+        setReports(updatedReports);
+        // Also update the mock data source to simulate persistence
+        const reportIndex = MOCK_LOST_FOUND_REPORTS.findIndex(report => report.id === reportId);
+        if (reportIndex !== -1) {
+            MOCK_LOST_FOUND_REPORTS[reportIndex] = { ...MOCK_LOST_FOUND_REPORTS[reportIndex], ...updates };
+        }
+        if (updates.status && updates.status !== 'Located') {
+             addToast(translations.reportDetails.statusUpdated, 'success');
+        }
+    };
+
     const handleCreateTask = (taskData: { title: string; description: string; priority: LostFoundReport['priority']; location: string; assignedToId: string; }) => {
         if (!user) return;
 
@@ -559,6 +572,7 @@ const AuthoritiesDashboard: React.FC = () => {
                 onClose={() => setSelectedReport(null)}
                 report={selectedReport}
                 assignableUsers={activePersonnel}
+                onUpdateReport={handleUpdateReport}
             />
             <AdvancedBroadcastModal
                 isOpen={isBroadcastModalOpen}

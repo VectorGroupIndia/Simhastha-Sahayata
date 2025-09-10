@@ -67,6 +67,7 @@ export const MOCK_LOST_FOUND_REPORTS: LostFoundReport[] = [
         description: 'My father, Ramesh, got separated from us near the main temple entrance. He is hard of hearing.',
         lastSeen: 'Near Mahakal Temple, Gate 3',
         locationCoords: { lat: 55, lng: 45 },
+        imageUrl: 'https://i.imgur.com/missing-man.png',
         reportedBy: 'Sunil Gupta',
         reportedById: 7,
         timestamp: '2024-07-29T10:00:00Z',
@@ -621,7 +622,13 @@ export const translations: { [key: string]: any } = {
     myReports: {
         title: "My Reports",
         reportedOn: "Reported on",
-        status: "Status",
+        status: {
+            open: "Open",
+            inProgress: "In Progress",
+            aiSearchInProgress: "AI Search in Progress",
+            located: "Located",
+            resolved: "Resolved"
+        },
         viewDetails: "View Details",
         noReports: "You haven't filed any reports yet.",
         noFilteredReports: "No reports match the current filters.",
@@ -641,6 +648,10 @@ export const translations: { [key: string]: any } = {
         statusUpdated: "Report updated successfully!",
         generateSummary: "Generate AI Summary",
         aiSummaryTitle: "AI Generated Summary",
+        resolutionNotes: "Resolution Notes",
+        initiateAiSearch: "Initiate AI CCTV Search",
+        aiSearchStarted: "AI CCTV search initiated. This may take a few moments.",
+        personLocated: "Person located! Report status and location have been updated.",
     },
     sosDetailsModal: {
         title: "SOS Alert Details",

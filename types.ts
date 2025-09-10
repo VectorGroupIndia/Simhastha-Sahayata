@@ -122,12 +122,13 @@ export interface LostFoundReport {
     reportedBy: string;
     reportedById: number;
     timestamp: string;
-    status: 'Open' | 'In Progress' | 'Resolved';
+    status: 'Open' | 'In Progress' | 'Resolved' | 'AI Search in Progress' | 'Located';
     priority?: 'Low' | 'Medium' | 'High' | 'Critical';
     originalItemId?: string; // Link back to the RegisteredItem
     assignedToId?: number;
     assignedToName?: string;
     taskType?: 'Report' | 'Escort'; // Differentiates a standard report from a special task
+    resolutionNotes?: string; // Notes on how the case was resolved, e.g., AI CCTV match
 
     // Details for a person
     personName?: string;
