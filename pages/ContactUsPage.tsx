@@ -94,49 +94,51 @@ const ContactUsPage: React.FC = () => {
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                {/* Left Column: Contact Info & Form */}
-                <div className="lg:col-span-2 space-y-8">
-                    <Card>
-                        <h2 className="text-2xl font-bold border-b pb-2 mb-4">{t.getInTouch}</h2>
-                        <div className="space-y-3 text-gray-700">
-                            <p><strong>{t.email}:</strong> <a href="mailto:support@simhasthasahayata.com" className="text-orange-600 hover:underline">support@simhasthasahayata.com</a></p>
-                            <p><strong>{t.helpline}:</strong> <a href="tel:1800-XXX-XXXX" className="text-orange-600 hover:underline">1800-XXX-XXXX</a></p>
-                            <p><strong>{t.address}:</strong><br />Simhastha Sahayata Operations Center, Near Ram Ghat, Ujjain, MP</p>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                 <Card>
+                    <h2 className="text-2xl font-bold border-b pb-2 mb-4">{t.getInTouch}</h2>
+                    <div className="space-y-3 text-gray-700">
+                        <p><strong>{t.email}:</strong> <a href="mailto:support@simhasthasahayata.com" className="text-orange-600 hover:underline">support@simhasthasahayata.com</a></p>
+                        <p><strong>{t.helpline}:</strong> <a href="tel:1800-XXX-XXXX" className="text-orange-600 hover:underline">1800-XXX-XXXX</a></p>
+                        <p><strong>{t.address}:</strong><br />Simhastha Sahayata Operations Center, Near Ram Ghat, Ujjain, MP</p>
+                    </div>
+                </Card>
+                <Card>
+                    <h2 className="text-2xl font-bold border-b pb-2 mb-4">{t.sendMessage}</h2>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div>
+                            <label htmlFor="name" className="block text-sm font-medium text-gray-700">{t.nameLabel}</label>
+                            <input type="text" id="name" name="name" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" />
                         </div>
-                    </Card>
-                    <Card>
-                        <h2 className="text-2xl font-bold border-b pb-2 mb-4">{t.sendMessage}</h2>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label htmlFor="name" className="block text-sm font-medium text-gray-700">{t.nameLabel}</label>
-                                <input type="text" id="name" name="name" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" />
-                            </div>
-                            <div>
-                                <label htmlFor="email" className="block text-sm font-medium text-gray-700">{t.emailLabel}</label>
-                                <input type="email" id="email" name="email" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" />
-                            </div>
-                            <div>
-                                <label htmlFor="message" className="block text-sm font-medium text-gray-700">{t.messageLabel}</label>
-                                <textarea id="message" name="message" rows={4} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"></textarea>
-                            </div>
-                            <Button type="submit" className="w-full">{t.sendButton}</Button>
-                        </form>
-                    </Card>
-                </div>
-
-                {/* Right Column: Map and Centers */}
-                <div className="lg:col-span-3">
-                    <Card>
+                        <div>
+                            <label htmlFor="email" className="block text-sm font-medium text-gray-700">{t.emailLabel}</label>
+                            <input type="email" id="email" name="email" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500" />
+                        </div>
+                        <div>
+                            <label htmlFor="message" className="block text-sm font-medium text-gray-700">{t.messageLabel}</label>
+                            <textarea id="message" name="message" rows={4} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"></textarea>
+                        </div>
+                        <Button type="submit" className="w-full">{t.sendButton}</Button>
+                    </form>
+                </Card>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                 <div className="lg:col-span-3">
+                    <Card className="h-full">
                         <h2 className="text-2xl font-bold mb-4">Operational Centers Map</h2>
-                        <div className="aspect-video bg-gray-200 rounded-lg relative overflow-hidden mb-6 shadow-inner">
+                        <div className="aspect-video bg-gray-200 rounded-lg relative overflow-hidden shadow-inner">
                             <img src="https://i.imgur.com/3Z3tV8C.png" alt="Map of Kumbh Mela area" className="w-full h-full object-cover" />
                             {operationalCenters.map(point => (
                                 <Pin key={point.id} point={point} isSelected={selectedCenter?.id === point.id} onSelect={() => handleSelectCenter(point)} />
                             ))}
                         </div>
-
-                        <div className="max-h-[40vh] overflow-y-auto pr-2 space-y-4">
+                    </Card>
+                </div>
+                <div className="lg:col-span-2">
+                    <Card className="h-full flex flex-col">
+                         <h2 className="text-2xl font-bold mb-4">Find a Center</h2>
+                        <div className="flex-grow overflow-y-auto pr-2 space-y-4">
                             {groupOrder.map(groupName => (
                                 <div key={groupName}>
                                     <h3 className="text-xl font-semibold mb-2 flex items-center">{iconMap[groupName]} <span className="ml-2">{groupName}s</span></h3>
