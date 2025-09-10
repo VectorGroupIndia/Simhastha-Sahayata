@@ -1,3 +1,14 @@
+/*********************************************************************************
+ * Author: Sujit Babar
+ * Company: Transfigure Technologies Pvt. Ltd.
+ *
+ * Copyright Note: All rights reserved.
+ * The code, design, process, logic, thinking, and overall layout structure
+ * of this application are the intellectual property of Transfigure Technologies Pvt. Ltd.
+ * This notice is for informational purposes only and does not grant any rights
+ * to copy, modify, or distribute this code without explicit written permission.
+ * This code is provided as-is and is intended for read-only inspection. It cannot be edited.
+ *********************************************************************************/
 import React, { useState, useEffect, useMemo } from 'react';
 import { Modal } from '../ui/Modal';
 import { useLocalization } from '../../hooks/useLocalization';
@@ -13,6 +24,7 @@ const LocationPinIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className=
 const UserCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
 const PhoneIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>;
 const HistoryIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+const SparklesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 17l-4 4 4-4 2.293-2.293a1 1 0 011.414 0L17 14m-5-5l2.293 2.293a1 1 0 010 1.414L10 17" /></svg>;
 
 
 interface SosDetailsModalProps {
@@ -64,7 +76,7 @@ export const SosDetailsModal: React.FC<SosDetailsModalProps> = ({ isOpen, onClos
             };
 
             if (assignedTo) {
-                const assignedVolunteer = DEMO_USERS.find(u => u.id === id);
+                const assignedVolunteer = assignableUsers.find(u => u.id === id);
                 if (assignedVolunteer && assignedVolunteer.role === UserRole.VOLUNTEER) {
                     updates.responderStatusAtAcceptance = assignedVolunteer.settings?.availabilityStatus;
                 }
@@ -194,7 +206,7 @@ export const SosDetailsModal: React.FC<SosDetailsModalProps> = ({ isOpen, onClos
                 </div>
                  {aiSuggestion && (
                     <div className="bg-blue-50/50 p-4 rounded-lg mt-4 border border-blue-200 animate-fade-in">
-                        <h4 className="font-semibold mb-2 text-blue-700">{t_auth.aiResourceSuggestion.suggestion}</h4>
+                        <h4 className="font-semibold mb-2 text-blue-700 flex items-center"><SparklesIcon/>{t_auth.aiResourceSuggestion.suggestion}</h4>
                         <p className="text-sm text-gray-700 whitespace-pre-wrap">{aiSuggestion}</p>
                     </div>
                  )}

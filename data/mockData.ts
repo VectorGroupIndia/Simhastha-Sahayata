@@ -1,4 +1,5 @@
 
+
 /*********************************************************************************
  * Author: Sujit Babar
  * Company: Transfigure Technologies Pvt. Ltd.
@@ -415,8 +416,7 @@ export const translations: { [key: string]: any } = {
                 analyses: "Image Analyses",
                 searches: "Semantic Searches",
                 logTitle: "AI Activity Log",
-                semanticSearch: "AI Semantic Search",
-                semanticSearchDesc: "Enable advanced, context-aware searching of reports.",
+                semanticSearch: "Enable advanced, context-aware searching of reports.",
                 log: {
                     analysis: "Image analysis completed for {id}.",
                     autofill: "Report form autofilled from text prompt.",

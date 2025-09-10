@@ -30,6 +30,8 @@ interface ReportDetailsModalProps {
   assignableUsers?: User[];
 }
 
+const SparklesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 17l-4 4 4-4 2.293-2.293a1 1 0 011.414 0L17 14m-5-5l2.293 2.293a1 1 0 010 1.414L10 17" /></svg>;
+
 const DetailRow: React.FC<{ label: string; value?: string | null }> = ({ label, value }) => {
     if (!value) return null;
     return (
@@ -219,15 +221,17 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
                  </div>
             </div>
 
-            {aiSuggestion ? (
-                <div className="bg-blue-50/50 p-4 rounded-lg mt-4 border border-blue-200 animate-fade-in">
-                    <h4 className="font-semibold mb-2 text-blue-700">{translations.dashboard.authorities.aiResourceSuggestion.suggestion}</h4>
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{aiSuggestion}</p>
-                </div>
-            ) : aiSummary && (
+            {aiSummary && (
                 <div className="bg-orange-50/50 p-4 rounded-lg mt-4 border border-orange-200 animate-fade-in">
-                    <h4 className="font-semibold mb-2 text-orange-700">{translations.reportDetails.aiSummaryTitle}</h4>
+                    <h4 className="font-semibold mb-2 text-orange-700 flex items-center"><SparklesIcon />{translations.reportDetails.aiSummaryTitle}</h4>
                     <p className="text-sm text-gray-700 whitespace-pre-wrap">{aiSummary}</p>
+                </div>
+            )}
+            
+            {aiSuggestion && (
+                <div className="bg-blue-50/50 p-4 rounded-lg mt-4 border border-blue-200 animate-fade-in">
+                    <h4 className="font-semibold mb-2 text-blue-700 flex items-center"><SparklesIcon />{translations.dashboard.authorities.aiResourceSuggestion.suggestion}</h4>
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{aiSuggestion}</p>
                 </div>
             )}
 

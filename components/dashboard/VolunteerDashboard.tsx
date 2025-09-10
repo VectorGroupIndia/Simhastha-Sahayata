@@ -13,6 +13,7 @@ import React, { useState, useMemo } from 'react';
 import { Card } from '../ui/Card';
 import { useLocalization } from '../../hooks/useLocalization';
 import { MOCK_LOST_FOUND_REPORTS, MOCK_SOS_ALERTS, MOCK_CROWD_ZONES } from '../../data/mockData';
+import { DEMO_USERS } from '../../constants';
 import { LostFoundReport, User, SosAlert, UserRole } from '../../types';
 import ReportDetailsModal from './ReportDetailsModal';
 import { useAuth } from '../../hooks/useAuth';
@@ -20,6 +21,7 @@ import { Button } from '../ui/Button';
 import { useToast } from '../../hooks/useToast';
 import { BroadcastAlertModal } from './BroadcastAlertModal';
 import { SosDetailsModal } from './SosDetailsModal';
+import { ToggleSwitch } from '../ui/ToggleSwitch';
 
 // --- ICONS ---
 const ListIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" /></svg>;
@@ -165,7 +167,7 @@ const VolunteerDashboard: React.FC = () => {
     const myAssignments = useMemo(() => {
         const assignedReports = reports.filter(r => r.assignedToId === user?.id && r.status !== 'Resolved');
         const assignedSos = MOCK_SOS_ALERTS.filter(a => a.assignedToId === user?.id && a.status !== 'Resolved');
-        return [...assignedReports, ...assignedSos].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        return [...assignedReports, ...assignedSos].sort((a, b) => new Date(b.timestamp).getTime() - new Date(b.timestamp).getTime());
     }, [reports, user]);
 
     const liveAlerts = useMemo(() => {
@@ -261,13 +263,29 @@ const VolunteerDashboard: React.FC = () => {
           notifications: false, powerButtonSos: false, voiceNav: false,
       };
       
+      const updatedSettings = { 
+          ...baseSettings, 
+          availabilityStatus: status 
+      };
+      
       updateUser({ 
-          settings: { 
-              ...baseSettings, 
-              availabilityStatus: status 
-          } 
+          settings: updatedSettings 
       });
-      addToast(`Your status is now ${status}.`, 'info');
+
+      // Simulate persistence by updating the mock data source
+      const userIndex = DEMO_USERS.findIndex(u => u.id === user.id);
+      if (userIndex !== -1) {
+        if (!DEMO_USERS[userIndex].settings) {
+            DEMO_USERS[userIndex].settings = {
+                notifications: false,
+                powerButtonSos: false,
+                voiceNav: false,
+            };
+        }
+        DEMO_USERS[userIndex].settings!.availabilityStatus = status;
+      }
+      
+      addToast(`Your status is now set to ${status}.`, 'info');
     };
 
     const isAvailable = user?.settings?.availabilityStatus !== 'On Break';
@@ -345,16 +363,16 @@ const VolunteerDashboard: React.FC = () => {
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <h2 className="text-3xl font-bold">{t.title}</h2>
                     <div className="flex flex-wrap items-center gap-4">
-                        <div>
-                            <span className="text-sm font-medium text-gray-600 mr-2">{t.availabilityLabel}</span>
-                            <div className="inline-flex rounded-md shadow-sm bg-gray-100 p-1">
-                                <button onClick={() => handleAvailabilityChange('Active')} className={`px-4 py-1 text-sm font-medium rounded-md ${isAvailable ? 'bg-white text-green-600 shadow' : 'text-gray-600'}`}>
-                                    {t.kpis.active}
-                                </button>
-                                <button onClick={() => handleAvailabilityChange('On Break')} className={`px-4 py-1 text-sm font-medium rounded-md ${!isAvailable ? 'bg-white text-orange-600 shadow' : 'text-gray-600'}`}>
-                                    {t.kpis.onBreak}
-                                </button>
-                            </div>
+                        <div className="flex items-center">
+                            <label htmlFor="availability-toggle" className="text-sm font-medium text-gray-600 dark:text-gray-300 mr-3">{t.availabilityLabel}</label>
+                            <ToggleSwitch 
+                                id="availability-toggle"
+                                checked={isAvailable}
+                                onChange={(isChecked) => handleAvailabilityChange(isChecked ? 'Active' : 'On Break')}
+                            />
+                            <span className={`ml-3 font-semibold ${isAvailable ? 'text-green-600' : 'text-orange-600'}`}>
+                                {isAvailable ? t.kpis.active : t.kpis.onBreak}
+                            </span>
                         </div>
                         <Button onClick={() => setBroadcastModalOpen(true)} variant="danger" className="flex items-center">
                             <BroadcastIcon /> {t.broadcastAlert}
