@@ -15,6 +15,7 @@ const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 
 const SparklesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 17l-4 4 4-4 2.293-2.293a1 1 0 011.414 0L17 14m-5-5l2.293 2.293a1 1 0 010 1.414L10 17" /></svg>;
 const DownloadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" /></svg>;
 const FraudIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+const ClockIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
 
 
 // --- HELPER COMPONENTS ---
@@ -26,6 +27,31 @@ const FilterDropdown: React.FC<{label: string, value: string, onChange: (e: Reac
         </select>
     </div>
 );
+
+const AdminActivityLog: React.FC<{t: any}> = ({t}) => {
+    const MOCK_ACTIVITY = [
+        { id: 1, action: 'Assigned RPT-1672837462 to Officer Singh.', time: '2h ago' },
+        { id: 2, action: 'Suspended user Rohan Mehra.', time: '1d ago' },
+        { id: 3, action: 'Resolved report RPT-2736475.', time: '1d ago' },
+        { id: 4, action: 'Changed system setting: Enabled AI Image Analysis.', time: '2d ago' },
+        { id: 5, action: 'Viewed report RPT-4958673.', time: '2d ago' },
+    ];
+    return (
+        <Card>
+            <h3 className="text-xl font-bold mb-4 flex items-center">
+                <ClockIcon /> {t.activityLogTitle}
+            </h3>
+            <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
+                {MOCK_ACTIVITY.map(act => (
+                    <div key={act.id} className="flex justify-between items-center bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                        <p className="text-sm text-gray-700 dark:text-gray-300">{act.action}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0 ml-4">{act.time}</p>
+                    </div>
+                ))}
+            </div>
+        </Card>
+    );
+}
 
 const FraudAnalysis: React.FC = () => {
     const { translations } = useLocalization();
@@ -306,6 +332,7 @@ const AdminDashboard: React.FC = () => {
 
                     {/* Right Sidebar: Admin Tools */}
                     <div className="lg:col-span-1 space-y-6">
+                        <AdminActivityLog t={t} />
                         <FraudAnalysis />
                         <UserManagement t={translations} />
                     </div>

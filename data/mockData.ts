@@ -427,6 +427,7 @@ export const translations: { [key: string]: any } = {
           aiSearchTooltip: 'Use AI Semantic Search',
           aiSearchResults: 'Showing AI-powered search results for',
           clearAiSearch: 'Clear AI Search',
+          activityLogTitle: 'My Recent Activity',
           userManagement: {
               title: 'User Management',
               role: 'Role',
@@ -744,7 +745,6 @@ export const translations: { [key: string]: any } = {
         totalUsers: 'Total Users',
         totalReports: 'Total Reports',
         activePersonnel: 'Active Personnel',
-        activityLog: 'My Recent Activity',
         myAssignments: 'My Assignments',
         noAssignments: 'You have no active assignments.',
         viewReport: 'View Report',

@@ -146,14 +146,6 @@ const AdminProfileBody: React.FC<{ user: User, onUpdateUser: (data: Partial<User
         });
     };
 
-    const MOCK_ACTIVITY = [
-      { id: 1, action: 'Assigned RPT-1672837462 to Officer Singh.', time: '2h ago' },
-      { id: 2, action: 'Suspended user Rohan Mehra.', time: '1d ago' },
-      { id: 3, action: 'Resolved report RPT-2736475.', time: '1d ago' },
-      { id: 4, action: 'Changed system setting: Enabled AI Image Analysis.', time: '2d ago' },
-      { id: 5, action: 'Viewed report RPT-4958673.', time: '2d ago' },
-    ];
-
     return (
         <>
              <Card>
@@ -190,17 +182,6 @@ const AdminProfileBody: React.FC<{ user: User, onUpdateUser: (data: Partial<User
                             <SettingRow id="maintenance-mode" label={adminT.maintenanceMode} description={adminT.maintenanceModeDesc} checked={user.settings?.systemSettings?.maintenanceMode ?? false} onToggle={(c) => handleSystemSettingToggle('maintenanceMode', c)} icon={<WrenchScrewdriverIcon />} />
                         </div>
                     </div>
-                </div>
-            </Card>
-             <Card>
-                <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{t.activityLog}</h2>
-                <div className="space-y-3">
-                    {MOCK_ACTIVITY.map(act => (
-                        <div key={act.id} className="flex justify-between items-center bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
-                            <p className="text-gray-700 dark:text-gray-300">{act.action}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0 ml-4">{act.time}</p>
-                        </div>
-                    ))}
                 </div>
             </Card>
         </>
