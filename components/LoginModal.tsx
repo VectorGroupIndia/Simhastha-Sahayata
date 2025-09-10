@@ -12,6 +12,27 @@ interface LoginModalProps {
   onClose: () => void;
 }
 
+// Moved TabButton outside of LoginModal to prevent re-definition on every render.
+// This is a React best practice to ensure component identity remains stable.
+const TabButton: React.FC<{ 
+  tabId: 'login' | 'register', 
+  children: React.ReactNode,
+  activeTab: 'login' | 'register',
+  onClick: (tabId: 'login' | 'register') => void
+}> = ({ tabId, children, activeTab, onClick }) => (
+      <button
+        onClick={() => onClick(tabId)}
+        className={`w-1/2 py-2.5 text-sm font-medium leading-5 text-center transition-colors duration-150 rounded-t-lg focus:outline-none ${
+          activeTab === tabId
+            ? 'text-orange-600 border-b-2 border-orange-600'
+            : 'text-gray-500 hover:text-gray-700'
+        }`}
+      >
+        {children}
+      </button>
+);
+
+
 /**
  * The Login Modal.
  * It features a disabled UI for a traditional login/register system,
@@ -32,25 +53,12 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const TabButton: React.FC<{ tabId: 'login' | 'register', children: React.ReactNode }> = ({ tabId, children }) => (
-      <button
-        onClick={() => setActiveTab(tabId)}
-        className={`w-1/2 py-2.5 text-sm font-medium leading-5 text-center transition-colors duration-150 rounded-t-lg focus:outline-none ${
-          activeTab === tabId
-            ? 'text-orange-600 border-b-2 border-orange-600'
-            : 'text-gray-500 hover:text-gray-700'
-        }`}
-      >
-        {children}
-      </button>
-  );
-
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={translations.auth.loginTitle}>
       <div className="space-y-4">
         <div className="flex border-b">
-            <TabButton tabId="login">{translations.auth.loginTab}</TabButton>
-            <TabButton tabId="register">{translations.auth.registerTab}</TabButton>
+            <TabButton tabId="login" activeTab={activeTab} onClick={setActiveTab}>{translations.auth.loginTab}</TabButton>
+            <TabButton tabId="register" activeTab={activeTab} onClick={setActiveTab}>{translations.auth.registerTab}</TabButton>
         </div>
 
         {/* Tab Content */}
