@@ -1,3 +1,4 @@
+
 /*********************************************************************************
  * Author: Sujit Babar
  * Company: Transfigure Technologies Pvt. Ltd.
@@ -10,6 +11,7 @@
  * This code is provided as-is and is intended for read-only inspection. It cannot be edited.
  *********************************************************************************/
 import { ChatMessage, LostFoundReport, Navigatable, SosAlert } from '../types';
+import { MOCK_PREDICTIVE_HOTSPOTS } from '../data/mockData';
 
 // This file simulates interactions with the Google Gemini API.
 // In a real application, this would contain the actual logic for making API calls
@@ -29,6 +31,16 @@ export const getNavigationRoute = async (query: string): Promise<{ text: string;
   await sleep(1500); // Simulate API latency
 
   const lowerQuery = query.toLowerCase();
+
+  // Simulate checking against predictive hotspots
+  const ramGhatHotspot = MOCK_PREDICTIVE_HOTSPOTS.find(h => h.locationName.includes("Ram Ghat"));
+  if (ramGhatHotspot && (lowerQuery.includes('ram ghat') || lowerQuery.includes('main bathing'))) {
+      return {
+          text: `WARNING: The direct route to Ram Ghat is expected to be extremely crowded ${ramGhatHotspot.predictedTime}. I've found a safer, alternate route for you. Please follow the highlighted path.`,
+          path: "M 50 85 C 60 70, 80 80, 25 28" // A different, "safer" path
+      }
+  }
+
 
   // Mock logic for navigating to family members
   if (lowerQuery.includes('route to')) {

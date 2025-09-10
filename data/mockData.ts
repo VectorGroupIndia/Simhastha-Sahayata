@@ -1,3 +1,4 @@
+
 /*********************************************************************************
  * Author: Sujit Babar
  * Company: Transfigure Technologies Pvt. Ltd.
@@ -9,7 +10,7 @@
  * to copy, modify, or distribute this code without explicit written permission.
  * This code is provided as-is and is intended for read-only inspection. It cannot be edited.
  *********************************************************************************/
-import { RegisteredItem, FamilyMember, LostFoundReport, UserRole, SosAlert, MapPointOfInterest, BroadcastMessage, AIInsight, AnalyticsData } from '../types';
+import { RegisteredItem, FamilyMember, LostFoundReport, UserRole, SosAlert, MapPointOfInterest, BroadcastMessage, AIInsight, AnalyticsData, PredictedHotspot } from '../types';
 
 export const MOCK_REGISTERED_ITEMS: RegisteredItem[] = [
   {
@@ -259,6 +260,7 @@ export let MOCK_SOS_ALERTS: SosAlert[] = [
 export let MOCK_BROADCASTS: BroadcastMessage[] = [
     { id: 'BC-1', timestamp: '2024-07-29T09:00:00Z', message: 'Weather Alert: Heavy rain expected around 2 PM. Please seek shelter.', sentBy: 'Admin Control', recipients: ['All'] },
     { id: 'BC-2', timestamp: '2024-07-28T17:00:00Z', message: 'All volunteers in Sector C, please report to the medical tent for a briefing.', sentBy: 'Officer Singh (Authority)', recipients: [UserRole.VOLUNTEER] },
+    { id: 'BC-3', timestamp: new Date(Date.now() - 5 * 60000).toISOString(), message: 'Crowd Alert: Ram Ghat is heavily congested. Please use the alternate route via Datta Akhara for your safety.', sentBy: 'Command Center', recipients: ['Pilgrims', 'Zone D'], isCrowdAlert: true },
 ];
 
 export const MOCK_CROWD_ZONES = [
@@ -281,9 +283,34 @@ export const MOCK_OPERATIONAL_ZONES = [
     { id: 'zone-d', name: 'Zone D', path: 'M 50 50 H 100 V 100 H 50 Z', color: '#a855f7' },
 ];
 
-export const MOCK_PREDICTIVE_HOTSPOTS = [
-    { id: 'hot-1', risk: 0.8, locationCoords: { lat: 88, lng: 25 } }, // Ram Ghat
-    { id: 'hot-2', risk: 0.6, locationCoords: { lat: 55, lng: 45 } }, // Mahakal Temple
+export const MOCK_PREDICTIVE_HOTSPOTS: PredictedHotspot[] = [
+    { 
+        id: 'hot-1', 
+        riskLevel: 'Critical', 
+        locationName: "Ram Ghat Bridge", 
+        locationCoords: { lat: 88, lng: 25 },
+        predictedTime: "in 20 mins",
+        confidence: 0.92,
+        message: "Extreme crowd density predicted at the main bridge entry to Ram Ghat due to convergence of processions.",
+        suggestions: [
+            { id: 's1-1', text: "Broadcast alert to pilgrims in Zone D to use alternate route.", action: 'broadcast', params: { zone: 'Zone D', message: "Crowd Alert: Ram Ghat bridge is heavily congested. Please use alternate northern route." } },
+            { id: 's1-2', text: "Dispatch 3 volunteer units for crowd assistance.", action: 'dispatch', params: { units: 3 } },
+            { id: 's1-3', text: "Recommend temporary one-way traffic flow on bridge.", action: 'barricade' },
+        ],
+    },
+    { 
+        id: 'hot-2', 
+        riskLevel: 'Warning', 
+        locationName: "Mahakal Temple Exit",
+        locationCoords: { lat: 55, lng: 45 },
+        predictedTime: "in 45 mins",
+        confidence: 0.78,
+        message: "High footfall expected at Temple Exit Gate 3, may cause bottlenecks.",
+        suggestions: [
+            { id: 's2-1', text: "Dispatch 1 volunteer unit to manage queues.", action: 'dispatch', params: { units: 1 } },
+            { id: 's2-2', text: "Broadcast informational alert to pilgrims in Zone B.", action: 'broadcast', params: { zone: 'Zone B', message: "Info: Expect queues at Mahakal Temple Exit 3. Please be patient." } },
+        ],
+    },
 ];
 
 export const MOCK_ANALYTICS_DATA: AnalyticsData = {
@@ -442,10 +469,15 @@ export const translations: { [key: string]: any } = {
                 crowdDensity: "Crowd Density",
                 sos: "SOS",
                 personnel: "Personnel",
+                hotspot: "Predicted Hotspot"
             },
             panel: {
                 tasks: "Priority Tasks",
                 aiInsights: "AI Insights",
+                hotspots: "Predictive Hotspots",
+                confidence: "Confidence",
+                suggestions: "AI Suggestions",
+                takeAction: "Take Action",
                 personnel: "Personnel",
                 broadcasts: "Logs",
                 noTasks: "No open tasks or critical alerts at this moment.",

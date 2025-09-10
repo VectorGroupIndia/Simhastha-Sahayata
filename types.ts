@@ -1,3 +1,4 @@
+
 /*********************************************************************************
  * Author: Sujit Babar
  * Company: Transfigure Technologies Pvt. Ltd.
@@ -37,7 +38,8 @@ export interface BroadcastMessage {
   timestamp: string;
   message: string;
   sentBy: string; // User name
-  recipients: (UserRole | 'All' | 'Pilgrims' | 'Staff')[]; // Array of roles, or a special 'All' value
+  recipients: (UserRole | 'All' | 'Pilgrims' | 'Staff' | string)[]; // Array of roles, or a special 'All' value. Can include zone names.
+  isCrowdAlert?: boolean; // Flag for special UI treatment
 }
 
 // Represents a user's pre-registered valuable item.
@@ -186,6 +188,24 @@ export interface AIInsight {
   message: string;
   zone?: string; // Optional zone related to the insight
 }
+
+// Represents an AI-generated prediction for crowd hotspots.
+export interface PredictedHotspot {
+    id: string;
+    locationName: string;
+    locationCoords: { lat: number; lng: number };
+    riskLevel: 'Warning' | 'Critical';
+    predictedTime: string; // e.g., "in 30 mins"
+    message: string;
+    confidence: number; // e.g., 0.85 for 85%
+    suggestions: {
+        id: string;
+        text: string;
+        action: 'dispatch' | 'broadcast' | 'barricade';
+        params?: any; // e.g., { units: 2 } or { message: '...', zone: 'Zone B' }
+    }[];
+}
+
 
 // Represents the structure for the analytics dashboard data.
 export interface AnalyticsData {

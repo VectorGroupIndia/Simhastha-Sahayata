@@ -1,3 +1,4 @@
+
 /*********************************************************************************
  * Author: Sujit Babar
  * Company: Transfigure Technologies Pvt. Ltd.
@@ -14,7 +15,7 @@ import { Card } from '../ui/Card';
 import { useLocalization } from '../../hooks/useLocalization';
 import { MOCK_LOST_FOUND_REPORTS, MOCK_SOS_ALERTS, MOCK_OPERATIONAL_ZONES, MOCK_BROADCASTS, MOCK_AI_INSIGHTS, MOCK_PREDICTIVE_HOTSPOTS } from '../../data/mockData';
 import { DEMO_USERS } from '../../constants';
-import { LostFoundReport, User, UserRole, SosAlert, BroadcastMessage, AIInsight } from '../../types';
+import { LostFoundReport, User, UserRole, SosAlert, BroadcastMessage, PredictedHotspot } from '../../types';
 import ReportDetailsModal from './ReportDetailsModal';
 import { Button } from '../ui/Button';
 import { AdvancedBroadcastModal } from './AdvancedBroadcastModal';
@@ -39,6 +40,7 @@ const MegaphoneIcon: React.FC<{ className?: string }> = ({ className = '' }) => 
 const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" /></svg>;
 const ChartBarIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 110 2H3a1 1 0 01-1-1zm5-3a1 1 0 011-1h2a1 1 0 110 2H8a1 1 0 01-1-1zm5-3a1 1 0 011-1h2a1 1 0 110 2h-2a1 1 0 01-1-1zM4 16a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1z" /></svg>;
 const SparklesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 17l-4 4 4-4 2.293-2.293a1 1 0 011.414 0L17 14m-5-5l2.293 2.293a1 1 0 010 1.414L10 17" /></svg>;
+const ActionIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clipRule="evenodd" /></svg>;
 
 
 // --- Helper Components ---
@@ -73,9 +75,9 @@ const getPriorityClasses = (priority?: 'Low' | 'Medium' | 'High' | 'Critical') =
 
 const MapView: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; personnel: User[]; onSelectReport: (report: LostFoundReport) => void; translations: any; }> = ({ reports, sosAlerts, personnel, onSelectReport, translations }) => {
     const t = translations.dashboard.authorities.map;
-    const [showHeatmap, setShowHeatmap] = useState(false);
+    const [showHeatmap, setShowHeatmap] = useState(true);
 
-    const Pin: React.FC<{ item: any; type: 'report' | 'sos' | 'personnel' }> = ({ item, type }) => {
+    const Pin: React.FC<{ item: any; type: 'report' | 'sos' | 'personnel' | 'hotspot' }> = ({ item, type }) => {
         const coords = item.locationCoords;
         if (!coords) return null;
 
@@ -83,6 +85,7 @@ const MapView: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; per
             report: { color: getPriorityClasses(item.priority).text, label: item.personName || item.itemName },
             sos: { color: 'text-red-500 animate-ping', label: t.sos },
             personnel: { color: 'text-green-500', label: item.name?.split(' ')[0] || t.personnel },
+            hotspot: { color: 'text-transparent', label: t.hotspot } // No visible pin, just the circle
         };
         const style = pinStyles[type];
 
@@ -94,30 +97,36 @@ const MapView: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; per
             >
                 <div className={`relative flex flex-col items-center ${type === 'report' ? 'cursor-pointer group' : ''}`}>
                     {type === 'sos' && <div className={`absolute h-8 w-8 rounded-full bg-red-400 opacity-75 ${style.color}`}></div>}
-                    <svg xmlns="http://www.w3.org/2000/svg" className={`h-8 w-8 drop-shadow-lg transition-transform ${type === 'report' ? 'group-hover:scale-110' : ''} ${style.color}`} viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 20l-4.95-5.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                    </svg>
+                    {type !== 'hotspot' && (
+                        <svg xmlns="http://www.w3.org/2000/svg" className={`h-8 w-8 drop-shadow-lg transition-transform ${type === 'report' ? 'group-hover:scale-110' : ''} ${style.color}`} viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 20l-4.95-5.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                        </svg>
+                    )}
                     <div className="bg-white text-xs px-1.5 py-0.5 rounded-full shadow -mt-1 whitespace-nowrap">{style.label}</div>
                 </div>
             </div>
         );
     };
 
-    const HeatmapLayer = () => (
+    const PredictiveHotspotsLayer = () => (
         <div className="absolute inset-0 pointer-events-none">
-            {MOCK_PREDICTIVE_HOTSPOTS.map(spot => (
-                <div key={spot.id}
-                    className="absolute rounded-full"
-                    style={{
-                        top: `${spot.locationCoords.lat}%`,
-                        left: `${spot.locationCoords.lng}%`,
-                        width: '150px',
-                        height: '150px',
-                        transform: 'translate(-50%, -50%)',
-                        background: `radial-gradient(circle, rgba(255,0,0,${spot.risk * 0.5}) 0%, rgba(255,165,0,${spot.risk * 0.2}) 40%, rgba(255,255,0,0) 70%)`,
-                    }}
-                />
-            ))}
+            {MOCK_PREDICTIVE_HOTSPOTS.map(spot => {
+                const color = spot.riskLevel === 'Critical' ? 'rgba(239, 68, 68, 0.6)' : 'rgba(245, 158, 11, 0.6)';
+                return (
+                    <div key={spot.id}
+                        className="absolute rounded-full animate-pulse"
+                        style={{
+                            top: `${spot.locationCoords.lat}%`,
+                            left: `${spot.locationCoords.lng}%`,
+                            width: '80px',
+                            height: '80px',
+                            transform: 'translate(-50%, -50%)',
+                            border: `3px solid ${color}`,
+                            backgroundColor: color.replace('0.6', '0.1')
+                        }}
+                    />
+                )
+            })}
         </div>
     );
 
@@ -133,7 +142,7 @@ const MapView: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; per
             <div className="flex-grow aspect-video bg-gray-200 rounded-lg relative overflow-hidden">
                 <img src="https://i.imgur.com/3Z3tV8C.png" alt="Map" className="w-full h-full object-cover" />
                 
-                {showHeatmap && <HeatmapLayer />}
+                {showHeatmap && <PredictiveHotspotsLayer />}
                 
                 {/* Zones Layer */}
                 <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -149,13 +158,14 @@ const MapView: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; per
                 {reports.map(r => <Pin key={`rpt-${r.id}`} item={r} type="report" />)}
                 {sosAlerts.map(a => <Pin key={`sos-${a.id}`} item={a} type="sos" />)}
                 {personnel.map((p) => <Pin key={`per-${p.id}`} item={p} type="personnel" />)}
+                {showHeatmap && MOCK_PREDICTIVE_HOTSPOTS.map(spot => <Pin key={`hotspot-${spot.id}`} item={spot} type="hotspot" />)}
             </div>
         </Card>
     );
 };
 
-const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; personnel: User[]; user: User | null; onSelectReport: (report: LostFoundReport) => void; onSelectSos: (sos: SosAlert) => void; translations: any; onOpenBroadcast: () => void; onOpenCreateTask: () => void; }> = ({ reports, sosAlerts, personnel, user, onSelectReport, onSelectSos, translations, onOpenBroadcast, onOpenCreateTask }) => {
-    const [activeTab, setActiveTab] = useState<'tasks' | 'ai-insights' | 'my-assignments' | 'personnel' | 'broadcasts'>('tasks');
+const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; personnel: User[]; user: User | null; onSelectReport: (report: LostFoundReport) => void; onSelectSos: (sos: SosAlert) => void; translations: any; onOpenBroadcast: (params?: any) => void; onOpenCreateTask: () => void; }> = ({ reports, sosAlerts, personnel, user, onSelectReport, onSelectSos, translations, onOpenBroadcast, onOpenCreateTask }) => {
+    const [activeTab, setActiveTab] = useState<'hotspots' | 'tasks' | 'my-assignments' | 'personnel' | 'broadcasts'>('hotspots');
     const t = translations.dashboard.authorities.panel;
     const profileT = translations.profile;
     
@@ -235,12 +245,11 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
         )
     , [personnelWithStatus, personnelRoleFilter, personnelStatusFilter, personnelSearch]);
     
-    const getInsightSeverityClasses = (severity: AIInsight['severity']) => {
+    const getHotspotSeverityClasses = (severity: PredictedHotspot['riskLevel']) => {
         switch(severity) {
             case 'Critical': return 'border-red-500 bg-red-50 text-red-800';
-            case 'Warning': return 'border-yellow-500 bg-yellow-50 text-yellow-800';
-            case 'Info':
-            default: return 'border-blue-500 bg-blue-50 text-blue-800';
+            case 'Warning':
+            default: return 'border-yellow-500 bg-yellow-50 text-yellow-800';
         }
     }
 
@@ -256,14 +265,44 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
         <Card className="h-full flex flex-col">
              <div className="border-b border-gray-200">
                 <nav className="-mb-px flex space-x-4 overflow-x-auto">
+                    <button onClick={() => setActiveTab('hotspots')} className={`flex items-center whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'hotspots' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}><SparklesIcon/><span className="ml-2">{t.hotspots}</span></button>
                     <button onClick={() => setActiveTab('tasks')} className={`flex items-center whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'tasks' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}><TasksIcon/> <span className="ml-2">{t.tasks}</span></button>
-                    <button onClick={() => setActiveTab('ai-insights')} className={`flex items-center whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'ai-insights' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}><SparklesIcon/><span className="ml-2">{t.aiInsights}</span></button>
                     <button onClick={() => setActiveTab('my-assignments')} className={`flex items-center whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'my-assignments' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}><TasksIcon/> <span className="ml-2">{profileT.myAssignments} ({myAssignments.length})</span></button>
                     <button onClick={() => setActiveTab('personnel')} className={`flex items-center whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'personnel' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}><PersonnelIcon/><span className="ml-2">{t.personnel}</span></button>
                     <button onClick={() => setActiveTab('broadcasts')} className={`flex items-center whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'broadcasts' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}><BroadcastIcon/><span className="ml-2">{t.broadcasts}</span></button>
                 </nav>
             </div>
              <div className="flex-grow overflow-y-auto mt-4 pr-2">
+                {activeTab === 'hotspots' && (
+                    <div className="animate-fade-in space-y-3">
+                        {MOCK_PREDICTIVE_HOTSPOTS.map(hotspot => (
+                            <div key={hotspot.id} className={`p-3 border-l-4 rounded-r-md ${getHotspotSeverityClasses(hotspot.riskLevel)}`}>
+                                <div className="flex justify-between items-center text-xs mb-1">
+                                    <p className="font-bold uppercase tracking-wider">{hotspot.locationName} | {hotspot.riskLevel}</p>
+                                    <p>{t.confidence}: {(hotspot.confidence * 100).toFixed(0)}%</p>
+                                </div>
+                                <p className="text-sm mb-2">{hotspot.message} ({hotspot.predictedTime})</p>
+                                <div className="bg-white/60 p-2 rounded-md">
+                                    <p className="font-semibold text-xs mb-2">{t.suggestions}:</p>
+                                    <div className="space-y-2">
+                                        {hotspot.suggestions.map(s => (
+                                            <div key={s.id} className="flex justify-between items-center">
+                                                <p className="text-xs flex-grow">{s.text}</p>
+                                                <Button 
+                                                    onClick={() => s.action === 'broadcast' && onOpenBroadcast(s.params)}
+                                                    variant="secondary" 
+                                                    className="text-xs py-0.5 px-2 ml-2 flex-shrink-0"
+                                                >
+                                                    <ActionIcon/> {t.takeAction}
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                 )}
                 {activeTab === 'tasks' && (
                     <div className="animate-fade-in">
                         <Button onClick={onOpenCreateTask} className="w-full mb-4">Create Task</Button>
@@ -323,19 +362,6 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
                         </div>
                     </div>
                 )}
-                 {activeTab === 'ai-insights' && (
-                    <div className="animate-fade-in space-y-3">
-                        {MOCK_AI_INSIGHTS.map(insight => (
-                             <div key={insight.id} className={`p-3 border-l-4 rounded-r-md ${getInsightSeverityClasses(insight.severity)}`}>
-                                 <div className="flex justify-between items-center text-xs mb-1">
-                                    <p className="font-bold uppercase tracking-wider">{insight.type} | {insight.severity}</p>
-                                    <p>{new Date(insight.timestamp).toLocaleTimeString()}</p>
-                                 </div>
-                                 <p className="text-sm">{insight.message}</p>
-                             </div>
-                        ))}
-                    </div>
-                 )}
                  {activeTab === 'my-assignments' && (
                     <div className="animate-fade-in space-y-3">
                          {myAssignments.length > 0 ? myAssignments.map(report => {
@@ -413,16 +439,17 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
                 )}
                  {activeTab === 'broadcasts' && (
                     <div className="animate-fade-in">
-                         <Button onClick={onOpenBroadcast} className="w-full mb-4">{t.broadcastMessage}</Button>
+                         <Button onClick={() => onOpenBroadcast()} className="w-full mb-4">{t.broadcastMessage}</Button>
                         <div className="space-y-3">
                             {allBroadcasts.map(log => {
                                 const isSos = log.kind === 'sos';
+                                const isCrowdAlert = 'isCrowdAlert' in log && log.isCrowdAlert;
                                 return (
-                                    <div key={log.id} className={`p-3 rounded-lg border-l-4 ${isSos ? 'bg-red-100 dark:bg-red-900/50 border-red-500' : 'bg-blue-100 dark:bg-blue-900/50 border-blue-500'}`}>
+                                    <div key={log.id} className={`p-3 rounded-lg border-l-4 ${isSos ? 'bg-red-100 dark:bg-red-900/50 border-red-500' : isCrowdAlert ? 'bg-yellow-100 dark:bg-yellow-900/50 border-yellow-500' : 'bg-blue-100 dark:bg-blue-900/50 border-blue-500'}`}>
                                         <div className="flex justify-between items-center text-xs mb-2">
-                                            <p className={`font-bold flex items-center text-base ${isSos ? 'text-red-700 dark:text-red-300' : 'text-blue-700 dark:text-blue-300'}`}>
+                                            <p className={`font-bold flex items-center text-base ${isSos ? 'text-red-700 dark:text-red-300' : isCrowdAlert ? 'text-yellow-700 dark:text-yellow-300' : 'text-blue-700 dark:text-blue-300'}`}>
                                                 {isSos ? <SosAlertIcon className="animate-pulse mr-1" /> : <MegaphoneIcon className="mr-1"/>}
-                                                <span className="ml-1">{isSos ? 'SOS ALERT' : 'BROADCAST'}</span>
+                                                <span className="ml-1">{isSos ? 'SOS ALERT' : isCrowdAlert ? 'CROWD ALERT' : 'BROADCAST'}</span>
                                             </p>
                                             <p className="text-gray-500 dark:text-gray-400">{new Date(log.timestamp).toLocaleString()}</p>
                                         </div>
@@ -458,6 +485,7 @@ const AuthoritiesDashboard: React.FC = () => {
     const [selectedReport, setSelectedReport] = useState<LostFoundReport | null>(null);
     const [selectedSosAlert, setSelectedSosAlert] = useState<SosAlert | null>(null);
     const [isBroadcastModalOpen, setBroadcastModalOpen] = useState(false);
+    const [broadcastPrefill, setBroadcastPrefill] = useState<any | undefined>(undefined);
     const [isAnalyticsModalOpen, setAnalyticsModalOpen] = useState(false);
     const [isCreateTaskModalOpen, setCreateTaskModalOpen] = useState(false);
 
@@ -482,7 +510,12 @@ const AuthoritiesDashboard: React.FC = () => {
     const activeSosAlerts = useMemo(() => MOCK_SOS_ALERTS.filter(a => a.status !== 'Resolved').length, []);
 
 
-    const handleConfirmBroadcast = (message: string, recipients: (UserRole | 'All' | 'Pilgrims' | 'Staff')[]) => {
+    const handleOpenBroadcast = (params?: any) => {
+        setBroadcastPrefill(params);
+        setBroadcastModalOpen(true);
+    };
+
+    const handleConfirmBroadcast = (message: string, recipients: (UserRole | 'All' | 'Pilgrims' | 'Staff' | string)[]) => {
         if(!user) return;
         const newBroadcast: BroadcastMessage = {
             id: `BC-${Date.now()}`,
@@ -564,7 +597,7 @@ const AuthoritiesDashboard: React.FC = () => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" style={{ height: 'calc(80vh - 120px)'}}>
                     <MapView reports={MOCK_LOST_FOUND_REPORTS} sosAlerts={MOCK_SOS_ALERTS} personnel={activePersonnel} onSelectReport={setSelectedReport} translations={translations} />
-                    <SidePanel reports={reports} sosAlerts={MOCK_SOS_ALERTS} personnel={activePersonnel} user={user} onSelectReport={setSelectedReport} onSelectSos={setSelectedSosAlert} translations={translations} onOpenBroadcast={() => setBroadcastModalOpen(true)} onOpenCreateTask={() => setCreateTaskModalOpen(true)} />
+                    <SidePanel reports={reports} sosAlerts={MOCK_SOS_ALERTS} personnel={activePersonnel} user={user} onSelectReport={setSelectedReport} onSelectSos={setSelectedSosAlert} translations={translations} onOpenBroadcast={handleOpenBroadcast} onOpenCreateTask={() => setCreateTaskModalOpen(true)} />
                 </div>
             </div>
             <ReportDetailsModal 
@@ -578,6 +611,7 @@ const AuthoritiesDashboard: React.FC = () => {
                 isOpen={isBroadcastModalOpen}
                 onClose={() => setBroadcastModalOpen(false)}
                 onConfirm={handleConfirmBroadcast}
+                prefillData={broadcastPrefill}
             />
             <SosDetailsModal
                 isOpen={!!selectedSosAlert}

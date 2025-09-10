@@ -1,5 +1,6 @@
 
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { useLocalization } from '../../hooks/useLocalization';
@@ -8,7 +9,8 @@ import { UserRole } from '../../types';
 interface AdvancedBroadcastModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (message: string, recipients: (UserRole | 'All' | 'Pilgrims' | 'Staff')[]) => void;
+  onConfirm: (message: string, recipients: (UserRole | 'All' | 'Pilgrims' | 'Staff' | string)[]) => void;
+  prefillData?: { message?: string; zone?: string; };
 }
 
 const CheckboxItem: React.FC<{ id: string, label: string, checked: boolean, onChange: (checked: boolean) => void }> = ({ id, label, checked, onChange }) => (
@@ -26,12 +28,26 @@ const CheckboxItem: React.FC<{ id: string, label: string, checked: boolean, onCh
     </div>
 );
 
-export const AdvancedBroadcastModal: React.FC<AdvancedBroadcastModalProps> = ({ isOpen, onClose, onConfirm }) => {
+export const AdvancedBroadcastModal: React.FC<AdvancedBroadcastModalProps> = ({ isOpen, onClose, onConfirm, prefillData }) => {
     const { translations } = useLocalization();
     const t = translations.dashboard.authorities.advancedBroadcast;
 
     const [message, setMessage] = useState('');
     const [recipients, setRecipients] = useState<Record<string, boolean>>({});
+
+    useEffect(() => {
+        if (isOpen && prefillData) {
+            setMessage(prefillData.message || '');
+            if (prefillData.zone) {
+                // Prefill for a targeted crowd alert
+                setRecipients({ 'Pilgrims': true, [prefillData.zone]: true });
+            }
+        } else if (!isOpen) {
+            // Reset when modal closes
+            setMessage('');
+            setRecipients({});
+        }
+    }, [isOpen, prefillData]);
 
     const staffRoles = [
         UserRole.AUTHORITY,
@@ -45,13 +61,11 @@ export const AdvancedBroadcastModal: React.FC<AdvancedBroadcastModalProps> = ({ 
     const handleConfirm = () => {
         const selectedRecipients = Object.entries(recipients)
             .filter(([, isSelected]) => isSelected)
-            .map(([key]) => key as UserRole | 'All' | 'Pilgrims' | 'Staff');
+            .map(([key]) => key as UserRole | 'All' | 'Pilgrims' | 'Staff' | string);
 
         if (selectedRecipients.length > 0 && message.trim()) {
             onConfirm(message, selectedRecipients);
-            setMessage('');
-            setRecipients({});
-            onClose();
+            onClose(); // Let the parent handle state reset through useEffect
         }
     };
 

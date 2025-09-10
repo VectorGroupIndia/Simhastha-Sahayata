@@ -1,3 +1,4 @@
+
 /*********************************************************************************
  * Author: Sujit Babar
  * Company: Transfigure Technologies Pvt. Ltd.
@@ -22,7 +23,7 @@ import PilgrimGuide from '../components/dashboard/PilgrimGuide';
 import AiAlerts from '../components/dashboard/AiAlerts';
 import CrowdDensityIndicator from '../components/dashboard/CrowdDensityIndicator';
 import { Card } from '../components/ui/Card';
-import { MOCK_LOST_FOUND_REPORTS, MOCK_SOS_ALERTS, MOCK_FAMILY_MEMBERS } from '../data/mockData';
+import { MOCK_LOST_FOUND_REPORTS, MOCK_SOS_ALERTS, MOCK_FAMILY_MEMBERS, MOCK_BROADCASTS } from '../data/mockData';
 import { UserGuideModal } from '../components/dashboard/UserGuideModal';
 import { Button } from '../components/ui/Button';
 import LiveMapView from '../components/dashboard/LiveMapView';
@@ -50,13 +51,9 @@ const PilgrimDashboardOverview: React.FC<{ setActiveTab: (tab: string) => void; 
     const familyInAlert = MOCK_FAMILY_MEMBERS.filter(m => m.status === 'Alert' || m.status === 'Lost');
     const locatedReports = MOCK_LOST_FOUND_REPORTS.filter(r => r.reportedById === user?.id && r.status === 'Located');
     const userReports = MOCK_LOST_FOUND_REPORTS.filter(r => r.reportedById === user?.id).slice(0, 3);
-    const criticalAiAlert = {
-        id: 3,
-        text: translations.dashboard.aiAlerts.alerts.child,
-        level: 'critical',
-    };
+    const crowdAlerts = MOCK_BROADCASTS.filter(b => b.isCrowdAlert && new Date(b.timestamp) > new Date(Date.now() - 30 * 60000)); // active in last 30 mins
 
-    const hasPriorityAlert = familyInAlert.length > 0 || locatedReports.length > 0;
+    const hasPriorityAlert = familyInAlert.length > 0 || locatedReports.length > 0 || crowdAlerts.length > 0;
 
 
     return (
@@ -77,7 +74,7 @@ const PilgrimDashboardOverview: React.FC<{ setActiveTab: (tab: string) => void; 
                         </Button>
                          <Button variant="secondary" className="h-24 text-lg flex flex-col items-center justify-center" onClick={onEscortRequest}>
                             <EscortIcon /> {translations.dashboard.pilgrim.requestEscort}
-                        </Button>
+                         </Button>
                     </div>
                 </Card>
                 <Card>
@@ -85,6 +82,12 @@ const PilgrimDashboardOverview: React.FC<{ setActiveTab: (tab: string) => void; 
                         <h3 className="text-xl font-bold">Priority Alerts</h3>
                     </div>
                     <div className="space-y-3">
+                        {crowdAlerts.map(alert => (
+                            <div key={alert.id} className="p-3 bg-yellow-50 border-l-4 border-yellow-500 rounded-r-lg">
+                                <p className="font-semibold text-yellow-800">Crowd Alert from Command Center</p>
+                                <p className="text-sm text-gray-700">{alert.message}</p>
+                            </div>
+                        ))}
                          {locatedReports.map(report => (
                             <div key={report.id} className="p-3 bg-green-50 border-l-4 border-green-500 rounded-r-lg">
                                 <p className="font-semibold">Update on your report: <span className="text-green-600">{report.personName} has been located!</span></p>
@@ -99,8 +102,8 @@ const PilgrimDashboardOverview: React.FC<{ setActiveTab: (tab: string) => void; 
                          ))}
                          {!hasPriorityAlert && (
                             <div className="p-3 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
-                               <p className="font-semibold">AI Alert: <span className="text-blue-600">Critical</span></p>
-                               <p className="text-sm text-gray-600">{criticalAiAlert.text}</p>
+                               <p className="font-semibold">All Clear</p>
+                               <p className="text-sm text-gray-600">No high-priority alerts for you at the moment. Stay safe!</p>
                            </div>
                          )}
                     </div>
