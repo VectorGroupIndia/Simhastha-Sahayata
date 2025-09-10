@@ -207,9 +207,6 @@ const AdminDashboard: React.FC = () => {
         const staffRoles = new Set([
             UserRole.VOLUNTEER,
             UserRole.AUTHORITY,
-            UserRole.SECURITY_PERSONNEL,
-            UserRole.MEDICAL_STAFF,
-            UserRole.INFO_DESK_STAFF,
         ]);
         return DEMO_USERS.filter(u => staffRoles.has(u.role));
     }, []);

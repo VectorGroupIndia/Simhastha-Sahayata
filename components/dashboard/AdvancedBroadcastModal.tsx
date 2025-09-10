@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
@@ -34,10 +35,7 @@ export const AdvancedBroadcastModal: React.FC<AdvancedBroadcastModalProps> = ({ 
 
     const staffRoles = [
         UserRole.AUTHORITY,
-        UserRole.SECURITY_PERSONNEL,
-        UserRole.MEDICAL_STAFF,
         UserRole.VOLUNTEER,
-        UserRole.INFO_DESK_STAFF,
     ];
 
     const handleRecipientChange = (key: string, value: boolean) => {

@@ -85,9 +85,7 @@ const Header: React.FC = () => {
   const reportableRoles = [
       UserRole.PILGRIM,
       UserRole.VOLUNTEER,
-      UserRole.INFO_DESK_STAFF,
-      UserRole.MEDICAL_STAFF,
-      UserRole.SECURITY_PERSONNEL,
+      UserRole.AUTHORITY,
   ];
   const canReport = !user || reportableRoles.includes(user.role);
 

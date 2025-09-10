@@ -4,9 +4,6 @@ export enum UserRole {
   ADMIN = 'Admin',
   AUTHORITY = 'Authority',
   VOLUNTEER = 'Volunteer',
-  SECURITY_PERSONNEL = 'Security Personnel',
-  MEDICAL_STAFF = 'Medical Staff',
-  INFO_DESK_STAFF = 'Information Desk Staff',
 }
 
 // Represents a single SOS alert in the user's history.

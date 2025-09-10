@@ -1,3 +1,5 @@
+
+
 import React, { useState, useMemo } from 'react';
 import { Card } from '../ui/Card';
 import { useLocalization } from '../../hooks/useLocalization';
@@ -18,6 +20,11 @@ const BroadcastIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h
 const ClipboardListIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>;
 const BellIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>;
 const CheckCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+// FIX: Explicitly type the SosAlertIcon component with React.FC to ensure it correctly accepts props like `className` and resolves the 'IntrinsicAttributes' type error.
+const SosAlertIcon: React.FC<{ className?: string }> = ({ className = '' }) => <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${className}`} viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>;
+// FIX: Update MegaphoneIcon to accept a className prop to fix an error where it was being used with a prop it didn't accept.
+const MegaphoneIcon: React.FC<{ className?: string }> = ({ className = '' }) => <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${className}`} viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a6 6 0 00-6 6v3.586l-1.707 1.707A1 1 0 003 15v1a1 1 0 001 1h12a1 1 0 001-1v-1a1 1 0 00-.293-.707L16 11.586V8a6 6 0 00-6-6zM8 8a2 2 0 114 0v3a2 2 0 11-4 0V8z" /></svg>;
+const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" /></svg>;
 
 
 // --- Helper Components ---
@@ -111,9 +118,13 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
     const t = translations.dashboard.authorities.panel;
     const profileT = translations.profile;
     
-    // Task Panel State
+    // --- STATE FOR FILTERING ---
     const [taskFilter, setTaskFilter] = useState({ status: 'all', priority: 'all', zone: 'all' });
     const [taskSort, setTaskSort] = useState('date');
+    const [personnelRoleFilter, setPersonnelRoleFilter] = useState<UserRole | 'all'>('all');
+    const [personnelSearch, setPersonnelSearch] = useState('');
+
+    // --- MEMOIZED DATA ---
     const allTasks = useMemo(() => [
         ...reports.map(r => ({ ...r, kind: 'report' as const })),
         ...sosAlerts.filter(a => a.status !== 'Resolved').map(a => ({ ...a, kind: 'sos' as const, priority: 'Critical' as const })),
@@ -123,7 +134,6 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
 
     const allBroadcasts = useMemo(() => {
         const sosMessages = MOCK_SOS_ALERTS
-            .filter(a => a.message)
             .map(a => ({ ...a, kind: 'sos' as const, id: `sos-${a.id}` }));
         
         const generalBroadcasts = MOCK_BROADCASTS
@@ -147,6 +157,17 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
                 return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
             });
     }, [allTasks, taskFilter, taskSort, personnel]);
+
+    const personnelRoles = useMemo(() => 
+        [{ value: 'all', label: 'All Roles' }, ...[...new Set(personnel.map(p => p.role))].map(r => ({value: r, label: r}))]
+    , [personnel]);
+
+    const filteredPersonnel = useMemo(() => 
+        personnel.filter(p => 
+            (personnelRoleFilter === 'all' || p.role === personnelRoleFilter) &&
+            (personnelSearch === '' || p.name.toLowerCase().includes(personnelSearch.toLowerCase()))
+        )
+    , [personnel, personnelRoleFilter, personnelSearch]);
 
     return (
         <Card className="h-full flex flex-col">
@@ -187,10 +208,10 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
                                 } else { // task.kind === 'sos'
                                     return (
                                         <div key={`${task.kind}-${task.id}`} className={`p-3 rounded-lg border-l-4 ${bg} ${border}`}>
-                                            <p className="font-bold text-sm">
-                                                {`${t.sos}: ${task.userName}`}
+                                            <p className="font-bold text-sm flex items-center text-red-800">
+                                                <SosAlertIcon className="animate-pulse" /> {`${t.sos}: ${task.userName}`}
                                             </p>
-                                            <p className="text-xs text-gray-600 italic truncate">"{task.message}"</p>
+                                            <p className="text-xs text-gray-600 italic truncate">"{task.message || 'SOS Activated'}"</p>
                                             <div className="text-xs mt-2 flex justify-between items-center">
                                                 <p>{new Date(task.timestamp).toLocaleString()}</p>
                                             </div>
@@ -222,25 +243,46 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
                     </div>
                  )}
                  {activeTab === 'personnel' && (
-                     <div className="animate-fade-in space-y-2">
-                         {personnel.map(p => {
+                     <div className="animate-fade-in">
+                        <div className="flex flex-col sm:flex-row gap-2 mb-4">
+                            <div className="relative flex-grow">
+                                <input 
+                                    type="text"
+                                    placeholder="Search by name..."
+                                    value={personnelSearch}
+                                    onChange={e => setPersonnelSearch(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md shadow-sm focus:border-orange-500 focus:ring-orange-500"
+                                />
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><SearchIcon /></div>
+                            </div>
+                            <select value={personnelRoleFilter} onChange={e => setPersonnelRoleFilter(e.target.value as UserRole | 'all')} className="rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500">
+                                {personnelRoles.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                         {filteredPersonnel.map(p => {
                              const assignment = reports.find(r => r.assignedToId === p.id && r.status === 'In Progress');
                              return (
-                                <div key={p.id} className="flex items-center bg-gray-50 p-2 rounded-lg">
+                                <div key={p.id} className="flex items-center bg-gray-50 dark:bg-gray-800/50 p-2 rounded-lg">
                                     <img src={p.avatar} alt={p.name} className="w-10 h-10 rounded-full mr-3" />
                                     <div className="flex-grow">
-                                        <p className="font-medium text-sm text-gray-800">{p.name}</p>
-                                        <p className={`text-xs ${assignment ? 'text-blue-600' : 'text-green-600'}`}>
-                                            {assignment ? `${t.statusLabels.onTask}: ${assignment.id}` : t.statusLabels.available}
+                                        <p className="font-medium text-sm text-gray-800 dark:text-gray-200">{p.name}</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">{p.role}</p>
+                                    </div>
+                                    <div className="text-xs text-center mx-4">
+                                        <p className={`font-semibold ${assignment ? 'text-blue-600 dark:text-blue-400' : 'text-green-600 dark:text-green-400'}`}>
+                                            {assignment ? t.statusLabels.onTask : t.statusLabels.available}
                                         </p>
+                                        {assignment && <p className="text-gray-500 dark:text-gray-400">{assignment.id}</p>}
                                     </div>
                                     <div className="text-xs text-center">
                                         <p className="font-semibold">Zone</p>
-                                        <p>{p.assignedZone?.split(' ')[1]}</p>
+                                        <p className="text-gray-500 dark:text-gray-400">{p.assignedZone?.split(' ')[1] || 'N/A'}</p>
                                     </div>
                                 </div>
                              )
                          })}
+                         </div>
                      </div>
                 )}
                  {activeTab === 'broadcasts' && (
@@ -250,15 +292,21 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
                             {allBroadcasts.map(log => {
                                 const isSos = log.kind === 'sos';
                                 return (
-                                    <div key={log.id} className={`p-3 rounded-lg border-l-4 ${isSos ? 'bg-red-50 border-red-500' : 'bg-blue-50 border-blue-500'}`}>
-                                        <div className="flex justify-between text-xs mb-1">
-                                            <p className="font-semibold">{t.broadcastFrom}: {isSos ? log.userName : log.sentBy}</p>
-                                            <p className="text-gray-500">{new Date(log.timestamp).toLocaleString()}</p>
+                                    <div key={log.id} className={`p-3 rounded-lg border-l-4 ${isSos ? 'bg-red-100 dark:bg-red-900/50 border-red-500' : 'bg-blue-100 dark:bg-blue-900/50 border-blue-500'}`}>
+                                        <div className="flex justify-between items-center text-xs mb-2">
+                                            <p className={`font-bold flex items-center text-base ${isSos ? 'text-red-700 dark:text-red-300' : 'text-blue-700 dark:text-blue-300'}`}>
+                                                {isSos ? <SosAlertIcon className="animate-pulse mr-1" /> : <MegaphoneIcon className="mr-1"/>}
+                                                <span className="ml-1">{isSos ? 'SOS ALERT' : 'BROADCAST'}</span>
+                                            </p>
+                                            <p className="text-gray-500 dark:text-gray-400">{new Date(log.timestamp).toLocaleString()}</p>
                                         </div>
-                                        {!isSos && (
-                                            <p className="text-xs font-bold text-blue-800 mb-1">{t.to}: {log.recipients.join(', ')}</p>
-                                        )}
-                                        <p className="text-sm italic bg-white p-2 rounded">"{log.message}"</p>
+                                        <div className="text-xs mb-2">
+                                            <p><span className="font-semibold">{t.broadcastFrom}:</span> {isSos ? log.userName : log.sentBy}</p>
+                                            {!isSos && (
+                                                <p><span className="font-semibold">{t.to}:</span> {log.recipients.join(', ')}</p>
+                                            )}
+                                        </div>
+                                        <p className="text-sm italic bg-white dark:bg-gray-800/50 p-2 rounded">"{log.message || 'SOS Activated - No Message'}"</p>
                                     </div>
                                 )
                             })}
@@ -286,9 +334,6 @@ const AuthoritiesDashboard: React.FC = () => {
     const staffRoles = new Set([
         UserRole.AUTHORITY,
         UserRole.VOLUNTEER,
-        UserRole.SECURITY_PERSONNEL,
-        UserRole.MEDICAL_STAFF,
-        UserRole.INFO_DESK_STAFF,
     ]);
     const activePersonnel = useMemo(() => DEMO_USERS.filter(u => u.status === 'Active' && staffRoles.has(u.role)), [staffRoles]);
     

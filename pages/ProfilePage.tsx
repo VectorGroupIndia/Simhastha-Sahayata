@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -620,11 +621,8 @@ const ProfilePage: React.FC = () => {
       case UserRole.ADMIN:
         return <AdminProfileBody user={user} onUpdateUser={updateUser} />;
       case UserRole.AUTHORITY:
-      case UserRole.SECURITY_PERSONNEL:
-      case UserRole.MEDICAL_STAFF:
         return <AuthorityProfileBody user={user} onUpdateUser={updateUser} />;
       case UserRole.VOLUNTEER:
-      case UserRole.INFO_DESK_STAFF:
         return <VolunteerProfileBody user={user} onUpdateUser={updateUser} onSelectReport={setSelectedReport} />;
       case UserRole.PILGRIM:
       default:
