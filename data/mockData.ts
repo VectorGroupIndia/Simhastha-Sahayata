@@ -439,6 +439,32 @@ export const translations: { [key: string]: any } = {
               statusFilterSuspended: 'Suspended',
               lastLogin: 'Last Login',
           },
+          aiDashboard: {
+            title: "AI Implementation & Monitoring",
+            controlsTitle: "AI Feature Controls",
+            semanticSearch: "Enable AI Semantic Search",
+            semanticSearchDesc: "Allow admins to use natural language for complex report searches.",
+            statusTitle: "AI Model Status",
+            geminiFlash: "gemini-2.5-flash (Core)",
+            geminiVision: "gemini-2.5-flash-image-preview (Vision)",
+            operational: "Operational",
+            metricsTitle: "Performance Metrics (Last 24h)",
+            autofills: "Reports Autofilled",
+            analyses: "Images Analyzed",
+            searches: "Semantic Searches",
+            logTitle: "Live AI Activity Log",
+            log: {
+                autofill: "AI autofilled report based on user prompt.",
+                analysis: "AI analyzed image for report {id}.",
+                search: "AI search performed for query: \"{query}\".",
+                summary: "AI summary generated for report {id}."
+            },
+            aiControlCenter: {
+                title: "AI Control Center",
+                description: "Monitor performance, manage AI features, and view live activity logs.",
+                button: "Go to AI Dashboard"
+            }
+          }
       },
       authorities: {
           title: 'Authorities Command Center',

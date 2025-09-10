@@ -61,6 +61,7 @@ export interface User {
         aiAutofill: boolean;
         aiImageAnalysis: boolean;
         maintenanceMode: boolean;
+        aiSemanticSearch?: boolean;
     };
     // Authority settings
     sosZoneAlerts?: boolean;

@@ -9,6 +9,7 @@ import { Spinner } from '../ui/Spinner';
 import { DEMO_USERS } from '../../constants';
 import { Button } from '../ui/Button';
 import { useToast } from '../../hooks/useToast';
+import { useNavigate } from 'react-router-dom';
 
 // --- ICONS ---
 const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" /></svg>;
@@ -16,6 +17,7 @@ const SparklesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-
 const DownloadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" /></svg>;
 const FraudIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
 const ClockIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+const AiIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>;
 
 
 // --- HELPER COMPONENTS ---
@@ -27,6 +29,22 @@ const FilterDropdown: React.FC<{label: string, value: string, onChange: (e: Reac
         </select>
     </div>
 );
+
+const AIControlCenterCard: React.FC<{t: any}> = ({t}) => {
+    const navigate = useNavigate();
+    const aiT = t.aiDashboard.aiControlCenter;
+    return (
+        <Card>
+            <h3 className="text-xl font-bold mb-2 flex items-center">
+                <AiIcon /> {aiT.title}
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{aiT.description}</p>
+            <Button onClick={() => navigate('/ai-dashboard')} className="w-full">
+                {aiT.button}
+            </Button>
+        </Card>
+    );
+};
 
 const AdminActivityLog: React.FC<{t: any}> = ({t}) => {
     const MOCK_ACTIVITY = [
@@ -128,7 +146,13 @@ const UserManagement: React.FC<{t: any}> = ({t}) => {
             </div>
             <div className="overflow-y-auto max-h-96 pr-2">
                 <table className="w-full text-left text-sm">
-                    <thead><tr className="bg-gray-100"><th className="p-2">{t.auth.nameLabel}</th><th className="p-2">{userManagementTranslations.status}</th><th className="p-2">{userManagementTranslations.actions}</th></tr></thead>
+                    <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400">
+                        <tr>
+                            <th scope="col" className="p-2 text-left text-xs font-medium uppercase tracking-wider">{t.auth.nameLabel}</th>
+                            <th scope="col" className="p-2 text-left text-xs font-medium uppercase tracking-wider">{userManagementTranslations.status}</th>
+                            <th scope="col" className="p-2 text-left text-xs font-medium uppercase tracking-wider">{userManagementTranslations.actions}</th>
+                        </tr>
+                    </thead>
                     <tbody>
                         {filteredUsers.map(user => (
                             <tr key={user.id} className="border-b">
@@ -326,12 +350,41 @@ const AdminDashboard: React.FC = () => {
                                 <FilterDropdown label={translations.filterBar.sortLabel} value={sortOption} onChange={e => setSortOption(e.target.value)} options={sortOptions.map(opt => ({...opt, label: `${translations.filterBar.sortLabel}: ${opt.label}`}))} />
                                 <Button onClick={handleExportToCsv} variant="secondary"><DownloadIcon/> Export CSV</Button>
                             </div>
-                            <div className="overflow-x-auto"><table className="w-full text-left"><thead><tr className="bg-gray-100"><th className="p-3">Type</th><th className="p-3">Category</th><th className="p-3">Description</th><th className="p-3">Status</th><th className="p-3">Assigned To</th><th className="p-3">Reported By</th><th className="p-3">Date</th></tr></thead><tbody>{filteredReports.map(report => (<tr key={report.id} className="border-b hover:bg-gray-50 cursor-pointer" onClick={() => openDetails(report)}><td className="p-3">{report.type}</td><td className="p-3">{report.category}</td><td className="p-3 truncate max-w-xs">{report.description}</td><td className="p-3"><span className={`px-2 py-1 text-xs rounded-full ${report.status === 'Open' ? 'bg-yellow-200 text-yellow-800' : report.status === 'In Progress' ? 'bg-blue-200 text-blue-800' : 'bg-green-200 text-green-800'}`}>{report.status}</span></td><td className="p-3">{report.assignedToName || 'Unassigned'}</td><td className="p-3">{report.reportedBy}</td><td className="p-3 text-sm text-gray-500">{new Date(report.timestamp).toLocaleDateString()}</td></tr>))}{filteredReports.length === 0 && <tr><td colSpan={7}><p className="text-center py-4 text-gray-500">{translations.myReports.noFilteredReports}</p></td></tr>}</tbody></table></div>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400">
+                                        <tr>
+                                            <th scope="col" className="p-3 text-left text-xs font-medium uppercase tracking-wider">Type</th>
+                                            <th scope="col" className="p-3 text-left text-xs font-medium uppercase tracking-wider">Category</th>
+                                            <th scope="col" className="p-3 text-left text-xs font-medium uppercase tracking-wider">Description</th>
+                                            <th scope="col" className="p-3 text-left text-xs font-medium uppercase tracking-wider">Status</th>
+                                            <th scope="col" className="p-3 text-left text-xs font-medium uppercase tracking-wider">Assigned To</th>
+                                            <th scope="col" className="p-3 text-left text-xs font-medium uppercase tracking-wider">Reported By</th>
+                                            <th scope="col" className="p-3 text-left text-xs font-medium uppercase tracking-wider">Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {filteredReports.map(report => (
+                                            <tr key={report.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-700/20 cursor-pointer" onClick={() => openDetails(report)}>
+                                                <td className="p-3">{report.type}</td>
+                                                <td className="p-3">{report.category}</td>
+                                                <td className="p-3 truncate max-w-xs">{report.description}</td>
+                                                <td className="p-3"><span className={`px-2 py-1 text-xs rounded-full ${report.status === 'Open' ? 'bg-yellow-200 text-yellow-800' : report.status === 'In Progress' ? 'bg-blue-200 text-blue-800' : 'bg-green-200 text-green-800'}`}>{report.status}</span></td>
+                                                <td className="p-3">{report.assignedToName || 'Unassigned'}</td>
+                                                <td className="p-3">{report.reportedBy}</td>
+                                                <td className="p-3 text-sm text-gray-500">{new Date(report.timestamp).toLocaleDateString()}</td>
+                                            </tr>
+                                        ))}
+                                        {filteredReports.length === 0 && <tr><td colSpan={7}><p className="text-center py-4 text-gray-500">{translations.myReports.noFilteredReports}</p></td></tr>}
+                                    </tbody>
+                                </table>
+                            </div>
                         </Card>
                     </div>
 
                     {/* Right Sidebar: Admin Tools */}
                     <div className="lg:col-span-1 space-y-6">
+                        <AIControlCenterCard t={t} />
                         <AdminActivityLog t={t} />
                         <FraudAnalysis />
                         <UserManagement t={translations} />

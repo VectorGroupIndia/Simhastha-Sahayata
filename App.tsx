@@ -19,6 +19,7 @@ import { SosCallModal } from './components/dashboard/SosCallModal';
 import { useAuth } from './hooks/useAuth';
 import { DEMO_USERS } from './constants';
 import { UserRole } from './types';
+import AiDashboardPage from './pages/AiDashboardPage';
 
 /**
  * The root component of the application.
@@ -92,6 +93,7 @@ const MainApp = () => {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/ai-dashboard" element={<AiDashboardPage />} />
             <Route path="/report" element={<ReportLostFoundPage />} />
             <Route path="/about" element={<AboutUsPage />} />
             <Route path="/contact" element={<ContactUsPage />} />
