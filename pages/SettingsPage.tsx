@@ -134,71 +134,6 @@ const AuthoritySettings: React.FC<{ user: User }> = ({ user }) => {
     );
 };
 
-const VolunteerSettings: React.FC<{ user: User }> = ({ user }) => {
-    const { updateUser } = useAuth();
-    const { translations } = useLocalization();
-    const t = translations.profile;
-    const volT = t.volunteer || {};
-    
-    const handleSettingToggle = (key: keyof NonNullable<User['settings']>, value: boolean) => {
-        const baseSettings = user.settings || { notifications: false, powerButtonSos: false, voiceNav: false, };
-        updateUser({ settings: { ...baseSettings, [key]: value } });
-    };
-    
-    const handleAvailabilityChange = (status: 'Active' | 'On Break') => {
-        const baseSettings = user.settings || { notifications: false, powerButtonSos: false, voiceNav: false, };
-        updateUser({ settings: { ...baseSettings, availabilityStatus: status } });
-    };
-    
-    const handleRadiusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const radius = parseInt(e.target.value, 10);
-        const baseSettings = user.settings || { notifications: false, powerButtonSos: false, voiceNav: false, };
-        updateUser({ settings: { ...baseSettings, workingRadius: radius } });
-    };
-
-    return (
-        <Card>
-            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{volT.settingsTitle}</h2>
-            <div className="divide-y divide-gray-200 dark:divide-gray-700 -m-6">
-                <div className="p-4 flex justify-between items-center">
-                    <div>
-                        <p className="font-medium text-gray-800 dark:text-gray-200">{volT.availability}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">{volT.availabilityDesc}</p>
-                    </div>
-                    <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
-                        <Button variant={user.settings?.availabilityStatus === 'Active' ? 'primary' : 'secondary'} onClick={() => handleAvailabilityChange('Active')} className="text-sm py-1 px-3">{volT.active}</Button>
-                        <Button variant={user.settings?.availabilityStatus === 'On Break' ? 'primary' : 'secondary'} onClick={() => handleAvailabilityChange('On Break')} className="text-sm py-1 px-3">{volT.onBreak}</Button>
-                    </div>
-                </div>
-                <div className="p-4 flex items-start gap-4">
-                    <div className="flex-shrink-0 text-orange-500 mt-1"><LocationMarkerIcon /></div>
-                    <div className="flex-grow">
-                        <div className="flex justify-between items-center mb-1">
-                            <p className="font-medium text-gray-800 dark:text-gray-200">{volT.workingRadius}</p>
-                            <div className="font-bold text-lg text-orange-600">
-                                {user.settings?.workingRadius ?? 1} {volT.km}
-                            </div>
-                        </div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{volT.workingRadiusDesc}</p>
-                        <input
-                            type="range"
-                            min="1"
-                            max="10"
-                            step="1"
-                            value={user.settings?.workingRadius ?? 1}
-                            onChange={handleRadiusChange}
-                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-orange-500"
-                            aria-label="Working radius slider"
-                        />
-                    </div>
-                </div>
-                <SettingRow id="assignment-notifications" label={volT.assignmentNotifications} description={volT.assignmentNotificationsDesc} checked={user.settings?.notifications ?? true} onToggle={(c) => handleSettingToggle('notifications', c)} icon={<BellIcon />} />
-                <SettingRow id="nearby-alerts" label={volT.nearbyAlerts} description={volT.nearbyAlertsDesc} checked={user.settings?.nearbyAlertsNotifications ?? true} onToggle={(c) => handleSettingToggle('nearbyAlertsNotifications', c)} icon={<ShieldExclamationIcon />} />
-            </div>
-        </Card>
-    );
-};
-
 const PilgrimSettings: React.FC<{ user: User }> = ({ user }) => {
     const { updateUser } = useAuth();
     const { addToast } = useToast();
@@ -290,7 +225,6 @@ const SettingsPage: React.FC = () => {
     const renderSettings = () => {
         switch(user.role) {
             case UserRole.ADMIN: return <AdminSettings user={user} />;
-            case UserRole.VOLUNTEER: return <VolunteerSettings user={user} />;
             case UserRole.AUTHORITY: return <AuthoritySettings user={user} />;
             case UserRole.PILGRIM: default: return <PilgrimSettings user={user} />;
         }

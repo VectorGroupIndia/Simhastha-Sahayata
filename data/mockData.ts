@@ -433,6 +433,14 @@ export const MOCK_OPERATIONAL_ZONES = [
   { id: 'zone_d', name: 'Zone D (Datta Akhara)', path: 'M 30 70 H 70 V 100 H 30 Z', color: '#a855f7' },
 ];
 
+// FIX: Added missing MOCK_CROWD_ZONES export needed by VolunteerDashboard.
+export const MOCK_CROWD_ZONES = [
+  { id: 'zone_a', name: 'Zone A (Ram Ghat)', path: 'M 70 0 H 100 V 50 H 70 Z', level: 'high' }, 
+  { id: 'zone_b', name: 'Zone B (Mahakal)', path: 'M 30 30 H 70 V 70 H 30 Z', level: 'extreme' },
+  { id: 'zone_c', name: 'Zone C (Harsiddhi)', path: 'M 0 50 H 30 V 100 H 0 Z', level: 'low' },
+  { id: 'zone_d', name: 'Zone D (Datta Akhara)', path: 'M 30 70 H 70 V 100 H 30 Z', level: 'moderate' },
+];
+
 export const MOCK_PREDICTIVE_HOTSPOTS = [
   { id: 'ph1', name: 'Ram Ghat Approach', locationCoords: { lat: 80, lng: 30 }, risk: 0.9 }, // High risk
   { id: 'ph2', name: 'Mahakal Temple Exit', locationCoords: { lat: 58, lng: 48 }, risk: 0.7 }, // Medium risk

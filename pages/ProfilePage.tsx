@@ -8,15 +8,19 @@ import { useToast } from '../hooks/useToast';
 import { EmergencyContact, SosAlert, User, UserRole, LostFoundReport } from '../types';
 import { Modal } from '../components/ui/Modal';
 import { DEMO_USERS } from '../constants';
-import { MOCK_LOST_FOUND_REPORTS } from '../data/mockData';
+import { MOCK_LOST_FOUND_REPORTS, MOCK_OPERATIONAL_ZONES } from '../data/mockData';
 import ReportDetailsModal from '../components/dashboard/ReportDetailsModal';
 import { SosDetailsModal } from '../components/dashboard/SosDetailsModal';
+import { ToggleSwitch } from '../components/ui/ToggleSwitch';
 
 
 // --- ICONS ---
 const PencilIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 text-gray-500 hover:text-orange-500 cursor-pointer" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5l12.232-12.232z" /></svg>;
 const CheckIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>;
 const XIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>;
+const BellIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>;
+const ShieldExclamationIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>;
+const LocationMarkerIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
 
 
 // --- COMMON PROFILE COMPONENTS ---
@@ -115,74 +119,87 @@ const AuthorityProfileBody: React.FC<{ user: User; onUpdateUser: (data: Partial<
     );
 };
 
+const SettingRow: React.FC<{ id: string; label: string; description: string; checked: boolean; onToggle: (checked: boolean) => void; icon: React.ReactNode; }> = ({ id, label, description, checked, onToggle, icon }) => (
+    <div className="flex items-start gap-4 p-4 first:pt-0 last:pb-0">
+        <div className="flex-shrink-0 text-orange-500 mt-1">{icon}</div>
+        <div className="flex-grow">
+            <label htmlFor={id} className="font-medium text-gray-800 dark:text-gray-200">{label}</label>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{description}</p>
+        </div>
+        <div className="flex-shrink-0">
+            <ToggleSwitch id={id} checked={checked} onChange={onToggle} />
+        </div>
+    </div>
+);
 
-const VolunteerProfileBody: React.FC<{ user: User; onUpdateUser: (data: Partial<User>) => void; onSelectReport: (report: LostFoundReport) => void; }> = ({ user, onUpdateUser, onSelectReport }) => {
+const VolunteerSettings: React.FC<{ user: User }> = ({ user }) => {
+    const { updateUser } = useAuth();
     const { translations } = useLocalization();
     const t = translations.profile;
     const volT = t.volunteer || {};
-
-    // Stats calculations
-    const myAssignments = MOCK_LOST_FOUND_REPORTS.filter(r => r.assignedToId === user.id);
-    const openCases = myAssignments.filter(r => r.status !== 'Resolved');
-    const resolvedCases = myAssignments.filter(r => r.status === 'Resolved');
-
-    const resolvedThisWeek = myAssignments.filter(r => {
-        if (r.status !== 'Resolved') return false;
-        const oneWeekAgo = new Date();
-        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-        return new Date(r.timestamp) > oneWeekAgo;
-    }).length;
-
+    
+    const handleSettingToggle = (key: keyof NonNullable<User['settings']>, value: boolean) => {
+        const baseSettings = user.settings || { notifications: false, powerButtonSos: false, voiceNav: false, };
+        updateUser({ settings: { ...baseSettings, [key]: value } });
+    };
+    
+    const handleAvailabilityChange = (status: 'Active' | 'On Break') => {
+        const baseSettings = user.settings || { notifications: false, powerButtonSos: false, voiceNav: false, };
+        updateUser({ settings: { ...baseSettings, availabilityStatus: status } });
+    };
+    
+    const handleRadiusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const radius = parseInt(e.target.value, 10);
+        const baseSettings = user.settings || { notifications: false, powerButtonSos: false, voiceNav: false, };
+        updateUser({ settings: { ...baseSettings, workingRadius: radius } });
+    };
 
     return (
-        <>
-            <Card>
-                <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{volT.statsTitle}</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-                    <div><p className="text-3xl font-bold">{myAssignments.length}</p><p className="text-gray-500 dark:text-gray-400">{volT.totalAssigned}</p></div>
-                    <div><p className="text-3xl font-bold text-yellow-600">{openCases.length}</p><p className="text-gray-500 dark:text-gray-400">{volT.openCases}</p></div>
-                    <div><p className="text-3xl font-bold text-green-600">{resolvedThisWeek}</p><p className="text-gray-500 dark:text-gray-400">{volT.resolvedThisWeek}</p></div>
+        <Card>
+            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{volT.settingsTitle}</h2>
+            <div className="divide-y divide-gray-200 dark:divide-gray-700 -m-6">
+                <div className="p-4 flex justify-between items-center">
+                    <div>
+                        <p className="font-medium text-gray-800 dark:text-gray-200">{volT.availability}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{volT.availabilityDesc}</p>
+                    </div>
+                    <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
+                        <Button variant={user.settings?.availabilityStatus === 'Active' ? 'primary' : 'secondary'} onClick={() => handleAvailabilityChange('Active')} className="text-sm py-1 px-3">{volT.active}</Button>
+                        <Button variant={user.settings?.availabilityStatus === 'On Break' ? 'primary' : 'secondary'} onClick={() => handleAvailabilityChange('On Break')} className="text-sm py-1 px-3">{volT.onBreak}</Button>
+                    </div>
                 </div>
-            </Card>
+                <div className="p-4 flex items-start gap-4">
+                    <div className="flex-shrink-0 text-orange-500 mt-1"><LocationMarkerIcon /></div>
+                    <div className="flex-grow">
+                        <div className="flex justify-between items-center mb-1">
+                            <p className="font-medium text-gray-800 dark:text-gray-200">{volT.workingRadius}</p>
+                            <div className="font-bold text-lg text-orange-600">
+                                {user.settings?.workingRadius ?? 1} {volT.km}
+                            </div>
+                        </div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{volT.workingRadiusDesc}</p>
+                        <input
+                            type="range"
+                            min="1"
+                            max="10"
+                            step="1"
+                            value={user.settings?.workingRadius ?? 1}
+                            onChange={handleRadiusChange}
+                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-orange-500"
+                            aria-label="Working radius slider"
+                        />
+                    </div>
+                </div>
+                <SettingRow id="assignment-notifications" label={volT.assignmentNotifications} description={volT.assignmentNotificationsDesc} checked={user.settings?.notifications ?? true} onToggle={(c) => handleSettingToggle('notifications', c)} icon={<BellIcon />} />
+                <SettingRow id="nearby-alerts" label={volT.nearbyAlerts} description={volT.nearbyAlertsDesc} checked={user.settings?.nearbyAlertsNotifications ?? true} onToggle={(c) => handleSettingToggle('nearbyAlertsNotifications', c)} icon={<ShieldExclamationIcon />} />
+            </div>
+        </Card>
+    );
+};
 
-            <Card>
-                <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{t.myAssignments}</h2>
-                <div className="space-y-3 max-h-72 overflow-y-auto pr-2">
-                    {openCases.length > 0 ? (
-                        openCases.map(report => (
-                            <div key={report.id} className="flex flex-col sm:flex-row justify-between sm:items-center bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg gap-2">
-                                <div>
-                                    <p className="font-semibold text-gray-800 dark:text-gray-200">{report.personName || report.itemName}</p>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400 truncate max-w-sm">{report.description}</p>
-                                </div>
-                                <Button onClick={() => onSelectReport(report)} variant="secondary" className="text-sm py-1 px-3 self-end sm:self-center">{t.viewReport}</Button>
-                            </div>
-                        ))
-                    ) : (
-                         <p className="text-gray-500 dark:text-gray-400 italic text-center py-4">{t.noAssignments}</p>
-                    )}
-                </div>
-            </Card>
-            
-            <Card>
-                <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{volT.resolvedHistoryTitle}</h2>
-                <div className="space-y-3 max-h-72 overflow-y-auto pr-2">
-                    {resolvedCases.length > 0 ? (
-                        resolvedCases.map(report => (
-                            <div key={report.id} className="flex flex-col sm:flex-row justify-between sm:items-center bg-green-50 dark:bg-green-900/30 p-3 rounded-lg gap-2">
-                                <div>
-                                    <p className="font-semibold text-gray-800 dark:text-gray-200">{report.personName || report.itemName}</p>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">Resolved on: {new Date(report.timestamp).toLocaleDateString()}</p>
-                                </div>
-                                <Button onClick={() => onSelectReport(report)} variant="secondary" className="text-sm py-1 px-3 self-end sm:self-center">{t.viewReport}</Button>
-                            </div>
-                        ))
-                    ) : (
-                         <p className="text-gray-500 dark:text-gray-400 italic text-center py-4">{volT.noResolvedCases}</p>
-                    )}
-                </div>
-            </Card>
-        </>
+const VolunteerProfileBody: React.FC<{ user: User; }> = ({ user }) => {
+    return (
+        <VolunteerSettings user={user} />
     );
 };
 
@@ -311,7 +328,7 @@ const ProfilePage: React.FC = () => {
       case UserRole.AUTHORITY:
         return <AuthorityProfileBody user={user} onUpdateUser={updateUser} />;
       case UserRole.VOLUNTEER:
-        return <VolunteerProfileBody user={user} onUpdateUser={updateUser} onSelectReport={setSelectedReport} />;
+        return <VolunteerProfileBody user={user} />;
       case UserRole.PILGRIM:
       default:
         return <PilgrimProfileBody user={user} onUpdateUser={updateUser} onSelectSosAlert={setSelectedSosAlert} />;

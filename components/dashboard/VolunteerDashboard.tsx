@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Card } from '../ui/Card';
 import { useLocalization } from '../../hooks/useLocalization';
-import { MOCK_LOST_FOUND_REPORTS, MOCK_SOS_ALERTS } from '../../data/mockData';
+import { MOCK_LOST_FOUND_REPORTS, MOCK_SOS_ALERTS, MOCK_CROWD_ZONES } from '../../data/mockData';
 import { LostFoundReport, User, SosAlert, UserRole } from '../../types';
 import ReportDetailsModal from './ReportDetailsModal';
 import { useAuth } from '../../hooks/useAuth';
@@ -11,25 +11,12 @@ import { BroadcastAlertModal } from './BroadcastAlertModal';
 import { SosDetailsModal } from './SosDetailsModal';
 
 // --- ICONS ---
-const ClipboardListIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>;
-const BellIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>;
-const CheckCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
 const ListIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" /></svg>;
 const MapIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M11.95 2.006a.75.75 0 00-.9-.053l-4.25 2.5a.75.75 0 00-.45.698v10.198l-2.022-1.179a.75.75 0 00-.956.114l-2 2.5a.75.75 0 00.114.956l2.022 1.179v.699a.75.75 0 00.45.698l4.25 2.5a.75.75 0 00.9-.053l4.25-2.5a.75.75 0 00.45-.698V6.302l2.022 1.179a.75.75 0 00.956-.114l2-2.5a.75.75 0 00-.114-.956L14.022 3.03v-.699a.75.75 0 00-.45-.698l-4.25-2.5a.75.75 0 00-.372 0zM12.75 16.23v-9.69l-4.5 2.64v9.69l4.5-2.64z" clipRule="evenodd" /></svg>;
 const BroadcastIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.636 5.636a9 9 0 0112.728 0M8.464 15.536a5 5 0 010-7.072" /></svg>;
 
 
 // --- Helper Components ---
-const StatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode }> = ({ title, value, icon }) => (
-    <Card className="flex items-center p-4">
-        <div className="mr-4">{icon}</div>
-        <div>
-            <p className="text-sm font-medium text-gray-500">{title}</p>
-            <p className="text-2xl font-bold text-gray-800">{value}</p>
-        </div>
-    </Card>
-);
-
 const AlertCard: React.FC<{ alert: LostFoundReport | SosAlert; onSelectItem: (item: any) => void; onAcceptTask?: (item: LostFoundReport) => void; onAcceptSos?: (item: SosAlert) => void; translations: any }> = ({ alert, onSelectItem, onAcceptTask, onAcceptSos, translations }) => {
     const isReport = 'reportedById' in alert;
     const isSos = 'userId' in alert && !isReport;
@@ -67,13 +54,6 @@ const AlertCard: React.FC<{ alert: LostFoundReport | SosAlert; onSelectItem: (it
 };
 
 // --- Map View Components ---
-const MOCK_CROWD_ZONES = [
-  { id: 'zone1', path: 'M 0 0 H 60 V 50 H 0 Z', level: 'high' }, 
-  { id: 'zone2', path: 'M 60 0 H 100 V 60 H 60 Z', level: 'low' },
-  { id: 'zone3', path: 'M 0 50 H 40 V 100 H 0 Z', level: 'extreme' },
-  { id: 'zone4', path: 'M 40 50 H 100 V 100 H 40 Z', level: 'moderate' },
-];
-
 const CrowdDensityLayer: React.FC = () => {
     const getColor = (level: string) => {
         switch (level) {
@@ -86,7 +66,6 @@ const CrowdDensityLayer: React.FC = () => {
     };
     return (
         <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-            {/* FIX: Changed `level` to `zone.level` to correctly pass the level of each zone. */}
             {MOCK_CROWD_ZONES.map(zone => <path key={zone.id} d={zone.path} fill={getColor(zone.level)} fillOpacity="0.3" stroke={getColor(zone.level)} strokeWidth="0.2" strokeOpacity="0.5" />)}
         </svg>
     );
@@ -119,7 +98,6 @@ const VolunteerMapView: React.FC<{ user: User; assignments: (LostFoundReport | S
         const pinColors = { assignment: 'blue', alert: 'orange', sos: 'red' };
         const pinColor = pinColors[type];
         const isSos = type === 'sos';
-        // FIX: Used the `type` prop to discriminate the union and safely access the correct name property from either SosAlert or LostFoundReport.
         const name = isSos ? (item as SosAlert).userName : (item as LostFoundReport).personName || (item as LostFoundReport).itemName;
 
         return (
@@ -162,14 +140,17 @@ const VolunteerDashboard: React.FC = () => {
     const { user, updateUser } = useAuth();
     const { addToast } = useToast();
     const t = translations.dashboard.volunteer;
+    const profileT = translations.profile;
+    const volT = profileT.volunteer || {};
+
 
     const [reports, setReports] = useState<LostFoundReport[]>(MOCK_LOST_FOUND_REPORTS);
-    const [activeTab, setActiveTab] = useState('liveAlerts');
+    const [activeTab, setActiveTab] = useState<'assignments' | 'liveAlerts' | 'sosHistory' | 'resolvedHistory'>('assignments');
     const [selectedItem, setSelectedItem] = useState<LostFoundReport | SosAlert | null>(null);
     const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
     const [isBroadcastModalOpen, setBroadcastModalOpen] = useState(false);
 
-
+    // --- DATA CALCULATION ---
     const myAssignments = useMemo(() => {
         const assignedReports = reports.filter(r => r.assignedToId === user?.id && r.status !== 'Resolved');
         const assignedSos = MOCK_SOS_ALERTS.filter(a => a.assignedToId === user?.id && a.status !== 'Resolved');
@@ -184,17 +165,23 @@ const VolunteerDashboard: React.FC = () => {
         return [...nearbyReports, ...pilgrimSosAlerts].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
     }, [reports]);
     
-    const resolvedTodayCount = useMemo(() =>
-        reports.filter(r => {
-            if (r.assignedToId !== user?.id || r.status !== 'Resolved') return false;
-            const reportDate = new Date(r.timestamp);
-            const today = new Date();
-            return reportDate.getFullYear() === today.getFullYear() &&
-                   reportDate.getMonth() === today.getMonth() &&
-                   reportDate.getDate() === today.getDate();
-        }).length,
-        [reports, user]
-    );
+    const resolvedCases = useMemo(() => {
+        return MOCK_LOST_FOUND_REPORTS.filter(r => r.assignedToId === user?.id && r.status === 'Resolved')
+            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    }, [user]);
+
+    const sosHistory = useMemo(() => user?.sosHistory || [], [user]);
+
+    // --- STATS CALCULATION ---
+    const allAssignedReports = useMemo(() => MOCK_LOST_FOUND_REPORTS.filter(r => r.assignedToId === user?.id), [user]);
+    const openCasesCount = useMemo(() => allAssignedReports.filter(r => r.status !== 'Resolved').length, [allAssignedReports]);
+    const resolvedThisWeekCount = useMemo(() => allAssignedReports.filter(r => {
+        if (r.status !== 'Resolved') return false;
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        return new Date(r.timestamp) > oneWeekAgo;
+    }).length, [allAssignedReports]);
+
 
     const handleUpdateReport = (reportId: string, updates: Partial<LostFoundReport>) => {
         const updatedReports = reports.map(r => r.id === reportId ? { ...r, ...updates } : r);
@@ -272,6 +259,15 @@ const VolunteerDashboard: React.FC = () => {
 
     const isAvailable = user?.settings?.availabilityStatus !== 'On Break';
 
+    const getSosStatusClasses = (status: SosAlert['status']) => {
+        switch (status) {
+            case 'Broadcasted': return 'bg-yellow-200 text-yellow-800';
+            case 'Responded': return 'bg-blue-200 text-blue-800';
+            case 'Resolved': return 'bg-green-200 text-green-800';
+            default: return 'bg-gray-200 text-gray-800';
+        }
+    };
+
     const renderContent = () => {
         const tabs = {
             assignments: myAssignments.length > 0 ? (
@@ -301,6 +297,30 @@ const VolunteerDashboard: React.FC = () => {
                     ))}
                 </div>
             ) : <p className="text-center text-gray-500 py-10">{t.noNearby}</p>,
+            sosHistory: (
+                 <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+                    {sosHistory.length > 0 ? (
+                    sosHistory.map(alert => <div key={alert.id} onClick={() => setSelectedItem(alert)} className="flex justify-between items-center bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors"><div><p className="font-semibold text-gray-800 dark:text-gray-200">{new Date(alert.timestamp).toLocaleString()}</p><p className="text-sm text-gray-500 dark:text-gray-400">{profileT.sosHistory.triggeredOn}</p></div><span className={`px-3 py-1 text-xs font-semibold rounded-full ${getSosStatusClasses(alert.status)}`}>{profileT.sosHistory.statuses[alert.status.toLowerCase() as keyof typeof profileT.sosHistory.statuses]}</span></div>)
+                    ) : <p className="text-gray-500 dark:text-gray-400 italic text-center py-2">{profileT.sosHistory.noHistory}</p>}
+                </div>
+            ),
+             resolvedHistory: (
+                 <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+                    {resolvedCases.length > 0 ? (
+                        resolvedCases.map(report => (
+                            <div key={report.id} className="flex flex-col sm:flex-row justify-between sm:items-center bg-green-50 dark:bg-green-900/30 p-3 rounded-lg gap-2">
+                                <div>
+                                    <p className="font-semibold text-gray-800 dark:text-gray-200">{report.personName || report.itemName}</p>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">Resolved on: {new Date(report.timestamp).toLocaleDateString()}</p>
+                                </div>
+                                <Button onClick={() => setSelectedItem(report)} variant="secondary" className="text-sm py-1 px-3 self-end sm:self-center">{profileT.viewReport}</Button>
+                            </div>
+                        ))
+                    ) : (
+                         <p className="text-gray-500 dark:text-gray-400 italic text-center py-4">{volT.noResolvedCases}</p>
+                    )}
+                </div>
+            )
         };
         return tabs[activeTab as keyof typeof tabs];
     };
@@ -329,17 +349,20 @@ const VolunteerDashboard: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <StatCard title={t.kpis.myAssignments} value={myAssignments.length} icon={<ClipboardListIcon />} />
-                    <StatCard title={t.kpis.nearbyAlerts} value={isAvailable ? liveAlerts.length : 0} icon={<BellIcon />} />
-                    <StatCard title={t.kpis.resolvedToday} value={resolvedTodayCount} icon={<CheckCircleIcon />} />
-                </div>
+                <Card>
+                    <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{volT.statsTitle}</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                        <div><p className="text-3xl font-bold">{allAssignedReports.length}</p><p className="text-gray-500 dark:text-gray-400">{volT.totalAssigned}</p></div>
+                        <div><p className="text-3xl font-bold text-yellow-600">{openCasesCount}</p><p className="text-gray-500 dark:text-gray-400">{volT.openCases}</p></div>
+                        <div><p className="text-3xl font-bold text-green-600">{resolvedThisWeekCount}</p><p className="text-gray-500 dark:text-gray-400">{volT.resolvedThisWeek}</p></div>
+                    </div>
+                </Card>
                 
                 <Card>
                     <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
                         <div className="border-b border-gray-200 w-full sm:w-auto">
-                           <nav className="-mb-px flex space-x-6">
-                                <button onClick={() => setActiveTab('assignments')} className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'assignments' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>{t.tabs.assignments} ({myAssignments.length})</button>
+                           <nav className="-mb-px flex space-x-6 overflow-x-auto">
+                                <button onClick={() => setActiveTab('assignments')} className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'assignments' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>{profileT.myAssignments} ({myAssignments.length})</button>
                                 <button 
                                     onClick={() => setActiveTab('liveAlerts')}
                                     disabled={!isAvailable}
@@ -347,6 +370,8 @@ const VolunteerDashboard: React.FC = () => {
                                 >
                                     {t.tabs.liveAlerts} ({isAvailable ? liveAlerts.length : 0})
                                 </button>
+                                <button onClick={() => setActiveTab('sosHistory')} className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'sosHistory' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>{profileT.sosHistory.title} ({sosHistory.length})</button>
+                                <button onClick={() => setActiveTab('resolvedHistory')} className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'resolvedHistory' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>{volT.resolvedHistoryTitle} ({resolvedCases.length})</button>
                            </nav>
                         </div>
                         <div className="inline-flex rounded-md shadow-sm bg-gray-100 p-1 flex-shrink-0">
