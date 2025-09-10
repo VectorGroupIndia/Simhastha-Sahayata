@@ -12,6 +12,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { SosDetailsModal } from './SosDetailsModal';
 import { AnalyticsModal } from './AnalyticsModal';
 import { ToggleSwitch } from '../ui/ToggleSwitch';
+import { CreateTaskModal } from './CreateTaskModal';
 
 
 // --- ICONS ---
@@ -142,7 +143,7 @@ const MapView: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; per
     );
 };
 
-const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; personnel: User[]; user: User | null; onSelectReport: (report: LostFoundReport) => void; onSelectSos: (sos: SosAlert) => void; translations: any; onOpenBroadcast: () => void; }> = ({ reports, sosAlerts, personnel, user, onSelectReport, onSelectSos, translations, onOpenBroadcast }) => {
+const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; personnel: User[]; user: User | null; onSelectReport: (report: LostFoundReport) => void; onSelectSos: (sos: SosAlert) => void; translations: any; onOpenBroadcast: () => void; onOpenCreateTask: () => void; }> = ({ reports, sosAlerts, personnel, user, onSelectReport, onSelectSos, translations, onOpenBroadcast, onOpenCreateTask }) => {
     const [activeTab, setActiveTab] = useState<'tasks' | 'ai-insights' | 'my-assignments' | 'personnel' | 'broadcasts'>('tasks');
     const t = translations.dashboard.authorities.panel;
     const profileT = translations.profile;
@@ -151,6 +152,7 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
     const [taskFilter, setTaskFilter] = useState({ status: 'all', priority: 'all', zone: 'all' });
     const [taskSort, setTaskSort] = useState('date');
     const [personnelRoleFilter, setPersonnelRoleFilter] = useState<UserRole | 'all'>('all');
+    const [personnelStatusFilter, setPersonnelStatusFilter] = useState('all');
     const [personnelSearch, setPersonnelSearch] = useState('');
 
     // --- MEMOIZED DATA ---
@@ -194,16 +196,33 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
             });
     }, [allTasks, taskFilter, taskSort, personnel]);
 
+    const personnelWithStatus = useMemo(() => {
+        return personnel.map(p => {
+            const assignment = reports.find(r => r.assignedToId === p.id && r.status === 'In Progress');
+            let status: 'Available' | 'On Task' | 'On Break';
+
+            if (p.settings?.availabilityStatus === 'On Break') {
+                status = 'On Break';
+            } else if (assignment) {
+                status = 'On Task';
+            } else {
+                status = 'Available';
+            }
+            return { ...p, operationalStatus: status, currentTask: assignment?.id };
+        });
+    }, [personnel, reports]);
+
     const personnelRoles = useMemo(() => 
         [{ value: 'all', label: 'All Roles' }, ...[...new Set(personnel.map(p => p.role))].map(r => ({value: r, label: r}))]
     , [personnel]);
 
     const filteredPersonnel = useMemo(() => 
-        personnel.filter(p => 
+        personnelWithStatus.filter(p => 
             (personnelRoleFilter === 'all' || p.role === personnelRoleFilter) &&
+            (personnelStatusFilter === 'all' || p.operationalStatus === personnelStatusFilter) &&
             (personnelSearch === '' || p.name.toLowerCase().includes(personnelSearch.toLowerCase()))
         )
-    , [personnel, personnelRoleFilter, personnelSearch]);
+    , [personnelWithStatus, personnelRoleFilter, personnelStatusFilter, personnelSearch]);
     
     const getInsightSeverityClasses = (severity: AIInsight['severity']) => {
         switch(severity) {
@@ -214,6 +233,13 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
         }
     }
 
+    const getOperationalStatusClasses = (status: 'Available' | 'On Task' | 'On Break') => {
+        switch (status) {
+            case 'Available': return 'bg-green-100 text-green-800';
+            case 'On Task': return 'bg-blue-100 text-blue-800';
+            case 'On Break': return 'bg-gray-200 text-gray-700';
+        }
+    };
 
     return (
         <Card className="h-full flex flex-col">
@@ -229,6 +255,7 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
              <div className="flex-grow overflow-y-auto mt-4 pr-2">
                 {activeTab === 'tasks' && (
                     <div className="animate-fade-in">
+                        <Button onClick={onOpenCreateTask} className="w-full mb-4">Create Task</Button>
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4 text-xs">
                             <FilterDropdown label="Status" value={taskFilter.status} onChange={e=>setTaskFilter(f=>({...f, status: e.target.value}))} options={[{value:'all', label: 'All Statuses'}, {value:'Open', label:'Open'}, {value:'In Progress', label:'In Progress'}, {value: 'Broadcasted', label: 'Broadcasted'}, {value: 'Accepted', label: 'Accepted'}]} />
                             <FilterDropdown label="Priority" value={taskFilter.priority} onChange={e=>setTaskFilter(f=>({...f, priority: e.target.value}))} options={[{value:'all', label: 'All Priorities'}, {value:'Critical', label:'Critical'}, {value:'High', label:'High'}, {value:'Medium', label:'Medium'}, {value:'Low', label:'Low'}]}/>
@@ -316,44 +343,52 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
                  )}
                  {activeTab === 'personnel' && (
                      <div className="animate-fade-in">
-                        <div className="flex flex-col sm:flex-row gap-2 mb-4">
-                            <div className="relative flex-grow">
-                                <input 
-                                    type="text"
-                                    placeholder="Search by name..."
-                                    value={personnelSearch}
-                                    onChange={e => setPersonnelSearch(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md shadow-sm focus:border-orange-500 focus:ring-orange-500"
-                                />
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><SearchIcon /></div>
-                            </div>
-                            <select value={personnelRoleFilter} onChange={e => setPersonnelRoleFilter(e.target.value as UserRole | 'all')} className="rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                            <select value={personnelRoleFilter} onChange={e => setPersonnelRoleFilter(e.target.value as UserRole | 'all')} className="text-xs rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 py-1.5 pl-2 pr-8">
                                 {personnelRoles.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                             </select>
+                            <FilterDropdown 
+                                label="Status" 
+                                value={personnelStatusFilter} 
+                                onChange={e => setPersonnelStatusFilter(e.target.value)}
+                                options={[
+                                    { value: 'all', label: 'All Statuses' },
+                                    { value: 'Available', label: 'Available' },
+                                    { value: 'On Task', label: 'On Task' },
+                                    { value: 'On Break', label: 'On Break' }
+                                ]}
+                            />
+                        </div>
+                        <div className="relative mb-4">
+                            <input 
+                                type="text"
+                                placeholder="Search by name..."
+                                value={personnelSearch}
+                                onChange={e => setPersonnelSearch(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md shadow-sm focus:border-orange-500 focus:ring-orange-500"
+                            />
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><SearchIcon /></div>
                         </div>
                         <div className="space-y-2">
-                         {filteredPersonnel.map(p => {
-                             const assignment = reports.find(r => r.assignedToId === p.id && r.status === 'In Progress');
-                             return (
-                                <div key={p.id} className="flex items-center bg-gray-50 dark:bg-gray-800/50 p-2 rounded-lg">
-                                    <img src={p.avatar} alt={p.name} className="w-10 h-10 rounded-full mr-3" />
-                                    <div className="flex-grow">
-                                        <p className="font-medium text-sm text-gray-800 dark:text-gray-200">{p.name}</p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">{p.role}</p>
-                                    </div>
-                                    <div className="text-xs text-center mx-4">
-                                        <p className={`font-semibold ${assignment ? 'text-blue-600 dark:text-blue-400' : 'text-green-600 dark:text-green-400'}`}>
-                                            {assignment ? t.statusLabels.onTask : t.statusLabels.available}
-                                        </p>
-                                        {assignment && <p className="text-gray-500 dark:text-gray-400">{assignment.id}</p>}
-                                    </div>
-                                    <div className="text-xs text-center">
-                                        <p className="font-semibold">Zone</p>
-                                        <p className="text-gray-500 dark:text-gray-400">{p.assignedZone?.split(' ')[1] || 'N/A'}</p>
-                                    </div>
-                                </div>
-                             )
-                         })}
+                         {filteredPersonnel.map(p => (
+                             <div key={p.id} className="flex items-center bg-gray-50 dark:bg-gray-800/50 p-2 rounded-lg">
+                                 <img src={p.avatar} alt={p.name} className="w-10 h-10 rounded-full mr-3" />
+                                 <div className="flex-grow">
+                                     <p className="font-medium text-sm text-gray-800 dark:text-gray-200">{p.name}</p>
+                                     <p className="text-xs text-gray-500 dark:text-gray-400">{p.role}</p>
+                                 </div>
+                                 <div className="text-xs text-center mx-4">
+                                     <span className={`px-2 py-0.5 rounded-full font-semibold ${getOperationalStatusClasses(p.operationalStatus)}`}>
+                                         {p.operationalStatus}
+                                     </span>
+                                     {p.operationalStatus === 'On Task' && <p className="text-gray-500 dark:text-gray-400 mt-1">{p.currentTask}</p>}
+                                 </div>
+                                 <div className="text-xs text-center">
+                                     <p className="font-semibold">Zone</p>
+                                     <p className="text-gray-500 dark:text-gray-400">{p.assignedZone?.split(' ')[1] || 'N/A'}</p>
+                                 </div>
+                             </div>
+                         ))}
                          </div>
                      </div>
                 )}
@@ -405,12 +440,21 @@ const AuthoritiesDashboard: React.FC = () => {
     const [selectedSosAlert, setSelectedSosAlert] = useState<SosAlert | null>(null);
     const [isBroadcastModalOpen, setBroadcastModalOpen] = useState(false);
     const [isAnalyticsModalOpen, setAnalyticsModalOpen] = useState(false);
+    const [isCreateTaskModalOpen, setCreateTaskModalOpen] = useState(false);
 
     const staffRoles = new Set([
         UserRole.AUTHORITY,
         UserRole.VOLUNTEER,
     ]);
     const activePersonnel = useMemo(() => DEMO_USERS.filter(u => u.status === 'Active' && staffRoles.has(u.role)), []);
+
+    const availableVolunteers = useMemo(() => {
+        return activePersonnel.filter(p => {
+            const isOnBreak = p.settings?.availabilityStatus === 'On Break';
+            const isOnTask = reports.some(r => r.assignedToId === p.id && r.status === 'In Progress');
+            return p.role === UserRole.VOLUNTEER && !isOnBreak && !isOnTask;
+        });
+    }, [activePersonnel, reports]);
     
     // Calculate stats for the current user
     const myAssignments = useMemo(() => MOCK_LOST_FOUND_REPORTS.filter(r => r.assignedToId === user?.id), [user]);
@@ -440,6 +484,35 @@ const AuthoritiesDashboard: React.FC = () => {
             addToast('SOS Alert updated successfully!', 'success');
         }
     };
+    
+    const handleCreateTask = (taskData: { title: string; description: string; priority: LostFoundReport['priority']; location: string; assignedToId: string; }) => {
+        if (!user) return;
+
+        const [idStr, name] = taskData.assignedToId.split(',');
+        const assignedToId = parseInt(idStr, 10);
+
+        const newTask: LostFoundReport = {
+            id: `TASK-${Date.now()}`,
+            type: 'Found', // Using 'Found' as a stand-in for general tasks
+            category: 'Item',
+            subCategory: 'Other',
+            itemName: taskData.title,
+            description: taskData.description,
+            lastSeen: taskData.location,
+            reportedBy: user.name,
+            reportedById: user.id,
+            timestamp: new Date().toISOString(),
+            status: 'In Progress',
+            priority: taskData.priority,
+            assignedToId: assignedToId,
+            assignedToName: name,
+        };
+        
+        MOCK_LOST_FOUND_REPORTS.unshift(newTask);
+        setReports([newTask, ...reports]);
+        addToast(`Task "${taskData.title}" created and assigned to ${name}.`, 'success');
+        setCreateTaskModalOpen(false);
+    };
 
     return (
         <>
@@ -459,7 +532,7 @@ const AuthoritiesDashboard: React.FC = () => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" style={{ height: 'calc(80vh - 120px)'}}>
                     <MapView reports={MOCK_LOST_FOUND_REPORTS} sosAlerts={MOCK_SOS_ALERTS} personnel={activePersonnel} onSelectReport={setSelectedReport} translations={translations} />
-                    <SidePanel reports={reports} sosAlerts={MOCK_SOS_ALERTS} personnel={activePersonnel} user={user} onSelectReport={setSelectedReport} onSelectSos={setSelectedSosAlert} translations={translations} onOpenBroadcast={() => setBroadcastModalOpen(true)}/>
+                    <SidePanel reports={reports} sosAlerts={MOCK_SOS_ALERTS} personnel={activePersonnel} user={user} onSelectReport={setSelectedReport} onSelectSos={setSelectedSosAlert} translations={translations} onOpenBroadcast={() => setBroadcastModalOpen(true)} onOpenCreateTask={() => setCreateTaskModalOpen(true)} />
                 </div>
             </div>
             <ReportDetailsModal 
@@ -483,6 +556,12 @@ const AuthoritiesDashboard: React.FC = () => {
              <AnalyticsModal
                 isOpen={isAnalyticsModalOpen}
                 onClose={() => setAnalyticsModalOpen(false)}
+            />
+            <CreateTaskModal
+                isOpen={isCreateTaskModalOpen}
+                onClose={() => setCreateTaskModalOpen(false)}
+                onConfirm={handleCreateTask}
+                volunteers={availableVolunteers}
             />
         </>
     );
