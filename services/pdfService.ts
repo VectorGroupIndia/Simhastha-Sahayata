@@ -1,4 +1,3 @@
-
 import { LostFoundReport } from '../types';
 
 /**
@@ -6,10 +5,9 @@ import { LostFoundReport } from '../types';
  * @param report - The LostFoundReport object to be converted into a PDF.
  */
 export const generateReportPdf = (report: LostFoundReport) => {
-    // FIX: Corrected to use the global jsPDF constructor directly, following standard library usage and the compiler hint.
-    // The global `jspdf` constructor is provided by the CDN script.
-    const { jsPDF } = jspdf;
-    const doc = new jsPDF();
+    // The global `jspdf` object is provided by the CDN script.
+    // The constructor is located at `jspdf.jsPDF`.
+    const doc = new jspdf.jsPDF();
     let y = 15; // Initial Y position for text
 
     // --- Document Title ---
@@ -77,6 +75,8 @@ export const generateReportPdf = (report: LostFoundReport) => {
         addDetail("Item Name:", report.itemName);
         addDetail("Brand:", report.itemBrand);
         addDetail("Color:", report.itemColor);
+        addDetail("Material:", report.itemMaterial);
+        addDetail("Size:", report.itemSize);
         addDetail("Identifying Marks:", report.identifyingMarks);
     }
 

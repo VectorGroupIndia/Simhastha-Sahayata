@@ -143,6 +143,15 @@ export const MOCK_SOS_ALERTS: SosAlert[] = [
         timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
         status: 'Resolved',
         locationCoords: { lat: 15, lng: 25 }
+    },
+    {
+        id: 4,
+        userId: 5,
+        userName: 'Sunita Devi (Volunteer)',
+        timestamp: new Date(Date.now() - 10 * 60 * 1000).toISOString(), // 10 mins ago
+        status: 'Broadcasted',
+        locationCoords: { lat: 35, lng: 40 },
+        message: 'Unattended bag found near Sector C entrance. Requires immediate attention.'
     }
 ];
 
@@ -186,6 +195,14 @@ export const translations: { [key: string]: any } = {
     dashboard: {
       title: 'Dashboard',
       greeting: 'Hello',
+      broadcastModal: {
+          title: 'Broadcast Alert',
+          description: 'This sends an alert with your location to authorities. An optional message helps them understand the situation better, but you can send an alert without one in an emergency.',
+          placeholder: 'Optional: e.g., "Large unattended bag near Gate 4."',
+          cancel: 'Cancel',
+          confirm: 'Send Alert',
+          success: 'Alert broadcasted successfully to authorities!',
+      },
       crowdDensity: {
           title: 'Current Crowd Density',
           low: 'Low',
@@ -320,27 +337,23 @@ export const translations: { [key: string]: any } = {
           },
           tabs: {
               assignments: 'My Assignments',
-              nearby: 'Nearby Alerts',
+              liveAlerts: 'Live Alerts',
+          },
+          alertTypes: {
+              nearby: 'Nearby Alert',
+              broadcast: 'Broadcast'
           },
           mapView: 'Map View',
           listView: 'List View',
           yourLocation: 'Your Location',
           workingRadius: 'Working Radius',
-          noAssignments: 'You have no active assignments. Check the "Nearby Alerts" tab to find cases to help with.',
+          noAssignments: 'You have no active assignments. Check the "Live Alerts" tab to find cases to help with.',
           noNearby: 'No unassigned high-priority alerts nearby. Thank you for your service!',
           acceptTask: 'Accept Task',
           taskAccepted: 'Task accepted and added to your assignments!',
           statusUpdated: 'Report status updated.',
           viewDetails: 'View Details',
           updateStatus: 'Update Status',
-          broadcastModal: {
-              title: 'Broadcast Emergency Alert',
-              description: 'This will send a high-priority alert to authorities. If you can, briefly describe the situation. Otherwise, just press confirm.',
-              placeholder: 'Optional: e.g., Medical emergency near Sector C...',
-              cancel: 'Cancel',
-              confirm: 'Confirm & Broadcast',
-              success: 'Alert broadcasted successfully to all authorities!',
-          },
       },
     },
     familyHub: {
@@ -458,12 +471,13 @@ export const translations: { [key: string]: any } = {
             jewelry: 'Jewelry & Accessories',
             other: 'Other'
         },
-        upload: 'Upload a Photo (Highly Recommended)',
+        upload: 'Upload a Photo to Begin',
         uploadPrompt: 'Upload a file',
+        takePhoto: 'Take Photo',
         uploadOrDrag: 'or drag and drop',
         uploadHint: 'PNG, JPG, GIF up to 10MB',
         removeImage: 'Remove',
-        aiAnalyzeButton: 'Analyze Image with AI',
+        aiAnalyzeButton: 'Analyze Photo & Continue',
         aiAnalyzing: 'Analyzing...',
         personName: "Person's Name",
         personNamePlaceholder: "e.g., Suresh Kumar",
@@ -482,6 +496,10 @@ export const translations: { [key: string]: any } = {
         itemBrandPlaceholder: 'e.g., Samsung, Titan',
         itemColor: 'Primary Color',
         itemColorPlaceholder: 'e.g., Blue, Red, Black',
+        itemMaterial: 'Material (optional)',
+        itemMaterialPlaceholder: 'e.g., Leather, Cotton',
+        itemSize: 'Size (optional)',
+        itemSizePlaceholder: 'e.g., Small, 24 inches',
         identifyingMarks: 'Unique Identifying Marks',
         identifyingMarksPlaceholder: 'e.g., Sticker on bag, crack on screen',
         description: 'Additional Description',
@@ -498,7 +516,20 @@ export const translations: { [key: string]: any } = {
         confirmationSuccessText: 'Your report has been broadcasted to our network. You will be notified of any updates.',
         downloadButton: 'Download PDF Copy',
         newReport: 'File Another Report',
-        dashboardButton: 'Go to Dashboard'
+        dashboardButton: 'Go to Dashboard',
+        viewOnMapButton: 'View on Map',
+        whatHappensNext: {
+            title: 'What Happens Next?',
+            step1: 'Your report is broadcast to all nearby volunteers and authorities.',
+            step2: 'A volunteer or officer will be assigned to your case shortly.',
+            step3: 'You will receive push notifications with any status updates.'
+        },
+        aiCategorization: 'AI Identification',
+        aiCategorizationPrompt: 'Our AI has identified this report as concerning a **{category}**. Is this correct?',
+        confirmCategory: 'Yes, Correct',
+        changeCategory: 'No, Change to {category}',
+        uploadFirst: 'Please upload a photo to proceed.',
+        analyze: 'Analyze Photo',
     },
     reportDetails: {
         title: 'Report Details',
@@ -568,6 +599,14 @@ export const translations: { [key: string]: any } = {
         notificationSettings: 'Notification Settings',
         pushNotifications: 'Push Notifications',
         pushNotificationsDesc: 'Receive alerts for your reports and family hub.',
+        permissions: 'App Permissions',
+        permissionsDesc: 'Manage access to your device features.',
+        location: 'Location Access',
+        locationDesc: 'Allow the app to access your location for Family Hub and navigation.',
+        camera: 'Camera Access',
+        cameraDesc: 'Allow access to take photos for reports.',
+        microphone: 'Microphone Access',
+        microphoneDesc: 'Allow access to use voice search for navigation.',
         emergencyContacts: {
             title: 'Emergency Contacts',
             description: 'These contacts will be notified when you trigger an SOS.',
@@ -589,7 +628,13 @@ export const translations: { [key: string]: any } = {
                 broadcasted: 'Broadcasted',
                 responded: 'Responded',
                 resolved: 'Resolved'
-            }
+            },
+            filterByStatus: "Filter by Status",
+            allStatuses: "All Statuses",
+            sortBy: "Sort by",
+            sortNewest: "Newest First",
+            sortOldest: "Oldest First",
+            viewDetails: "View Details"
         },
         authority: {
             statsTitle: 'My Operational Stats',
@@ -642,6 +687,17 @@ export const translations: { [key: string]: any } = {
         maintenanceMode: 'Maintenance Mode',
         maintenanceModeDesc: 'Temporarily disable non-admin access for system updates.',
         maintenanceModeBanner: 'The app is currently under maintenance. Please check back later.'
+    },
+    sosDetailsModal: {
+        title: "SOS Alert Details",
+        alertId: "Alert ID",
+        triggeredBy: "Triggered By",
+        timestamp: "Timestamp",
+        status: "Status",
+        location: "Last Known Location",
+        message: "User Message",
+        noMessage: "No message was provided.",
+        close: "Close"
     },
     notifications: {
         enabled: 'Notifications have been enabled.',

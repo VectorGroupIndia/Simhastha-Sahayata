@@ -271,7 +271,7 @@ export const autofillReportForm = async (prompt: string): Promise<Partial<LostFo
     // Determine category (Person/Item)
     if (/\b(son|daughter|mother|father|child|boy|girl|man|woman|person|someone)\b/.test(lowerCasePrompt)) {
         autofillData.category = 'Person';
-    } else if (/\b(bag|backpack|phone|wallet|item|keys|bottle)\b/.test(lowerCasePrompt)) {
+    } else if (/\b(bag|backpack|phone|wallet|item|keys|bottle|card|jewelry)\b/.test(lowerCasePrompt)) {
         autofillData.category = 'Item';
     }
     
@@ -297,10 +297,22 @@ export const autofillReportForm = async (prompt: string): Promise<Partial<LostFo
 
     // Extract details for Item
     if (autofillData.category === 'Item') {
-         if (lowerCasePrompt.includes('backpack')) autofillData.itemName = 'Backpack';
-         if (lowerCasePrompt.includes('phone')) autofillData.itemName = 'Phone';
-         if (lowerCasePrompt.includes('wallet')) autofillData.itemName = 'Wallet';
-         if (lowerCasePrompt.includes('bag')) autofillData.itemName = 'Bag';
+         if (lowerCasePrompt.includes('backpack') || lowerCasePrompt.includes('bag')) {
+            autofillData.itemName = 'Backpack';
+            autofillData.subCategory = 'Bags & Luggage';
+         }
+         if (lowerCasePrompt.includes('phone')) {
+            autofillData.itemName = 'Phone';
+            autofillData.subCategory = 'Electronics';
+         }
+         if (lowerCasePrompt.includes('wallet') || lowerCasePrompt.includes('card')) {
+            autofillData.itemName = 'Wallet';
+            autofillData.subCategory = 'Documents & Cards';
+         }
+         if (lowerCasePrompt.includes('ring') || lowerCasePrompt.includes('jewelry')) {
+            autofillData.itemName = 'Jewelry';
+            autofillData.subCategory = 'Jewelry & Accessories';
+         }
 
          if (lowerCasePrompt.includes('red')) autofillData.itemColor = 'Red';
          if (lowerCasePrompt.includes('blue')) autofillData.itemColor = 'Blue';
@@ -325,33 +337,59 @@ export const autofillReportForm = async (prompt: string): Promise<Partial<LostFo
  * @returns A promise that resolves to a partial LostFoundReport object with extracted details.
  */
 export const analyzeReportImage = async (imageBase64: string): Promise<Partial<LostFoundReport>> => {
-    console.log("Simulating Gemini Vision API for Image Analysis...");
+    console.log("Simulating smart Gemini Vision API for Image Analysis...");
     await sleep(2500); // Simulate longer processing for image analysis
 
-    const analysisResult: Partial<LostFoundReport> = {};
+    // --- Mock AI Vision Logic ---
+    // This has been improved to provide varied but deterministic results.
+    // Different images will now yield different analysis results.
+    const MOCK_RESPONSES: Partial<LostFoundReport>[] = [
+        { // Elderly Man
+            category: 'Person',
+            personName: 'Unidentified Senior',
+            personAge: 'Approx. 70-75 years old',
+            personGender: 'Male',
+            clothingAppearance: 'AI analysis: Appears to be an elderly man wearing a white shirt or kurta and glasses.',
+            description: 'The person in the photo seems disoriented.',
+        },
+        { // Blue Backpack
+            category: 'Item',
+            itemName: 'Backpack',
+            itemColor: 'Blue',
+            subCategory: 'Bags & Luggage',
+            itemBrand: 'Unknown',
+            description: 'AI analysis: A blue backpack, possibly made of canvas material. Appears to be in good condition.',
+            identifyingMarks: 'No distinct markings are visible from this angle.',
+        },
+        { // Young Child
+            category: 'Person',
+            personName: 'Unidentified Child',
+            personAge: 'Approx. 5-7 years old',
+            personGender: 'Female',
+            clothingAppearance: 'AI analysis: A young girl wearing a red t-shirt.',
+            description: 'The child appears to be alone and looking for someone.',
+        },
+        { // Black Phone
+            category: 'Item',
+            itemName: 'Smartphone',
+            itemColor: 'Black',
+            subCategory: 'Electronics',
+            itemBrand: 'Unspecified',
+            description: 'AI analysis: A black smartphone with the screen facing down.',
+            identifyingMarks: 'A crack might be visible on the back casing.',
+        }
+    ];
 
-    // Mocking: Randomly return one of two possible analyses for demonstration
-    const isPerson = Math.random() > 0.5;
-
-    if (isPerson) {
-        analysisResult.category = 'Person';
-        analysisResult.personName = 'Unknown';
-        analysisResult.personAge = '5-7';
-        analysisResult.personGender = 'Male';
-        analysisResult.clothingAppearance = 'AI analysis suggests the person is wearing a red t-shirt and blue shorts.';
-        analysisResult.description = 'Image appears to be of a young child, possibly lost. The photo was likely taken outdoors during the day.';
-    } else {
-        analysisResult.category = 'Item';
-        analysisResult.itemName = 'Backpack';
-        analysisResult.itemColor = 'Red';
-        analysisResult.itemBrand = 'Unbranded';
-        analysisResult.description = 'AI analysis suggests this is a red backpack. It seems to be moderately full.';
-        analysisResult.identifyingMarks = 'A keychain is visible on the zipper.';
-    }
+    // Simple hash function to get a deterministic index based on image content
+    const hash = (s: string) => s.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0);
+    const hashValue = Math.abs(hash(imageBase64.substring(0, 1000))); // Hash a substring for performance
+    const index = hashValue % MOCK_RESPONSES.length;
     
-    console.log("AI Image Analysis result:", analysisResult);
-    return analysisResult;
+    const result = MOCK_RESPONSES[index];
+    console.log(`AI decided on mock response index ${index}:`, result);
+    return result;
 };
+
 
 /**
  * Simulates a Gemini API call to summarize a report.
@@ -373,6 +411,7 @@ export const getAiReportSummary = async (report: LostFoundReport): Promise<strin
     if(report.clothingAppearance) summary += `They were last seen wearing: ${report.clothingAppearance}. `;
   } else {
     summary += `The item is a ${itemName || 'unspecified item'}. `;
+    if(report.subCategory) summary += `It is classified under ${report.subCategory}. `;
     if(report.itemColor) summary += `Primary color is ${report.itemColor}. `;
     if(report.itemBrand) summary += `Brand is ${report.itemBrand}. `;
     if(report.identifyingMarks) summary += `Unique marks: ${report.identifyingMarks}. `;

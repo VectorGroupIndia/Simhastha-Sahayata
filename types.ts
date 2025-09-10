@@ -11,7 +11,7 @@ export interface SosAlert {
   id: number;
   timestamp: string;
   status: 'Broadcasted' | 'Responded' | 'Resolved';
-  message?: string; // User's custom message for broadcast alerts
+  message?: string; // Optional user message included in the broadcast/SOS.
   userId?: number;
   userName?: string;
   locationCoords?: { lat: number; lng: number };
@@ -47,6 +47,9 @@ export interface User {
     powerButtonSos: boolean;
     voiceNav: boolean;
     theme?: 'light' | 'dark';
+    locationAccess?: boolean;
+    cameraAccess?: boolean;
+    microphoneAccess?: boolean;
     // Admin settings
     adminNotifications?: {
         highPriority: boolean;
@@ -108,6 +111,8 @@ export interface LostFoundReport {
     itemBrand?: string;
     itemColor?: string;
     identifyingMarks?: string;
+    itemMaterial?: string; // e.g., Leather, Plastic, Cotton
+    itemSize?: string; // e.g., Small, Medium, 24 inches
 }
 
 // Represents a single message in the AI Pilgrim Guide chat.

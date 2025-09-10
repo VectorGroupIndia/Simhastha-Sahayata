@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card } from '../ui/Card';
 import { useLocalization } from '../../hooks/useLocalization';
 import { MOCK_FAMILY_MEMBERS, MOCK_POINTS_OF_INTEREST, MOCK_LOST_FOUND_REPORTS, MOCK_SOS_ALERTS } from '../../data/mockData';
@@ -59,6 +59,18 @@ const LiveMapView: React.FC<LiveMapViewProps> = ({ onNavigate }) => {
         sos: 'all',    // 'all', 'Broadcasted', 'Responded'
         reports: 'all' // 'all', 'Open', 'In Progress'
     });
+
+     useEffect(() => {
+        const reportIdToFocus = sessionStorage.getItem('focusOnReportId');
+        if (reportIdToFocus) {
+            const report = MOCK_LOST_FOUND_REPORTS.find(r => r.id === reportIdToFocus);
+            if (report && report.locationCoords) {
+                setVisibleLayers(prev => ({ ...prev, reports: true }));
+                setActivePin({ ...report, type: 'My Report' });
+            }
+            sessionStorage.removeItem('focusOnReportId');
+        }
+    }, []);
 
     const handleLayerToggle = (layer: keyof typeof visibleLayers, isVisible: boolean) => {
         setVisibleLayers(prev => ({ ...prev, [layer]: isVisible }));

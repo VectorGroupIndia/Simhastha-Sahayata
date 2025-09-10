@@ -124,8 +124,11 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
                     <DetailRow label={translations.report.personAge} value={report.personAge} />
                     <DetailRow label={translations.report.personGender} value={report.personGender} />
                     <DetailRow label={translations.report.clothingAppearance} value={report.clothingAppearance} />
+                    <DetailRow label={translations.report.subCategory} value={report.subCategory} />
                     <DetailRow label={translations.report.itemBrand} value={report.itemBrand} />
                     <DetailRow label={translations.report.itemColor} value={report.itemColor} />
+                    <DetailRow label={translations.report.itemMaterial.replace(' (optional)', '')} value={report.itemMaterial} />
+                    <DetailRow label={translations.report.itemSize.replace(' (optional)', '')} value={report.itemSize} />
                     <DetailRow label={translations.report.identifyingMarks} value={report.identifyingMarks} />
                     <DetailRow label={translations.report.lastSeen} value={report.lastSeen} />
                     <DetailRow label={translations.report.description} value={report.description} />

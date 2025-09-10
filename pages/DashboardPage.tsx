@@ -120,7 +120,7 @@ const PilgrimDashboard: React.FC = () => {
 
         MOCK_SOS_ALERTS.unshift(newAlert);
         
-        addToast(translations.dashboard.volunteer.broadcastModal.success, 'success');
+        addToast(translations.dashboard.broadcastModal.success, 'success');
         setBroadcastModalOpen(false);
     };
 

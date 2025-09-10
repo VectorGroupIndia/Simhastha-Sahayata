@@ -11,7 +11,7 @@ interface BroadcastAlertModalProps {
 
 export const BroadcastAlertModal: React.FC<BroadcastAlertModalProps> = ({ isOpen, onClose, onConfirm }) => {
     const { translations } = useLocalization();
-    const t = translations.dashboard.volunteer.broadcastModal;
+    const t = translations.dashboard.broadcastModal;
     const [message, setMessage] = useState('');
 
     const handleConfirm = () => {
