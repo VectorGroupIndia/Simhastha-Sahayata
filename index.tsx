@@ -1,12 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import type { Root } from 'react-dom/client';
 
 // Define a type for our custom property on the window object to store the React root.
 // This prevents TypeScript errors and ensures type safety.
 declare global {
   interface Window {
-    _reactRoot?: ReactDOM.Root;
+    _reactRoot?: Root;
   }
 }
 

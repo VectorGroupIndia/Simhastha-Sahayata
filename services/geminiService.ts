@@ -1,3 +1,4 @@
+import { GoogleGenAI, Type } from '@google/genai';
 import { ChatMessage, LostFoundReport, Navigatable, SosAlert } from '../types';
 
 // This file simulates interactions with the Google Gemini API.
@@ -134,104 +135,177 @@ export const getChatResponse = async (history: ChatMessage[], message: string): 
 
 
 /**
- * Simulates a Gemini API call to autofill the report form from a text prompt.
+ * Uses Gemini API to autofill the report form from a text prompt.
  * @param prompt - The user's natural language description.
  * @returns A promise that resolves to a partial LostFoundReport object.
  */
 export const autofillReportForm = async (prompt: string): Promise<Partial<LostFoundReport>> => {
-    console.log("Simulating Gemini API call for autofill with prompt:", prompt);
-    await sleep(1800);
-
-    const lowerPrompt = prompt.toLowerCase();
-    let result: Partial<LostFoundReport> = { description: prompt };
-
-    // Detect type
-    if (lowerPrompt.includes('lost')) result.type = 'Lost';
-    if (lowerPrompt.includes('found')) result.type = 'Found';
+    console.log("Calling Gemini API for autofill with prompt:", prompt);
     
-    // Detect category
-    if (lowerPrompt.includes('father') || lowerPrompt.includes('son') || lowerPrompt.includes('child') || lowerPrompt.includes('mother') || lowerPrompt.includes('wife') || lowerPrompt.includes('person') || lowerPrompt.includes('man') || lowerPrompt.includes('woman')) {
-        result.category = 'Person';
-    } else if (lowerPrompt.includes('bag') || lowerPrompt.includes('backpack') || lowerPrompt.includes('phone') || lowerPrompt.includes('wallet') || lowerPrompt.includes('ring')) {
-        result.category = 'Item';
-    }
-    
-    // Extract details
-    if (result.category === 'Person') {
-        if (lowerPrompt.includes('child')) result.personAge = '5-7';
-        if (lowerPrompt.includes('father') || lowerPrompt.includes('man')) result.personGender = 'Male';
-        if (lowerPrompt.includes('mother') || lowerPrompt.includes('wife') || lowerPrompt.includes('woman')) result.personGender = 'Female';
-        const clothingMatch = lowerPrompt.match(/(wearing|in a) (.*?)(?=(near|around|\.|$))/);
-        if (clothingMatch) result.clothingAppearance = clothingMatch[2].trim();
-    } else if (result.category === 'Item') {
-        if (lowerPrompt.includes('backpack') || lowerPrompt.includes('bag')) {
-            result.subCategory = 'Bags & Luggage';
-            result.itemName = 'Backpack';
-        }
-        if (lowerPrompt.includes('red')) result.itemColor = 'Red';
-        if (lowerPrompt.includes('laptop')) result.identifyingMarks = 'Contains a laptop.';
+    if (!process.env.API_KEY) {
+        console.warn("API_KEY environment variable not set. Returning mock data for autofill.");
+        await sleep(1000);
+        return {
+            description: prompt,
+            itemName: "Mocked Autofill Item",
+            lastSeen: "Mocked Location",
+        };
     }
 
-    const locationMatch = lowerPrompt.match(/(near|at|in|around) (.*?)(?=(\.|$))/);
-    if (locationMatch) result.lastSeen = locationMatch[2].trim();
+    try {
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        
+        const textPrompt = `You are an expert lost and found assistant for a massive pilgrimage event. Analyze the following user description and extract structured information.
+User prompt: "${prompt}"
 
-    return result;
+- Determine if the report is for a 'Lost' or 'Found' item/person.
+- Determine if the main subject is a 'Person' or an 'Item'.
+- If a Person, extract their name (if provided), approximate age, gender, and a detailed description of clothing and appearance.
+- If an Item, extract its name, sub-category, brand, color, material, size, and any identifying marks.
+- Extract the last seen location.
+- The 'description' field should be the original user prompt.
+- Populate the JSON schema with all extracted information.`;
+
+        const responseSchema = {
+            type: Type.OBJECT,
+            properties: {
+                type: { type: Type.STRING, enum: ['Lost', 'Found'] },
+                category: { type: Type.STRING, enum: ['Person', 'Item'] },
+                description: { type: Type.STRING },
+                lastSeen: { type: Type.STRING },
+                // Person details
+                personName: { type: Type.STRING },
+                personAge: { type: Type.STRING },
+                personGender: { type: Type.STRING, enum: ['Male', 'Female', 'Other', 'Unknown'] },
+                clothingAppearance: { type: Type.STRING },
+                // Item details
+                subCategory: { type: Type.STRING, enum: ['Bags & Luggage', 'Electronics', 'Documents & Cards', 'Jewelry & Accessories', 'Other'] },
+                itemName: { type: Type.STRING },
+                itemBrand: { type: Type.STRING },
+                itemColor: { type: Type.STRING },
+                itemMaterial: { type: Type.STRING },
+                itemSize: { type: Type.STRING },
+                identifyingMarks: { type: Type.STRING },
+            },
+            required: ['type', 'category', 'description', 'lastSeen']
+        };
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: textPrompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: responseSchema,
+            },
+        });
+
+        const jsonText = response.text.trim();
+        const parsedJson = JSON.parse(jsonText);
+
+        // Ensure original prompt is used as description
+        parsedJson.description = prompt;
+
+        return parsedJson as Partial<LostFoundReport>;
+
+    } catch (error) {
+        console.error("Gemini autofill API call failed:", error);
+        throw new Error("Failed to autofill form with AI. Please try again or fill the form manually.");
+    }
 };
 
+// Helper to extract MIME type and base64 data from a data URI
+const getMimeTypeAndData = (dataUri: string) => {
+    const match = dataUri.match(/^data:(.*?);base64,(.*)$/);
+    if (!match) {
+        throw new Error('Invalid data URI');
+    }
+    return { mimeType: match[1], data: match[2] };
+};
 
 /**
- * Simulates a Gemini Vision API call to analyze an image for a report.
- * @param imageBase64 - The base64 encoded image string.
+ * Analyzes an image using the Gemini Vision API to pre-fill a report.
+ * @param imageBase64 - The base64 encoded image string (as a data URI).
  * @returns A promise that resolves to a partial LostFoundReport object.
  */
 export const analyzeReportImage = async (imageBase64: string): Promise<Partial<LostFoundReport>> => {
-  console.log("Simulating Gemini Vision API call for image analysis.");
-  await sleep(2000); // Simulate API latency
+  console.log("Calling Gemini Vision API for image analysis.");
 
-  // A more stable heuristic for the mock.
-  // This uses a larger, more unique signature from the image data to generate a hash.
-  // This should provide more consistent results for the same image during the demo.
-  const signature = imageBase64.substring(100, 250); // Use a larger slice
-  let hash = 0;
-  for (let i = 0; i < signature.length; i++) {
-    const char = signature.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash |= 0; // Convert to 32bit integer
+  // This check is a safeguard for development without an API key.
+  if (!process.env.API_KEY) {
+      console.warn("API_KEY environment variable not set. Returning mock data for image analysis.");
+      await sleep(1500);
+      return {
+          category: 'Item',
+          itemName: 'Mocked Item',
+          description: 'This is mock data because the API key is missing. The image was not analyzed.',
+          itemColor: 'Various',
+      };
   }
 
-  // Expanded mock responses to be more robust
-  const itemResponses = [
-    // Wallets
-    { category: 'Item' as const, subCategory: 'Documents & Cards' as const, itemName: 'Brown Leather Wallet', itemMaterial: 'Leather', itemColor: 'Brown', description: 'A standard bifold wallet was found.' },
-    // Keys
-    { category: 'Item' as const, subCategory: 'Other' as const, itemName: 'Set of Keys', identifyingMarks: 'Has a car key fob and two house keys.', description: 'A set of keys on a metal ring.' },
-    // Eyeglasses
-    { category: 'Item' as const, subCategory: 'Jewelry & Accessories' as const, itemName: 'Black Eyeglasses', itemBrand: 'Ray-Ban', itemColor: 'Black', description: 'A pair of black-framed eyeglasses.'},
-    // Backpack
-    { category: 'Item' as const, subCategory: 'Bags & Luggage' as const, itemName: 'Red Backpack', itemBrand: 'American Tourister', itemColor: 'Red', description: 'A red backpack, appears to be for students.' },
-    // Phone
-    { category: 'Item' as const, subCategory: 'Electronics' as const, itemName: 'Smartphone', itemBrand: 'Samsung', itemColor: 'Black', description: 'A black smartphone with a cracked screen.' },
-  ];
-  
-  const personResponses = [
-      // Child
-    { category: 'Person' as const, personName: 'Unknown Child', personAge: '4-5', personGender: 'Female' as const, clothingAppearance: 'Wearing a pink frock with cartoon characters.' },
-    // Elderly man
-    { category: 'Person' as const, personName: 'Unknown Male', personAge: '70-75', personGender: 'Male' as const, clothingAppearance: 'Wearing a white kurta and dhoti. Has a white beard.' },
-    // Woman
-    { category: 'Person' as const, personName: 'Unknown Female', personAge: '30-35', personGender: 'Female' as const, clothingAppearance: 'Wearing a blue saree with a gold border.' },
-  ];
-  
-  // A simple heuristic: if the hash is even, it's a person, if odd, it's an item.
-  // This creates a 50/50 split instead of being biased towards items.
-  if (hash % 2 === 0) {
-      // It's a person
-      const selectedResponse = personResponses[Math.abs(hash) % personResponses.length];
-      return selectedResponse;
-  } else {
-      // It's an item
-      const selectedResponse = itemResponses[Math.abs(hash) % itemResponses.length];
-      return selectedResponse;
+  try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const { mimeType, data } = getMimeTypeAndData(imageBase64);
+
+    const imagePart = {
+        inlineData: {
+            mimeType,
+            data,
+        },
+    };
+
+    const textPart = {
+        text: `You are an expert lost and found assistant for a massive pilgrimage event. Analyze the provided image and extract detailed information.
+- First, determine if the main subject is a 'Person' or an 'Item'. This is the most important distinction.
+- If it's a Person, describe their appearance, clothing, accessories, approximate age, and gender.
+- If it's an Item, identify it clearly. If there are multiple distinct items, describe the main ones (e.g., 'Backpack with a laptop and mouse'). Identify brand, color, material, and any distinguishing marks like stickers or patterns.
+- Be very accurate with colors. Do not mistake black for red. List multiple colors if present.
+- Provide a detailed overall description summarizing the contents of the image.
+- Populate the JSON schema with the extracted information. Be as precise as possible.`
+    };
+    
+    const responseSchema = {
+        type: Type.OBJECT,
+        properties: {
+            category: {
+                type: Type.STRING,
+                enum: ['Person', 'Item'],
+                description: 'The primary category of the subject in the image.'
+            },
+            // Person details
+            personName: { type: Type.STRING, description: 'If the category is Person, the name of the person if identifiable, otherwise "Unknown Person", "Unknown Child", "Unknown Man", etc.' },
+            personAge: { type: Type.STRING, description: 'If the category is Person, an approximate age range (e.g., "5-7", "around 30", "65-75").' },
+            personGender: { type: Type.STRING, enum: ['Male', 'Female', 'Other', 'Unknown'], description: 'If the category is Person, the perceived gender.' },
+            clothingAppearance: { type: Type.STRING, description: 'If the category is Person, a detailed description of their clothing, accessories, and distinct features (e.g., "Wearing a red t-shirt and blue shorts", "Yellow saree with red border").' },
+            // Item details
+            subCategory: { type: Type.STRING, enum: ['Bags & Luggage', 'Electronics', 'Documents & Cards', 'Jewelry & Accessories', 'Other'], description: 'If the category is Item, the most relevant sub-category.' },
+            itemName: { type: Type.STRING, description: 'If the category is Item, a concise name for the item or items (e.g., "Black Backpack", "Laptop and Mouse", "Silver iPhone"). If multiple items, list the main ones.' },
+            itemBrand: { type: Type.STRING, description: 'If the category is Item, the brand of the item if visible and identifiable (e.g., "American Tourister", "Apple").' },
+            itemColor: { type: Type.STRING, description: 'If the category is Item, the dominant color(s) of the item (e.g., "Black", "Red and Blue").' },
+            itemMaterial: { type: Type.STRING, description: 'If the category is Item, the apparent material (e.g., "Nylon", "Leather", "Plastic").' },
+            itemSize: { type: Type.STRING, description: 'If the category is Item, an approximate size (e.g., "Small", "Medium", "24 inches").' },
+            identifyingMarks: { type: Type.STRING, description: 'If the category is Item, any unique marks, stickers, or notable features.' },
+            description: { type: Type.STRING, description: 'A comprehensive summary of the image content. If it contains multiple items, describe them all (e.g., "A black laptop bag containing a wireless mouse and a charger."). If it contains a person, describe the scene.' }
+        },
+        required: ['category', 'description']
+    };
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: { parts: [imagePart, textPart] },
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: responseSchema,
+        },
+    });
+
+    const jsonText = response.text.trim();
+    const parsedJson = JSON.parse(jsonText);
+    
+    return parsedJson as Partial<LostFoundReport>;
+
+  } catch (error) {
+    console.error("Gemini Vision API call failed:", error);
+    throw new Error("Failed to analyze image with AI. Please try again or fill the form manually.");
   }
 };
 
@@ -310,9 +384,8 @@ export const getAiSearchResults = async (query: string, reports: LostFoundReport
         .map(r => r.id);
 };
 
-// FIX: Refactored function with an explicit type guard to fix type errors.
-// TypeScript now correctly infers that properties like 'category' and 'priority'
-// are only accessed on objects of type 'LostFoundReport'.
+// FIX: Added a type guard to correctly handle the `LostFoundReport | SosAlert` union type.
+// This prevents TypeScript errors when accessing properties that only exist on one of the types.
 /**
  * Simulates a Gemini API call to suggest resource allocation for a critical report.
  * @param report - The critical LostFoundReport object.
@@ -323,15 +396,8 @@ export const getAiResourceSuggestion = async (report: LostFoundReport | SosAlert
     await sleep(3000);
 
     // Using a type guard to differentiate between the two types.
-    // 'userId' is unique to SosAlert, and 'reportedById' is unique to LostFoundReport.
-    if ('userId' in report && !('reportedById' in report)) {
-        // Handle SosAlert
-        return "Priority: URGENT\n" +
-               "1. Dispatch nearest medical team to user's coordinates immediately.\n" +
-               "2. Alert all volunteer units within a 1km radius to assist.\n" +
-               `3. Notify authorities in Zone B about a medical emergency.\n` +
-               `4. Attempt to contact user's emergency contacts.`;
-    } else {
+    // 'reportedById' is a property unique to LostFoundReport.
+    if ('reportedById' in report) {
         // Handle LostFoundReport - TypeScript knows `report` is a LostFoundReport in this block.
         if (report.category === 'Person' && report.priority === 'Critical') {
             const zone = "A"; // Mock zone
@@ -341,6 +407,13 @@ export const getAiResourceSuggestion = async (report: LostFoundReport | SosAlert
                    `3. Task security personnel to monitor CCTV feeds at Gates 2 & 3 for a match.\n` +
                    `4. Prepare announcement for public address system.`;
         }
+    } else {
+        // Handle SosAlert
+        return "Priority: URGENT\n" +
+               "1. Dispatch nearest medical team to user's coordinates immediately.\n" +
+               "2. Alert all volunteer units within a 1km radius to assist.\n" +
+               `3. Notify authorities in Zone B about a medical emergency.\n` +
+               `4. Attempt to contact user's emergency contacts.`;
     }
 
     return "No specific resource suggestions for this report type.";
