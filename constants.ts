@@ -17,14 +17,14 @@ export const LANGUAGES = [
 export const NAV_LINKS = {
     en: [
         { name: 'Home', path: '/' },
-        { name: 'About Us', path: '/about' },
-        { name: 'Contact Us', path: '/contact' },
+        { name: 'About', path: '/about' },
+        { name: 'Contact', path: '/contact' },
         { name: 'FAQ', path: '/faq' },
     ],
     hi: [
         { name: 'होम', path: '/' },
-        { name: 'हमारे बारे में', path: '/about' },
-        { name: 'संपर्क करें', path: '/contact' },
+        { name: 'बारे में', path: '/about' },
+        { name: 'संपर्क', path: '/contact' },
         { name: 'अक्सर पूछे जाने वाले प्रश्न', path: '/faq' },
     ]
     // Add other languages as needed

@@ -139,7 +139,7 @@ export interface EmergencyContact {
 export interface MapPointOfInterest {
     id: string;
     name: string;
-    type: 'Help Center' | 'Medical' | 'Lost/Found Center';
+    type: 'Help Center' | 'Medical' | 'Lost/Found Center' | 'Police Station';
     locationCoords: { lat: number; lng: number };
 }
 

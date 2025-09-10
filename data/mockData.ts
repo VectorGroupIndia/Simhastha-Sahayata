@@ -156,11 +156,24 @@ export const MOCK_SOS_ALERTS: SosAlert[] = [
 ];
 
 export const MOCK_POINTS_OF_INTEREST: MapPointOfInterest[] = [
+    // Help Centers
     { id: 'hc1', name: 'Help Center - Sector A', type: 'Help Center', locationCoords: { lat: 10, lng: 15 } },
     { id: 'hc2', name: 'Help Center - Ram Ghat', type: 'Help Center', locationCoords: { lat: 90, lng: 30 } },
+    { id: 'hc3', name: 'Help Center - Harsiddhi', type: 'Help Center', locationCoords: { lat: 50, lng: 55 } },
+    
+    // Medical
     { id: 'med1', name: 'First Aid - Sector C', type: 'Medical', locationCoords: { lat: 50, lng: 80 } },
     { id: 'med2', name: 'Ambulance Point', type: 'Medical', locationCoords: { lat: 15, lng: 90 } },
+    { id: 'med3', name: 'Emergency Medical - Gate 4', type: 'Medical', locationCoords: { lat: 75, lng: 20 } },
+
+    // Lost/Found
     { id: 'lf1', name: 'Lost & Found - Main Gate', type: 'Lost/Found Center', locationCoords: { lat: 48, lng: 18 } },
+    { id: 'lf2', name: 'Lost & Found - Near Bridge', type: 'Lost/Found Center', locationCoords: { lat: 65, lng: 70 } },
+    
+    // Police Stations
+    { id: 'ps1', name: 'Police Chowki - Sector B', type: 'Police Station', locationCoords: { lat: 25, lng: 40 } },
+    { id: 'ps2', name: 'Police Station - Mahakal', type: 'Police Station', locationCoords: { lat: 55, lng: 40 } },
+    { id: 'ps3', name: 'Women\'s Help Desk & Police', type: 'Police Station', locationCoords: { lat: 80, lng: 85 } },
 ];
 
 
