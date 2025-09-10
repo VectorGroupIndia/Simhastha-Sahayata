@@ -137,7 +137,7 @@ const PilgrimDashboard: React.FC = () => {
         liveMap: { name: translations.dashboard.pilgrim.liveMap, component: <LiveMapView onNavigate={setNavigationTarget} /> },
         myItems: { name: translations.dashboard.pilgrim.myItems, component: <MyItems /> },
         myReports: { name: translations.dashboard.pilgrim.myReports, component: <MyReports /> },
-        guide: { name: translations.dashboard.pilgrim.guide, component: <PilgrimGuide /> },
+        guide: { name: translations.dashboard.pilgrim.guide, component: <PilgrimGuide onNavigate={setNavigationTarget} /> },
     };
 
     const handleConfirmBroadcast = (message: string) => {

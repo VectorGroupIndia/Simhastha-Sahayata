@@ -26,13 +26,17 @@ const LayerToggle: React.FC<{ id: string; label: string; checked: boolean; onTog
     </div>
 );
 
-const FilterDropdown: React.FC<{ value: string; onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void; options: { value: string; label: string }[]; label: string }> = ({ value, onChange, options, label }) => (
-    <div className="mt-2 pl-7 animate-fade-in">
-        <label className="text-xs text-gray-500">{label}</label>
-        <select value={value} onChange={onChange} className="w-full text-sm p-1 border rounded-md focus:ring-orange-500 focus:border-orange-500">
-            {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-        </select>
-    </div>
+const FilterChip: React.FC<{ label: string; isActive: boolean; onClick: () => void; }> = ({ label, isActive, onClick }) => (
+    <button
+        onClick={onClick}
+        className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors ${
+            isActive
+                ? 'bg-orange-500 text-white shadow'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+        }`}
+    >
+        {label}
+    </button>
 );
 
 
@@ -49,15 +53,17 @@ const LiveMapView: React.FC<LiveMapViewProps> = ({ onNavigate }) => {
     const [visibleLayers, setVisibleLayers] = useState({
         family: true,
         sos: true,
+        mySosHistory: false,
         help: true,
         medical: true,
         reports: false,
     });
     
     const [statusFilters, setStatusFilters] = useState({
-        family: 'all', // 'all', 'Safe', 'Alert', 'Lost'
-        sos: 'all',    // 'all', 'Broadcasted', 'Responded'
-        reports: 'all' // 'all', 'Open', 'In Progress'
+        family: 'all',
+        sos: 'all',
+        mySosHistory: 'all',
+        reports: 'all'
     });
 
      useEffect(() => {
@@ -86,6 +92,7 @@ const LiveMapView: React.FC<LiveMapViewProps> = ({ onNavigate }) => {
 
     const familyMemberIds = useMemo(() => MOCK_FAMILY_MEMBERS.map(m => m.id), []);
     const familySosAlerts = useMemo(() => MOCK_SOS_ALERTS.filter(alert => alert.userId && familyMemberIds.includes(alert.userId) && alert.status !== 'Resolved'), [familyMemberIds]);
+    const userSosHistory = user?.sosHistory || [];
 
 
     const Pin = ({ item, color, type }: { item: any, color: string, type: string }) => {
@@ -128,42 +135,57 @@ const LiveMapView: React.FC<LiveMapViewProps> = ({ onNavigate }) => {
              <div className="absolute p-3 bg-white rounded-lg shadow-xl border w-64 animate-fade-in-up" style={{ top: `${coords.lat}%`, left: `${coords.lng}%`, transform: 'translate(-50%, -115%)', zIndex: 20 }}>
                  <button onClick={() => setActivePin(null)} className="absolute -top-2 -right-2 bg-white rounded-full text-gray-600 w-6 h-6 flex items-center justify-center shadow">&times;</button>
                  <h4 className="font-bold text-orange-600 truncate">{item.name || item.itemName || item.personName}</h4>
-                 <p className="text-sm text-gray-500 uppercase font-semibold">{item.type === 'sos' ? "SOS ACTIVATED" : item.type}</p>
+                 <p className="text-sm text-gray-500 uppercase font-semibold">{item.type === 'sos' ? "SOS ACTIVATED" : item.type === 'My SOS History' ? `SOS (${item.status})` : item.type}</p>
                  <Button onClick={handleNavigateClick} variant="secondary" className="w-full mt-2 text-xs py-1 h-auto flex items-center justify-center"><DirectionsIcon/><span className="ml-1.5">{translations.familyHub.getDirections}</span></Button>
              </div>
         );
     }
     
-    // Filter Options
-    const familyFilterOptions = [
-        { value: 'all', label: t.allStatuses },
-        { value: 'Safe', label: t.statuses.safe },
-        { value: 'Alert', label: t.statuses.alert },
-        { value: 'Lost', label: t.statuses.lost }
-    ];
-    const sosFilterOptions = [
-        { value: 'all', label: t.allStatuses },
-        { value: 'Broadcasted', label: t.statuses.broadcasted },
-        { value: 'Responded', label: t.statuses.responded }
-    ];
-    const reportFilterOptions = [
-        { value: 'all', label: t.allStatuses },
-        { value: 'Open', label: t.statuses.open },
-        { value: 'In Progress', label: t.statuses.inProgress }
-    ];
-
+    const familyFilterOptions = [{ value: 'all', label: 'All' }, { value: 'Safe', label: t.statuses.safe }, { value: 'Alert', label: t.statuses.alert }, { value: 'Lost', label: t.statuses.lost }];
+    const sosFilterOptions = [{ value: 'all', label: 'All' }, { value: 'Broadcasted', label: t.statuses.broadcasted }, { value: 'Responded', label: t.statuses.responded }];
+    const mySosHistoryFilterOptions = [...sosFilterOptions, { value: 'Resolved', label: t.statuses.resolved }];
+    const reportFilterOptions = [{ value: 'all', label: 'All' }, { value: 'Open', label: t.statuses.open }, { value: 'In Progress', label: t.statuses.inProgress }];
 
     return (
         <Card>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-1">
                     <h3 className="text-xl font-bold mb-4">{t.layers}</h3>
-                    <div className="space-y-3">
-                        <div className="p-2 bg-gray-50 rounded-lg"><LayerToggle id="family-layer" label={t.layerFamily} checked={visibleLayers.family} onToggle={(c) => handleLayerToggle('family', c)} icon={<FamilyIcon />} />{visibleLayers.family && <FilterDropdown value={statusFilters.family} onChange={(e) => handleFilterChange('family', e.target.value)} options={familyFilterOptions} label={t.filterStatus} />}</div>
-                        <div className="p-2 bg-gray-50 rounded-lg"><LayerToggle id="sos-layer" label={t.layerSos} checked={visibleLayers.sos} onToggle={(c) => handleLayerToggle('sos', c)} icon={<SosIcon />} />{visibleLayers.sos && <FilterDropdown value={statusFilters.sos} onChange={(e) => handleFilterChange('sos', e.target.value)} options={sosFilterOptions} label={t.filterStatus} />}</div>
-                        <div className="p-2 bg-gray-50 rounded-lg"><LayerToggle id="help-layer" label={t.layerHelp} checked={visibleLayers.help} onToggle={(c) => handleLayerToggle('help', c)} icon={<HelpIcon />} /></div>
-                        <div className="p-2 bg-gray-50 rounded-lg"><LayerToggle id="medical-layer" label={t.layerMedical} checked={visibleLayers.medical} onToggle={(c) => handleLayerToggle('medical', c)} icon={<MedicalIcon />} /></div>
-                        <div className="p-2 bg-gray-50 rounded-lg"><LayerToggle id="reports-layer" label={t.layerReports} checked={visibleLayers.reports} onToggle={(c) => handleLayerToggle('reports', c)} icon={<ReportIcon />} />{visibleLayers.reports && <FilterDropdown value={statusFilters.reports} onChange={(e) => handleFilterChange('reports', e.target.value)} options={reportFilterOptions} label={t.filterStatus} />}</div>
+                    <div className="space-y-4">
+                        <Card className="p-4">
+                            <LayerToggle id="family-layer" label={t.layerFamily} checked={visibleLayers.family} onToggle={(c) => handleLayerToggle('family', c)} icon={<FamilyIcon />} />
+                            {visibleLayers.family && (
+                                <div className="mt-3 pl-7 flex flex-wrap gap-2 animate-fade-in">
+                                    {familyFilterOptions.map(opt => <FilterChip key={opt.value} label={opt.label} isActive={statusFilters.family === opt.value} onClick={() => handleFilterChange('family', opt.value)} />)}
+                                </div>
+                            )}
+                        </Card>
+                         <Card className="p-4">
+                            <LayerToggle id="sos-layer" label={t.layerSos} checked={visibleLayers.sos} onToggle={(c) => handleLayerToggle('sos', c)} icon={<SosIcon />} />
+                            {visibleLayers.sos && (
+                                <div className="mt-3 pl-7 flex flex-wrap gap-2 animate-fade-in">
+                                    {sosFilterOptions.map(opt => <FilterChip key={opt.value} label={opt.label} isActive={statusFilters.sos === opt.value} onClick={() => handleFilterChange('sos', opt.value)} />)}
+                                </div>
+                            )}
+                        </Card>
+                         <Card className="p-4">
+                            <LayerToggle id="my-sos-history-layer" label="My SOS History" checked={visibleLayers.mySosHistory} onToggle={(c) => handleLayerToggle('mySosHistory', c)} icon={<SosIcon />} />
+                            {visibleLayers.mySosHistory && (
+                                <div className="mt-3 pl-7 flex flex-wrap gap-2 animate-fade-in">
+                                    {mySosHistoryFilterOptions.map(opt => <FilterChip key={opt.value} label={opt.label} isActive={statusFilters.mySosHistory === opt.value} onClick={() => handleFilterChange('mySosHistory', opt.value)} />)}
+                                </div>
+                            )}
+                        </Card>
+                        <Card className="p-4"><LayerToggle id="help-layer" label={t.layerHelp} checked={visibleLayers.help} onToggle={(c) => handleLayerToggle('help', c)} icon={<HelpIcon />} /></Card>
+                        <Card className="p-4"><LayerToggle id="medical-layer" label={t.layerMedical} checked={visibleLayers.medical} onToggle={(c) => handleLayerToggle('medical', c)} icon={<MedicalIcon />} /></Card>
+                         <Card className="p-4">
+                            <LayerToggle id="reports-layer" label={t.layerReports} checked={visibleLayers.reports} onToggle={(c) => handleLayerToggle('reports', c)} icon={<ReportIcon />} />
+                            {visibleLayers.reports && (
+                                <div className="mt-3 pl-7 flex flex-wrap gap-2 animate-fade-in">
+                                    {reportFilterOptions.map(opt => <FilterChip key={opt.value} label={opt.label} isActive={statusFilters.reports === opt.value} onClick={() => handleFilterChange('reports', opt.value)} />)}
+                                </div>
+                            )}
+                        </Card>
                     </div>
                 </div>
                 <div className="lg:col-span-2">
@@ -176,6 +198,7 @@ const LiveMapView: React.FC<LiveMapViewProps> = ({ onNavigate }) => {
                             const member = MOCK_FAMILY_MEMBERS.find(m => m.id === alert.userId);
                             return <Pin key={`sos-${alert.id}`} item={{...alert, name: member?.name || "SOS"}} color="red" type="sos"/>
                         })}
+                        {visibleLayers.mySosHistory && userSosHistory.filter(a => statusFilters.mySosHistory === 'all' || a.status === statusFilters.mySosHistory).map(alert => <Pin key={`mysos-${alert.id}`} item={{...alert, name: `SOS on ${new Date(alert.timestamp).toLocaleDateString()}`}} color="orange" type="My SOS History"/>)}
                         {visibleLayers.help && MOCK_POINTS_OF_INTEREST.filter(p => p.type !== 'Medical').map(p => <Pin key={`poi-${p.id}`} item={p} color="blue" type={p.type}/>)}
                         {visibleLayers.medical && MOCK_POINTS_OF_INTEREST.filter(p => p.type === 'Medical').map(p => <Pin key={`poi-${p.id}`} item={p} color="green" type={p.type}/>)}
                         {visibleLayers.reports && myReports.filter(r => statusFilters.reports === 'all' || r.status === statusFilters.reports).map(r => <Pin key={`rpt-${r.id}`} item={r} color="yellow" type="My Report"/>)}

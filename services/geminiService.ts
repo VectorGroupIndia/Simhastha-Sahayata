@@ -1,4 +1,4 @@
-import { ChatMessage, LostFoundReport } from '../types';
+import { ChatMessage, LostFoundReport, Navigatable } from '../types';
 
 // This file simulates interactions with the Google Gemini API.
 // In a real application, this would contain the actual logic for making API calls
@@ -74,24 +74,90 @@ export const getNavigationRoute = async (query: string): Promise<{ text: string;
  * @param message - The new user message.
  * @returns A promise that resolves to the AI's string response.
  */
-export const getChatResponse = async (history: ChatMessage[], message: string): Promise<string> => {
+export const getChatResponse = async (history: ChatMessage[], message: string): Promise<{ text: string; action?: { type: 'navigate'; destination: Navigatable; } }> => {
   console.log("Simulating Gemini API call for chat with message:", message);
   await sleep(1200); // Simulate API latency
 
   const lowerCaseMessage = message.toLowerCase();
+  const lastAiMessage = history.filter(m => m.sender === 'ai').pop()?.text.toLowerCase() || '';
 
-  // Mock logic based on keywords
+  // --- Multi-turn conversation for finding a toilet ---
+  if (lowerCaseMessage.includes('toilet') || lowerCaseMessage.includes('washroom') || lowerCaseMessage.includes('restroom')) {
+      return { text: "Certainly. I can help with that. Are you looking for the nearest one, or one with specific facilities like wheelchair access?" };
+  }
+  
+  if (lastAiMessage.includes('toilet') && (lowerCaseMessage.includes('nearest') || lowerCaseMessage.includes('any'))) {
+      const toiletDestination: Navigatable = {
+          name: "Clean Toilet Facility - Sector C",
+          locationCoords: { lat: 52, lng: 82 } // Example coordinates
+      };
+      return {
+          text: "The nearest clean toilet is in Sector C, near the medical camp. It is currently reporting low footfall. Would you like me to guide you there?",
+          action: {
+              type: 'navigate',
+              destination: toiletDestination
+          }
+      };
+  }
+  
+  // --- Multi-turn conversation for finding food ---
+    if (lowerCaseMessage.includes('food') || lowerCaseMessage.includes('eat') || lowerCaseMessage.includes('hungry')) {
+        return { text: "There are many food stalls. Are you looking for something specific, like 'prasad' or a full meal?" };
+    }
+
+    if (lastAiMessage.includes('prasad or a full meal')) {
+        if (lowerCaseMessage.includes('full meal')) {
+            return { text: "The main food court is in Sector C. It can be crowded. There is also a smaller, less-crowded food area near Harsiddhi Temple. Which would you prefer?" };
+        }
+        if (lowerCaseMessage.includes('prasad')) {
+            const prasadDestination: Navigatable = {
+                name: "Prasad Counter - Mahakal Temple",
+                locationCoords: { lat: 55, lng: 45 }
+            };
+            return {
+                text: "The main Prasad counter is near the Mahakal Temple exit. I can guide you there.",
+                action: { type: 'navigate', destination: prasadDestination }
+            };
+        }
+    }
+
+    if (lastAiMessage.includes('which would you prefer')) {
+        if (lowerCaseMessage.includes('less crowded') || lowerCaseMessage.includes('harsiddhi')) {
+            const foodDestination: Navigatable = {
+                name: "Food Area - Harsiddhi Temple",
+                locationCoords: { lat: 50, lng: 55 }
+            };
+            return {
+                text: "Great choice. I can show you the route to the Harsiddhi Temple food area.",
+                action: { type: 'navigate', destination: foodDestination }
+            };
+        }
+        if (lowerCaseMessage.includes('main') || lowerCaseMessage.includes('sector c')) {
+            const foodDestination: Navigatable = {
+                name: "Main Food Court - Sector C",
+                locationCoords: { lat: 70, lng: 60 }
+            };
+            return {
+                text: "Okay, heading to the main food court. Here is the route.",
+                action: { type: 'navigate', destination: foodDestination }
+            };
+        }
+    }
+
+
+  // --- Single-turn canned responses ---
   if (lowerCaseMessage.includes('shahi snan') || lowerCaseMessage.includes('royal bath')) {
-    return "The next Shahi Snan is scheduled for tomorrow at 4:00 AM at Ram Ghat. It's a very auspicious event where Naga sadhus lead the procession. It's advised to reach the area at least 2 hours early.";
+    return { text: "The next Shahi Snan is scheduled for tomorrow at 4:00 AM at Ram Ghat. It's a very auspicious event where Naga sadhus lead the procession. It's advised to reach the area at least 2 hours early." };
   }
   if (lowerCaseMessage.includes('significance') || lowerCaseMessage.includes('mahakal temple')) {
-    return "The Mahakaleshwar Temple is one of the twelve Jyotirlingas in India. The idol of Mahakal is Dakshinamurti, meaning it faces south. This is a unique feature not found in any other Jyotirlinga.";
+    return { text: "The Mahakaleshwar Temple is one of the twelve Jyotirlingas in India. The idol of Mahakal is Dakshinamurti, meaning it faces south. This is a unique feature not found in any other Jyotirlinga." };
   }
   if (lowerCaseMessage.includes('emergency') || lowerCaseMessage.includes('helpline')) {
-    return "The central emergency helpline number for the Kumbh Mela is 1947. For medical emergencies, call 108. For police, dial 100.";
+    return { text: "The central emergency helpline number for the Kumbh Mela is 1947. For medical emergencies, call 108. For police, dial 100." };
   }
 
-  return "That's a great question. The Ujjain Simhastha Kumbh is held once every 12 years when Jupiter enters the Leo sign (Simha rashi). It's a time for spiritual cleansing and renewal for millions of devotees.";
+  // Default response
+  return { text: "That's a great question. The Ujjain Simhastha Kumbh is held once every 12 years when Jupiter enters the Leo sign (Simha rashi). It's a time for spiritual cleansing and renewal for millions of devotees." };
 };
 
 /**

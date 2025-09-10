@@ -1,5 +1,3 @@
-
-
 import React, { useState, useCallback } from 'react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
@@ -10,6 +8,7 @@ import { RegisteredItem, LostFoundReport } from '../../types';
 import { AddItemModal } from './AddItemModal';
 import { MarkAsLostModal } from './MarkAsLostModal';
 import { MOCK_LOST_FOUND_REPORTS } from '../../data/mockData';
+import ReportDetailsModal from './ReportDetailsModal';
 
 const PlusIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>;
 
@@ -23,6 +22,7 @@ const MyItems: React.FC = () => {
     const [isMarkAsLostModalOpen, setMarkAsLostModalOpen] = useState(false);
     const [itemToEdit, setItemToEdit] = useState<RegisteredItem | null>(null);
     const [itemToMarkLost, setItemToMarkLost] = useState<RegisteredItem | null>(null);
+    const [selectedReport, setSelectedReport] = useState<LostFoundReport | null>(null);
 
     const items = user?.registeredItems || [];
 
@@ -34,9 +34,6 @@ const MyItems: React.FC = () => {
     const handleSaveItem = (itemData: Omit<RegisteredItem, 'id' | 'status'>, id?: string) => {
         let updatedItems: RegisteredItem[];
         if (id) { // Editing existing item
-            // FIX: Replaced implicit spread with explicit object creation to resolve a subtle type inference issue.
-            // When using nested spreads, TypeScript sometimes widens literal union types (like 'Safe' | 'Lost') to a generic string.
-            // By reconstructing the object, we ensure the 'status' property retains its specific type from the original 'item'.
             updatedItems = items.map(item => {
                 if (item.id === id) {
                     return {
@@ -70,7 +67,6 @@ const MyItems: React.FC = () => {
     const handleConfirmMarkAsLost = (lastSeen: string, description: string) => {
         if (!itemToMarkLost || !user) return;
         
-        // 1. Create a new LostFoundReport
         const newReport: LostFoundReport = {
             id: `RPT-${Date.now()}`,
             type: 'Lost',
@@ -92,9 +88,6 @@ const MyItems: React.FC = () => {
         };
         MOCK_LOST_FOUND_REPORTS.unshift(newReport);
 
-        // 2. Update the status of the registered item
-        // FIX: Cast 'Lost' to its literal type to prevent TypeScript from widening it to a generic 'string'.
-        // This ensures the updated item correctly matches the 'RegisteredItem' type.
         const updatedItems = items.map(item =>
             item.id === itemToMarkLost.id ? { ...item, status: 'Lost' as 'Lost' } : item
         );
@@ -103,6 +96,15 @@ const MyItems: React.FC = () => {
         addToast(t.markAsLostModal.success, 'success');
         setMarkAsLostModalOpen(false);
         setItemToMarkLost(null);
+    };
+    
+    const handleViewReport = (item: RegisteredItem) => {
+        const report = MOCK_LOST_FOUND_REPORTS.find(r => r.originalItemId === item.id);
+        if (report) {
+            setSelectedReport(report);
+        } else {
+            addToast("Could not find the associated report.", "error");
+        }
     };
 
     const getStatusClasses = (status: RegisteredItem['status']) => {
@@ -122,33 +124,34 @@ const MyItems: React.FC = () => {
                 {items.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {items.map(item => (
-                            <div key={item.id} className="bg-white rounded-lg shadow-lg border flex flex-col">
-                                <img
-                                    src={item.images[0] || 'https://via.placeholder.com/400'}
-                                    alt={item.name}
-                                    className="w-full h-48 object-cover rounded-t-lg"
-                                />
-                                <div className="p-4 flex-grow flex flex-col">
-                                    <div className="flex justify-between items-start">
-                                        <h4 className="font-bold text-lg text-gray-800">{item.name}</h4>
-                                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusClasses(item.status)}`}>
-                                            {t[item.status.toLowerCase() as keyof typeof t]}
-                                        </span>
+                            <div key={item.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md border dark:border-gray-700 flex flex-col overflow-hidden">
+                                <div className="relative">
+                                    <img
+                                        src={item.images[0] || 'https://via.placeholder.com/400'}
+                                        alt={item.name}
+                                        className="w-full h-48 object-cover"
+                                    />
+                                    <div className={`absolute top-2 right-2 px-2 py-1 text-xs font-semibold rounded-full ${getStatusClasses(item.status)}`}>
+                                        {t[item.status.toLowerCase() as keyof typeof t]}
                                     </div>
-                                    <p className="text-sm text-gray-500 mb-2">{item.subCategory}</p>
-                                    <p className="text-sm text-gray-600 flex-grow">{item.identifyingMarks}</p>
-                                    <div className="mt-4 pt-4 border-t flex gap-2">
+                                </div>
+                                <div className="p-4 flex-grow flex flex-col">
+                                    <h4 className="font-bold text-lg text-gray-800 dark:text-gray-200">{item.name}</h4>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{item.subCategory}</p>
+                                    <p className="text-sm text-gray-600 dark:text-gray-300 flex-grow">{item.identifyingMarks}</p>
+                                    <div className="mt-4 pt-4 border-t dark:border-gray-600 flex gap-2">
                                         <Button onClick={() => handleOpenAddModal(item)} variant="secondary" className="flex-1 text-sm">
                                             {t.viewDetails}
                                         </Button>
-                                        <Button
-                                            onClick={() => handleOpenMarkAsLostModal(item)}
-                                            variant="danger"
-                                            className="flex-1 text-sm"
-                                            disabled={item.status === 'Lost'}
-                                        >
-                                            {item.status === 'Lost' ? t.itemLost : t.markAsLost}
-                                        </Button>
+                                        {item.status === 'Lost' ? (
+                                            <Button onClick={() => handleViewReport(item)} className="flex-1 text-sm bg-blue-500 hover:bg-blue-600">
+                                                View Report
+                                            </Button>
+                                        ) : (
+                                            <Button onClick={() => handleOpenMarkAsLostModal(item)} variant="danger" className="flex-1 text-sm">
+                                                {t.markAsLost}
+                                            </Button>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -173,6 +176,12 @@ const MyItems: React.FC = () => {
                 onClose={() => setMarkAsLostModalOpen(false)}
                 onConfirm={handleConfirmMarkAsLost}
                 item={itemToMarkLost}
+            />
+
+            <ReportDetailsModal
+                isOpen={!!selectedReport}
+                onClose={() => setSelectedReport(null)}
+                report={selectedReport}
             />
         </>
     );

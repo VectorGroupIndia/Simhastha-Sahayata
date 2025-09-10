@@ -1,14 +1,17 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Spinner } from '../ui/Spinner';
 import { getChatResponse } from '../../services/geminiService';
-import { ChatMessage } from '../../types';
+import { ChatMessage, Navigatable } from '../../types';
 import { useLocalization } from '../../hooks/useLocalization';
 
 // SVG Icon Component
 const SendIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>;
+
+interface PilgrimGuideProps {
+    onNavigate: (destination: Navigatable) => void;
+}
 
 /**
  * AI Pilgrim Guide Component.
@@ -16,7 +19,7 @@ const SendIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-
  * knowledgeable local guide, answering questions in the user's native language.
  * The AI responses are simulated through the Gemini service.
  */
-const PilgrimGuide: React.FC = () => {
+const PilgrimGuide: React.FC<PilgrimGuideProps> = ({ onNavigate }) => {
   const { translations } = useLocalization();
   const [messages, setMessages] = useState<ChatMessage[]>([
     { sender: 'ai', text: translations.guide.welcomeMessage },
@@ -41,8 +44,8 @@ const PilgrimGuide: React.FC = () => {
 
     try {
       // Simulate calling the Gemini API
-      const aiResponse = await getChatResponse(messages, input);
-      setMessages(prev => [...prev, { sender: 'ai', text: aiResponse }]);
+      const aiResponseData = await getChatResponse(messages, input);
+      setMessages(prev => [...prev, { sender: 'ai', text: aiResponseData.text, action: aiResponseData.action }]);
     } catch (error) {
       console.error("Chat error:", error);
       setMessages(prev => [...prev, { sender: 'ai', text: translations.guide.error }]);
@@ -62,6 +65,14 @@ const PilgrimGuide: React.FC = () => {
               {msg.sender === 'ai' && <img src="https://i.imgur.com/8Q1Z1zN.png" alt="AI Avatar" className="w-8 h-8 rounded-full" />}
               <div className={`max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-2xl ${msg.sender === 'user' ? 'bg-orange-500 text-white rounded-br-none' : 'bg-white text-gray-800 rounded-bl-none shadow-sm'}`}>
                 <p className="text-sm">{msg.text}</p>
+                 {msg.action?.type === 'navigate' && msg.action.destination && (
+                    <Button 
+                        onClick={() => onNavigate(msg.action.destination)} 
+                        className="mt-2 w-full text-sm py-1"
+                    >
+                        Navigate Now
+                    </Button>
+                )}
               </div>
             </div>
           ))}

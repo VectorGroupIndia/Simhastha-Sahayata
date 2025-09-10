@@ -119,6 +119,10 @@ export interface LostFoundReport {
 export interface ChatMessage {
   sender: 'user' | 'ai';
   text: string;
+  action?: {
+      type: 'navigate';
+      destination: Navigatable;
+  }
 }
 
 // Represents a toast notification message.
