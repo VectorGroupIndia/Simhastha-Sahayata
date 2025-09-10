@@ -38,6 +38,7 @@ export interface User {
   role: UserRole;
   avatar: string;
   status: 'Active' | 'Suspended';
+  lastLogin: string; // ISO 8601 timestamp
   locationCoords?: { lat: number; lng: number }; // For map view of personnel
   emergencyContacts?: EmergencyContact[]; // For SOS calls
   sosHistory?: SosAlert[]; // For SOS history tracking

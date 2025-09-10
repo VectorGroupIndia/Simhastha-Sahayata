@@ -20,15 +20,14 @@ const CheckIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w
 const XIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>;
 const BellIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>;
 const ShieldExclamationIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>;
-const CogIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924-1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066 2.573c-.94-1.543.826 3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
-const WrenchScrewdriverIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.023 2.033a1 1 0 01.954 0l6 3a1 1 0 01.023 1.732l-6 11a1 1 0 01-1.732-.954l6-11a1 1 0 01.755-.778zM11 5v.01M13 19.967a1 1 0 01-.954 0l-6-3a1 1 0 01-.023-1.732l6-11a1 1 0 011.732.954l-6 11a1 1 0 01-.755.778zM13 19v-.01" /></svg>;
-const SparklesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 17l-4 4 4-4 2.293-2.293a1 1 0 011.414 0L17 14m-5-5l2.293 2.293a1 1 0 010 1.414L10 17" /></svg>;
 const ShieldCheckIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 20.944a11.955 11.955 0 018.618-3.04 12.02 12.02 0 008.618-3.04z" /></svg>;
 const MoonIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>;
 const LocationMarkerIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
 const CameraIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
 const MicIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>;
-
+const CogIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924-1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066 2.573c-.94-1.543.826 3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
+const WrenchScrewdriverIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.023 2.033a1 1 0 01.954 0l6 3a1 1 0 01.023 1.732l-6 11a1 1 0 01-1.732-.954l6-11a1 1 0 01.755-.778zM11 5v.01M13 19.967a1 1 0 01-.954 0l-6-3a1 1 0 01-.023-1.732l6-11a1 1 0 011.732.954l-6 11a1 1 0 01-.755.778zM13 19v-.01" /></svg>;
+const SparklesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 17l-4 4 4-4 2.293-2.293a1 1 0 011.414 0L17 14m-5-5l2.293 2.293a1 1 0 010 1.414L10 17" /></svg>;
 
 // --- COMMON PROFILE COMPONENTS ---
 interface ProfileHeaderProps {
@@ -112,6 +111,7 @@ const SettingRow: React.FC<{ id: string; label: string; description: string; che
 const AdminProfileBody: React.FC<{ user: User, onUpdateUser: (data: Partial<User>) => void }> = ({ user, onUpdateUser }) => {
     const { translations } = useLocalization();
     const t = translations.profile;
+    const adminT = t.adminSettings;
     
     useEffect(() => {
         if (user.settings?.theme === 'dark') {
@@ -123,29 +123,23 @@ const AdminProfileBody: React.FC<{ user: User, onUpdateUser: (data: Partial<User
     
     const handleThemeChange = (newTheme: 'light' | 'dark') => {
         const baseSettings = user.settings || {
-            notifications: false,
-            powerButtonSos: false,
-            voiceNav: false,
+            notifications: false, powerButtonSos: false, voiceNav: false,
         };
         onUpdateUser({ settings: { ...baseSettings, theme: newTheme } });
     };
-
+    
     const handleAdminNotificationToggle = (key: keyof NonNullable<User['settings']['adminNotifications']>, value: boolean) => {
         const baseSettings = user.settings || {
-            notifications: false,
-            powerButtonSos: false,
-            voiceNav: false,
+            notifications: false, powerButtonSos: false, voiceNav: false,
         };
         onUpdateUser({
             settings: { ...baseSettings, adminNotifications: { ...baseSettings.adminNotifications, [key]: value } }
         });
     };
-    
+
     const handleSystemSettingToggle = (key: keyof NonNullable<User['settings']['systemSettings']>, value: boolean) => {
         const baseSettings = user.settings || {
-            notifications: false,
-            powerButtonSos: false,
-            voiceNav: false,
+            notifications: false, powerButtonSos: false, voiceNav: false,
         };
         onUpdateUser({
             settings: { ...baseSettings, systemSettings: { ...baseSettings.systemSettings, [key]: value } }
@@ -156,18 +150,12 @@ const AdminProfileBody: React.FC<{ user: User, onUpdateUser: (data: Partial<User
       { id: 1, action: 'Assigned RPT-1672837462 to Officer Singh.', time: '2h ago' },
       { id: 2, action: 'Suspended user Rohan Mehra.', time: '1d ago' },
       { id: 3, action: 'Resolved report RPT-2736475.', time: '1d ago' },
+      { id: 4, action: 'Changed system setting: Enabled AI Image Analysis.', time: '2d ago' },
+      { id: 5, action: 'Viewed report RPT-4958673.', time: '2d ago' },
     ];
 
     return (
         <>
-            <Card>
-                <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{t.systemStats}</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-                    <div><p className="text-3xl font-bold">{DEMO_USERS.length}</p><p className="text-gray-500 dark:text-gray-400">{t.totalUsers}</p></div>
-                    <div><p className="text-3xl font-bold">{MOCK_LOST_FOUND_REPORTS.length}</p><p className="text-gray-500 dark:text-gray-400">{t.totalReports}</p></div>
-                    <div><p className="text-3xl font-bold text-green-600">{DEMO_USERS.filter(u => (u.role === UserRole.VOLUNTEER || u.role === UserRole.AUTHORITY) && u.status === 'Active').length}</p><p className="text-gray-500 dark:text-gray-400">{t.activePersonnel}</p></div>
-                </div>
-            </Card>
              <Card>
                 <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{t.dashboardSettings}</h2>
                  <div className="flex justify-between items-center">
@@ -181,22 +169,27 @@ const AdminProfileBody: React.FC<{ user: User, onUpdateUser: (data: Partial<User
                     </div>
                  </div>
             </Card>
-             <Card>
-                <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">{t.notificationSettingsAdmin}</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{t.notificationSettingsAdminDesc}</p>
-                <div className="divide-y divide-gray-200 dark:divide-gray-700 -m-6">
-                    <SettingRow id="high-priority" label={t.highPriority} description={t.highPriorityDesc} checked={user.settings?.adminNotifications?.highPriority ?? true} onToggle={(c) => handleAdminNotificationToggle('highPriority', c)} icon={<ShieldExclamationIcon />} />
-                    <SettingRow id="sos-alerts" label={t.sosAlerts} description={t.sosAlertsDesc} checked={user.settings?.adminNotifications?.sosAlerts ?? true} onToggle={(c) => handleAdminNotificationToggle('sosAlerts', c)} icon={<BellIcon />} />
-                    <SettingRow id="system-health" label={t.systemHealth} description={t.systemHealthDesc} checked={user.settings?.adminNotifications?.systemHealth ?? false} onToggle={(c) => handleAdminNotificationToggle('systemHealth', c)} icon={<CogIcon />} />
-                </div>
-            </Card>
-             <Card>
-                <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">{t.systemConfig}</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{t.systemConfigDesc}</p>
-                <div className="divide-y divide-gray-200 dark:divide-gray-700 -m-6">
-                    <SettingRow id="ai-autofill" label={t.aiAutofill} description={t.aiAutofillDesc} checked={user.settings?.systemSettings?.aiAutofill ?? true} onToggle={(c) => handleSystemSettingToggle('aiAutofill', c)} icon={<SparklesIcon />} />
-                    <SettingRow id="ai-image-analysis" label={t.aiImageAnalysis} description={t.aiImageAnalysisDesc} checked={user.settings?.systemSettings?.aiImageAnalysis ?? true} onToggle={(c) => handleSystemSettingToggle('aiImageAnalysis', c)} icon={<SparklesIcon />} />
-                    <SettingRow id="maintenance-mode" label={t.maintenanceMode} description={t.maintenanceModeDesc} checked={user.settings?.systemSettings?.maintenanceMode ?? false} onToggle={(c) => handleSystemSettingToggle('maintenanceMode', c)} icon={<WrenchScrewdriverIcon />} />
+            <Card>
+                <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">{adminT.title}</h2>
+                <div className="space-y-4">
+                    <div>
+                        <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">{adminT.notificationSettingsAdmin}</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{adminT.notificationSettingsAdminDesc}</p>
+                        <div className="divide-y divide-gray-200 dark:divide-gray-700 -m-4">
+                            <SettingRow id="high-priority" label={adminT.highPriority} description={adminT.highPriorityDesc} checked={user.settings?.adminNotifications?.highPriority ?? true} onToggle={(c) => handleAdminNotificationToggle('highPriority', c)} icon={<ShieldExclamationIcon />} />
+                            <SettingRow id="sos-alerts" label={adminT.sosAlerts} description={adminT.sosAlertsDesc} checked={user.settings?.adminNotifications?.sosAlerts ?? true} onToggle={(c) => handleAdminNotificationToggle('sosAlerts', c)} icon={<BellIcon />} />
+                            <SettingRow id="system-health" label={adminT.systemHealth} description={adminT.systemHealthDesc} checked={user.settings?.adminNotifications?.systemHealth ?? false} onToggle={(c) => handleAdminNotificationToggle('systemHealth', c)} icon={<CogIcon />} />
+                        </div>
+                    </div>
+                     <div>
+                        <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200 pt-4">{adminT.systemConfig}</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{adminT.systemConfigDesc}</p>
+                        <div className="divide-y divide-gray-200 dark:divide-gray-700 -m-4">
+                            <SettingRow id="ai-autofill" label={adminT.aiAutofill} description={adminT.aiAutofillDesc} checked={user.settings?.systemSettings?.aiAutofill ?? true} onToggle={(c) => handleSystemSettingToggle('aiAutofill', c)} icon={<SparklesIcon />} />
+                            <SettingRow id="ai-image-analysis" label={adminT.aiImageAnalysis} description={adminT.aiImageAnalysisDesc} checked={user.settings?.systemSettings?.aiImageAnalysis ?? true} onToggle={(c) => handleSystemSettingToggle('aiImageAnalysis', c)} icon={<SparklesIcon />} />
+                            <SettingRow id="maintenance-mode" label={adminT.maintenanceMode} description={adminT.maintenanceModeDesc} checked={user.settings?.systemSettings?.maintenanceMode ?? false} onToggle={(c) => handleSystemSettingToggle('maintenanceMode', c)} icon={<WrenchScrewdriverIcon />} />
+                        </div>
+                    </div>
                 </div>
             </Card>
              <Card>
