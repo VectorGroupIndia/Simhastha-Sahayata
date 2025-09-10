@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useLocalization } from '../../hooks/useLocalization';
@@ -8,7 +7,7 @@ import { Button } from '../ui/Button';
 import ReportDetailsModal from '../dashboard/ReportDetailsModal';
 import { MOCK_LOST_FOUND_REPORTS } from '../../data/mockData';
 
-export const MyReports: React.FC<{ onSelectReport: (report: LostFoundReport) => void }> = ({ onSelectReport }) => {
+export const MyReports: React.FC = () => {
     const { user } = useAuth();
     const { translations } = useLocalization();
     const [selectedReport, setSelectedReport] = useState<LostFoundReport | null>(null);

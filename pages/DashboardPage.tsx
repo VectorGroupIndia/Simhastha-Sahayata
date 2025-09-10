@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -20,6 +18,8 @@ import LiveMapView from '../components/dashboard/LiveMapView';
 import { NavigationModal } from '../components/dashboard/NavigationModal';
 import { useToast } from '../hooks/useToast';
 import { BroadcastAlertModal } from '../components/dashboard/BroadcastAlertModal';
+import MyItems from '../components/dashboard/MyItems';
+import { MyReports } from '../components/profile/MyReports';
 
 // --- ICONS ---
 const BroadcastIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.636 5.636a9 9 0 0112.728 0M8.464 15.536a5 5 0 010-7.072" /></svg>;
@@ -104,7 +104,7 @@ const PilgrimDashboardOverview: React.FC<{ setActiveTab: (tab: string) => void }
                  <Card>
                     <div className="flex justify-between items-center mb-2">
                         <h3 className="text-xl font-bold">My Recent Reports</h3>
-                        <Button variant="secondary" className="text-xs py-1 px-2" onClick={() => navigate('/profile')}>View All</Button>
+                        <Button variant="secondary" className="text-xs py-1 px-2" onClick={() => setActiveTab('myReports')}>View All</Button>
                     </div>
                     <div className="space-y-2">
                        {userReports.length > 0 ? userReports.map(report => (
@@ -135,6 +135,8 @@ const PilgrimDashboard: React.FC = () => {
         overview: { name: 'Overview', component: <PilgrimDashboardOverview setActiveTab={setActiveTab} /> },
         familyHub: { name: translations.dashboard.pilgrim.familyHub, component: <FamilyHub /> },
         liveMap: { name: translations.dashboard.pilgrim.liveMap, component: <LiveMapView onNavigate={setNavigationTarget} /> },
+        myItems: { name: translations.dashboard.pilgrim.myItems, component: <MyItems /> },
+        myReports: { name: translations.dashboard.pilgrim.myReports, component: <MyReports /> },
         guide: { name: translations.dashboard.pilgrim.guide, component: <PilgrimGuide /> },
     };
 

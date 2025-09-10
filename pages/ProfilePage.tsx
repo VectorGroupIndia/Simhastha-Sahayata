@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -13,8 +12,6 @@ import { DEMO_USERS } from '../constants';
 import { MOCK_LOST_FOUND_REPORTS } from '../data/mockData';
 import ReportDetailsModal from '../components/dashboard/ReportDetailsModal';
 import { SosDetailsModal } from '../components/dashboard/SosDetailsModal';
-import MyItems from '../components/dashboard/MyItems';
-import { MyReports } from '../components/profile/MyReports';
 
 
 // --- ICONS ---
@@ -450,8 +447,7 @@ const VolunteerProfileBody: React.FC<{ user: User; onUpdateUser: (data: Partial<
 const PilgrimProfileBody: React.FC<{ user: User; onUpdateUser: (data: Partial<User>) => void; onSelectSosAlert: (alert: SosAlert) => void; }> = ({ user, onUpdateUser, onSelectSosAlert }) => {
     const { translations } = useLocalization();
     const { addToast } = useToast();
-    const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState('hub');
+    const [activeTab, setActiveTab] = useState('safety');
     const [isContactModalOpen, setContactModalOpen] = useState(false);
     const [newContactName, setNewContactName] = useState('');
     const [newContactPhone, setNewContactPhone] = useState('');
@@ -536,7 +532,6 @@ const PilgrimProfileBody: React.FC<{ user: User; onUpdateUser: (data: Partial<Us
     }, [sosHistory, sosFilter, sosSort]);
 
     const tabs = {
-        hub: 'My Hub',
         safety: 'Safety & Security',
         settings: 'Settings',
         permissions: 'Permissions'
@@ -563,12 +558,6 @@ const PilgrimProfileBody: React.FC<{ user: User; onUpdateUser: (data: Partial<Us
         </div>
 
         <div className="mt-6 space-y-6">
-            {activeTab === 'hub' && (
-                <div className="animate-fade-in space-y-6">
-                    <MyItems />
-                    <MyReports onSelectReport={(report) => navigate('/dashboard')} />
-                </div>
-            )}
             {activeTab === 'safety' && (
                 <div className="animate-fade-in space-y-6">
                     <Card>
