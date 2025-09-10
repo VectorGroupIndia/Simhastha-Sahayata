@@ -7,7 +7,7 @@ import { useLocalization } from '../../hooks/useLocalization';
 import { MapModal } from '../ui/MapModal';
 import { ImageZoomModal } from '../ui/ImageZoomModal';
 import { generateReportPdf } from '../../services/pdfService';
-import { getAiReportSummary } from '../../services/geminiService';
+import { getAiReportSummary, getAiResourceSuggestion } from '../../services/geminiService';
 import { Spinner } from '../ui/Spinner';
 
 interface ReportDetailsModalProps {
@@ -37,6 +37,9 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
   const [assignedTo, setAssignedTo] = useState<string>(''); // Stores "id,name"
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [isSummarizing, setIsSummarizing] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
+  const [isSuggesting, setIsSuggesting] = useState(false);
+
 
   useEffect(() => {
     if (report) {
@@ -44,6 +47,8 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
       setAssignedTo(report.assignedToId ? `${report.assignedToId},${report.assignedToName}` : '');
       setAiSummary(null);
       setIsSummarizing(false);
+      setAiSuggestion(null);
+      setIsSuggesting(false);
     }
   }, [report]);
 
@@ -78,8 +83,25 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
         setIsSummarizing(false);
     }
   };
+  
+  const handleGetSuggestion = async () => {
+    if (!report) return;
+    setIsSuggesting(true);
+    setAiSuggestion(null);
+    try {
+        const suggestion = await getAiResourceSuggestion(report);
+        setAiSuggestion(suggestion);
+    } catch (error) {
+        console.error("Failed to get AI suggestion", error);
+        setAiSuggestion("Failed to generate suggestion. Please try again.");
+    } finally {
+        setIsSuggesting(false);
+    }
+  }
 
   const canUpdate = user && (user.role === UserRole.ADMIN || user.role === UserRole.AUTHORITY || user.role === UserRole.VOLUNTEER);
+  const canSuggest = user?.role === UserRole.AUTHORITY && report.priority === 'Critical';
+
 
   const getStatusClasses = (status: LostFoundReport['status']) => {
         switch (status) {
@@ -151,12 +173,20 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
                     <DetailRow label={translations.report.description} value={report.description} />
                  </div>
             </div>
-            {aiSummary && (
+
+            {aiSuggestion ? (
+                <div className="bg-blue-50/50 p-4 rounded-lg mt-4 border border-blue-200 animate-fade-in">
+                    <h4 className="font-semibold mb-2 text-blue-700">{translations.dashboard.authorities.aiResourceSuggestion.suggestion}</h4>
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{aiSuggestion}</p>
+                </div>
+            ) : aiSummary && (
                 <div className="bg-orange-50/50 p-4 rounded-lg mt-4 border border-orange-200 animate-fade-in">
                     <h4 className="font-semibold mb-2 text-orange-700">{translations.reportDetails.aiSummaryTitle}</h4>
                     <p className="text-sm text-gray-700 whitespace-pre-wrap">{aiSummary}</p>
                 </div>
             )}
+
+
             {canUpdate && onUpdateReport && (
                 <div className="bg-gray-50 p-4 rounded-lg mt-4">
                     <h4 className="font-semibold mb-2">{translations.reportDetails.updateStatus}</h4>
@@ -187,16 +217,14 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
                 </div>
             )}
              <div className="mt-6 border-t pt-4 flex flex-wrap justify-end gap-2">
+                {canSuggest && !aiSuggestion && (
+                    <Button onClick={handleGetSuggestion} variant="secondary" disabled={isSuggesting}>
+                        {isSuggesting ? <Spinner size="sm" /> : translations.dashboard.authorities.aiResourceSuggestion.getSuggestion}
+                    </Button>
+                )}
                 {!aiSummary && (
                   <Button onClick={handleGenerateSummary} variant="secondary" disabled={isSummarizing}>
-                    {isSummarizing ? (
-                        <>
-                            <Spinner size="sm" className="mr-2" />
-                            {translations.reportDetails.summarizing}
-                        </>
-                    ) : (
-                        translations.reportDetails.generateSummary
-                    )}
+                    {isSummarizing ? <Spinner size="sm" /> : translations.reportDetails.generateSummary }
                   </Button>
                 )}
                 <Button onClick={() => setMapOpen(true)} variant="secondary" disabled={!report.locationCoords}>

@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Card } from '../ui/Card';
 import { useLocalization } from '../../hooks/useLocalization';
 import { MOCK_LOST_FOUND_REPORTS, MOCK_SOS_ALERTS } from '../../data/mockData';
-import { LostFoundReport, User, SosAlert } from '../../types';
+import { LostFoundReport, User, SosAlert, UserRole } from '../../types';
 import ReportDetailsModal from './ReportDetailsModal';
 import { useAuth } from '../../hooks/useAuth';
 import { Button } from '../ui/Button';
@@ -30,20 +30,20 @@ const StatCard: React.FC<{ title: string; value: string | number; icon: React.Re
     </Card>
 );
 
-const AlertCard: React.FC<{ alert: any; onSelectItem: (item: any) => void; onAcceptTask?: (item: LostFoundReport) => void; translations: any }> = ({ alert, onSelectItem, onAcceptTask, translations }) => {
+const AlertCard: React.FC<{ alert: LostFoundReport | SosAlert; onSelectItem: (item: any) => void; onAcceptTask?: (item: LostFoundReport) => void; onAcceptSos?: (item: SosAlert) => void; translations: any }> = ({ alert, onSelectItem, onAcceptTask, onAcceptSos, translations }) => {
     const isReport = 'reportedById' in alert;
-    const isBroadcast = 'userId' in alert;
+    const isSos = 'userId' in alert && !isReport;
 
     const getBorderColor = () => {
         if (isReport) return 'border-orange-500 bg-orange-50'; // Nearby Alert
-        if (isBroadcast) return 'border-red-500 bg-red-50'; // Broadcast
+        if (isSos) return 'border-red-500 bg-red-50'; // SOS Alert
         return 'border-gray-300 bg-gray-50';
     };
 
-    const title = isReport ? alert.personName : `Broadcast: ${alert.userName}`;
-    const description = isReport ? alert.description : alert.message;
-    const imageUrl = isReport ? alert.imageUrl : null;
-    const alertType = isReport ? translations.alertTypes.nearby : translations.alertTypes.broadcast;
+    const title = isReport ? (alert as LostFoundReport).personName || (alert as LostFoundReport).itemName : `SOS: ${(alert as SosAlert).userName}`;
+    const description = isReport ? (alert as LostFoundReport).description : (alert as SosAlert).message;
+    const imageUrl = isReport ? (alert as LostFoundReport).imageUrl : null;
+    const alertType = isReport ? translations.alertTypes.nearby : `SOS from ${(alert as SosAlert).userRole}`;
 
     return (
         <div className={`p-4 rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-4 border-l-4 ${getBorderColor()}`}>
@@ -59,7 +59,8 @@ const AlertCard: React.FC<{ alert: any; onSelectItem: (item: any) => void; onAcc
             </div>
             <div className="flex gap-2 self-end md:self-center flex-shrink-0">
                 <Button onClick={() => onSelectItem(alert)} variant="secondary" className="text-sm py-1 px-3">{translations.viewDetails}</Button>
-                {isReport && onAcceptTask && <Button onClick={() => onAcceptTask(alert)} className="text-sm py-1 px-3">{translations.acceptTask}</Button>}
+                {isReport && onAcceptTask && <Button onClick={() => onAcceptTask(alert as LostFoundReport)} className="text-sm py-1 px-3">{translations.acceptTask}</Button>}
+                {isSos && onAcceptSos && <Button onClick={() => onAcceptSos(alert as SosAlert)} className="text-sm py-1 px-3">{translations.acceptTask}</Button>}
             </div>
         </div>
     );
@@ -108,7 +109,7 @@ const CrowdDensityLegend: React.FC = () => {
     );
 };
 
-const VolunteerMapView: React.FC<{ user: User; assignments: LostFoundReport[]; alerts: LostFoundReport[]; sosAlerts: SosAlert[]; onSelectItem: (item: LostFoundReport | SosAlert) => void; }> = ({ user, assignments, alerts, sosAlerts, onSelectItem }) => {
+const VolunteerMapView: React.FC<{ user: User; assignments: (LostFoundReport | SosAlert)[]; alerts: LostFoundReport[]; sosAlerts: SosAlert[]; onSelectItem: (item: LostFoundReport | SosAlert) => void; }> = ({ user, assignments, alerts, sosAlerts, onSelectItem }) => {
     const { translations } = useLocalization();
     const volunteerLocation = user.locationCoords || { lat: 50, lng: 50 };
     const radiusInPixels = (user.settings?.workingRadius || 1) * 10;
@@ -141,7 +142,7 @@ const VolunteerMapView: React.FC<{ user: User; assignments: LostFoundReport[]; a
                     <div className="rounded-full border-2 border-blue-500 border-dashed bg-blue-500/10" style={{ width: `${radiusInPixels * 2}px`, height: `${radiusInPixels * 2}px` }} />
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"><div className="relative flex flex-col items-center"><div className="w-4 h-4 rounded-full bg-blue-600 border-2 border-white shadow-lg animate-pulse"></div><div className="bg-white text-xs px-1.5 py-0.5 rounded-full shadow whitespace-nowrap -mt-1">{translations.dashboard.volunteer.yourLocation}</div></div></div>
                 </div>
-                {assignments.filter(r => r.locationCoords).map(r => <Pin key={`asgn-${r.id}`} item={r} type="assignment" />)}
+                {assignments.filter(item => item.locationCoords).map(item => <Pin key={`asgn-${item.id}`} item={item} type="assignment" />)}
                 {alerts.filter(r => r.locationCoords).map(r => <Pin key={`alrt-${r.id}`} item={r} type="alert" />)}
                 {sosAlerts.filter(s => s.locationCoords).map(s => <Pin key={`sos-${s.id}`} item={s} type="sos" />)}
                 <CrowdDensityLegend />
@@ -169,15 +170,18 @@ const VolunteerDashboard: React.FC = () => {
     const [isBroadcastModalOpen, setBroadcastModalOpen] = useState(false);
 
 
-    const myAssignments = useMemo(() =>
-        reports.filter(r => r.assignedToId === user?.id && r.status !== 'Resolved'),
-        [reports, user]
-    );
+    const myAssignments = useMemo(() => {
+        const assignedReports = reports.filter(r => r.assignedToId === user?.id && r.status !== 'Resolved');
+        const assignedSos = MOCK_SOS_ALERTS.filter(a => a.assignedToId === user?.id && a.status !== 'Resolved');
+        return [...assignedReports, ...assignedSos].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    }, [reports, user]);
 
     const liveAlerts = useMemo(() => {
-        const nearbyAlerts = reports.filter(r => !r.assignedToId && r.status === 'Open' && r.category === 'Person');
-        const broadcasts = MOCK_SOS_ALERTS.filter(a => a.message && a.status !== 'Resolved');
-        return [...nearbyAlerts, ...broadcasts].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        const nearbyReports = reports.filter(r => !r.assignedToId && r.status === 'Open' && r.priority === 'Critical' && r.category === 'Person');
+        const pilgrimSosAlerts = MOCK_SOS_ALERTS.filter(
+            a => a.status === 'Broadcasted' && a.userRole === UserRole.PILGRIM
+        );
+        return [...nearbyReports, ...pilgrimSosAlerts].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
     }, [reports]);
     
     const resolvedTodayCount = useMemo(() =>
@@ -212,6 +216,22 @@ const VolunteerDashboard: React.FC = () => {
         addToast(t.taskAccepted, 'success');
     };
 
+    const handleAcceptSos = (alert: SosAlert) => {
+        if (!user) return;
+        const alertIndex = MOCK_SOS_ALERTS.findIndex(a => a.id === alert.id);
+        if (alertIndex !== -1) {
+            MOCK_SOS_ALERTS[alertIndex] = {
+                ...MOCK_SOS_ALERTS[alertIndex],
+                status: 'Accepted',
+                assignedToId: user.id,
+                assignedToName: user.name,
+            };
+            setReports([...reports]);
+            addToast("SOS Alert accepted. It's now in your assignments.", 'success');
+        }
+    };
+
+
     const handleConfirmBroadcast = (message: string) => {
         if (!user) return;
 
@@ -221,6 +241,7 @@ const VolunteerDashboard: React.FC = () => {
             id: Date.now(),
             userId: user.id,
             userName: user.name,
+            userRole: user.role,
             timestamp: new Date().toISOString(),
             status: 'Broadcasted',
             locationCoords: volunteerLocation,
@@ -255,8 +276,8 @@ const VolunteerDashboard: React.FC = () => {
         const tabs = {
             assignments: myAssignments.length > 0 ? (
                 <div className="space-y-4">
-                    {myAssignments.map(report => (
-                         <AlertCard key={report.id} alert={report} onSelectItem={setSelectedItem} translations={t} />
+                    {myAssignments.map(item => (
+                         <AlertCard key={`${'reportedById' in item ? 'report' : 'sos'}-${item.id}`} alert={item} onSelectItem={setSelectedItem} translations={t} />
                     ))}
                 </div>
             ) : <p className="text-center text-gray-500 py-10">{t.noAssignments}</p>,
@@ -274,6 +295,7 @@ const VolunteerDashboard: React.FC = () => {
                             alert={alert} 
                             onSelectItem={setSelectedItem}
                             onAcceptTask={'reportedById' in alert ? handleAcceptTask : undefined}
+                            onAcceptSos={'userId' in alert && !('reportedById' in alert) ? handleAcceptSos : undefined}
                             translations={t} 
                         />
                     ))}
@@ -346,7 +368,7 @@ const VolunteerDashboard: React.FC = () => {
                 onUpdateReport={handleUpdateReport}
             />
              <SosDetailsModal
-                isOpen={!!(selectedItem && 'userId' in selectedItem)}
+                isOpen={!!(selectedItem && 'userId' in selectedItem && !('reportedById' in selectedItem))}
                 onClose={() => setSelectedItem(null)}
                 alert={selectedItem as SosAlert | null}
             />

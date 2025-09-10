@@ -61,6 +61,7 @@ const Header: React.FC = () => {
       status: 'Broadcasted',
       userId: user.id,
       userName: user.name,
+      userRole: user.role,
       message: message,
       // For demo, generate random location near Ujjain if user has no location
       locationCoords: user.locationCoords || {

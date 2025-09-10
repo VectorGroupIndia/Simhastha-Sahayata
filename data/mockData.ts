@@ -1,4 +1,4 @@
-import { RegisteredItem, FamilyMember, LostFoundReport, UserRole, SosAlert, MapPointOfInterest, BroadcastMessage } from '../types';
+import { RegisteredItem, FamilyMember, LostFoundReport, UserRole, SosAlert, MapPointOfInterest, BroadcastMessage, AIInsight, AnalyticsData } from '../types';
 
 export const MOCK_REGISTERED_ITEMS: RegisteredItem[] = [
   {
@@ -259,6 +259,7 @@ export const MOCK_SOS_ALERTS: SosAlert[] = [
         id: 1,
         userId: 2,
         userName: 'Priya Sharma (Pilgrim)',
+        userRole: UserRole.PILGRIM,
         timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(), // 5 mins ago
         status: 'Broadcasted',
         locationCoords: { lat: 45, lng: 55 }
@@ -267,14 +268,18 @@ export const MOCK_SOS_ALERTS: SosAlert[] = [
         id: 2,
         userId: 6,
         userName: 'Rohan Mehra (Pilgrim)',
+        userRole: UserRole.PILGRIM,
         timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 mins ago
-        status: 'Responded',
-        locationCoords: { lat: 80, lng: 70 }
+        status: 'Accepted',
+        locationCoords: { lat: 80, lng: 70 },
+        assignedToId: 5,
+        assignedToName: 'Sunita Devi (Volunteer)',
     },
     {
         id: 3,
         userId: 1,
         userName: 'Ravi Kumar (Pilgrim)',
+        userRole: UserRole.PILGRIM,
         timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
         status: 'Resolved',
         locationCoords: { lat: 15, lng: 25 }
@@ -282,7 +287,8 @@ export const MOCK_SOS_ALERTS: SosAlert[] = [
     {
         id: 4,
         userId: 5,
-        userName: 'Sunita Devi',
+        userName: 'Sunita Devi (Volunteer)',
+        userRole: UserRole.VOLUNTEER,
         timestamp: new Date(Date.now() - 10 * 60 * 1000).toISOString(), // 10 mins ago
         status: 'Broadcasted',
         locationCoords: { lat: 35, lng: 40 },
@@ -292,6 +298,7 @@ export const MOCK_SOS_ALERTS: SosAlert[] = [
         id: 5,
         userId: 16,
         userName: 'Harishankar Pandey (Pilgrim)',
+        userRole: UserRole.PILGRIM,
         timestamp: new Date(Date.now() - 1 * 60 * 1000).toISOString(), // 1 min ago
         status: 'Broadcasted',
         locationCoords: { lat: 50, lng: 50 },
@@ -301,6 +308,7 @@ export const MOCK_SOS_ALERTS: SosAlert[] = [
         id: 6,
         userId: 8,
         userName: 'Vikram Patel (Pilgrim)',
+        userRole: UserRole.PILGRIM,
         timestamp: '2024-07-28T22:00:00Z',
         status: 'Resolved',
         locationCoords: { lat: 65, lng: 15 }
@@ -309,23 +317,30 @@ export const MOCK_SOS_ALERTS: SosAlert[] = [
         id: 7,
         userId: 11,
         userName: 'Suresh Gupta (Pilgrim)',
+        userRole: UserRole.PILGRIM,
         timestamp: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
         status: 'Responded',
-        locationCoords: { lat: 90, lng: 90 }
+        locationCoords: { lat: 90, lng: 90 },
+        assignedToId: 5,
+        assignedToName: 'Sunita Devi (Volunteer)',
     },
     {
         id: 8,
         userId: 9,
         userName: 'Meera Singh (Volunteer)',
+        userRole: UserRole.VOLUNTEER,
         timestamp: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
-        status: 'Broadcasted',
+        status: 'Accepted',
         locationCoords: { lat: 25, lng: 75 },
-        message: 'Large crowd surge near Datta Akhara Ghat. Requesting backup.'
+        message: 'Large crowd surge near Datta Akhara Ghat. Requesting backup.',
+        assignedToId: 4,
+        assignedToName: 'Officer Singh (Authority)',
     },
     {
         id: 9,
         userId: 15,
         userName: 'Geeta Devi (Pilgrim)',
+        userRole: UserRole.PILGRIM,
         timestamp: '2024-07-27T10:00:00Z',
         status: 'Resolved',
         locationCoords: { lat: 10, lng: 80 }
@@ -383,6 +398,66 @@ export const MOCK_OPERATIONAL_ZONES = [
   { id: 'zone_c', name: 'Zone C (Harsiddhi)', path: 'M 0 50 H 30 V 100 H 0 Z', color: '#f97316' },
   { id: 'zone_d', name: 'Zone D (Datta Akhara)', path: 'M 30 70 H 70 V 100 H 30 Z', color: '#a855f7' },
 ];
+
+export const MOCK_PREDICTIVE_HOTSPOTS = [
+  { id: 'ph1', name: 'Ram Ghat Approach', locationCoords: { lat: 80, lng: 30 }, risk: 0.9 }, // High risk
+  { id: 'ph2', name: 'Mahakal Temple Exit', locationCoords: { lat: 58, lng: 48 }, risk: 0.7 }, // Medium risk
+  { id: 'ph3', name: 'Market Intersection', locationCoords: { lat: 75, lng: 65 }, risk: 0.8 }, // High risk
+  { id: 'ph4', name: 'Bridge Crossing', locationCoords: { lat: 68, lng: 40 }, risk: 0.6 }, // Medium risk
+];
+
+export const MOCK_AI_INSIGHTS: AIInsight[] = [
+    {
+        id: 'ai-1',
+        timestamp: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
+        type: 'Crowd',
+        severity: 'Critical',
+        message: "Anomaly Detected: Crowd density in Zone A (Ram Ghat) is increasing 30% faster than predicted. High risk of congestion in the next 15 minutes.",
+        zone: 'Zone A (Ram Ghat)'
+    },
+    {
+        id: 'ai-2',
+        timestamp: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
+        type: 'Reports',
+        severity: 'Warning',
+        message: "Spike in 'Lost Item' reports (Electronics) near Mahakal Temple. Possible theft activity.",
+        zone: 'Zone B (Mahakal)'
+    },
+    {
+        id: 'ai-3',
+        timestamp: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
+        type: 'SOS',
+        severity: 'Warning',
+        message: "Pattern Detected: Multiple SOS alerts triggered from the same 50m radius near Datta Akhara Ghat. Investigate potential issue.",
+        zone: 'Zone D (Datta Akhara)'
+    },
+    {
+        id: 'ai-4',
+        timestamp: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+        type: 'Logistics',
+        severity: 'Info',
+        message: "Predictive analysis suggests Help Center in Zone C (Harsiddhi) will be over capacity in 1 hour. Recommend dispatching 2 additional volunteers.",
+        zone: 'Zone C (Harsiddhi)'
+    }
+];
+
+export const MOCK_ANALYTICS_DATA: AnalyticsData = {
+    reportsOverTime: [
+        { hour: '06:00', count: 5 }, { hour: '07:00', count: 12 }, { hour: '08:00', count: 18 },
+        { hour: '09:00', count: 25 }, { hour: '10:00', count: 32 }, { hour: '11:00', count: 28 },
+        { hour: '12:00', count: 22 },
+    ],
+    reportsByCategory: [
+        { category: 'Person', count: 42 },
+        { category: 'Item', count: 100 }
+    ],
+    reportsByZone: [
+        { zone: 'Zone A', count: 68 },
+        { zone: 'Zone B', count: 45 },
+        { zone: 'Zone C', count: 18 },
+        { zone: 'Zone D', count: 11 },
+    ]
+};
 
 
 export const translations: { [key: string]: any } = {
@@ -511,6 +586,7 @@ export const translations: { [key: string]: any } = {
       },
       authorities: {
           title: 'Authorities Command Center',
+          analyticsButton: 'Analytics Dashboard',
           kpis: {
               activeReports: 'Active Reports',
               missingPersons: 'Missing Persons',
@@ -529,10 +605,12 @@ export const translations: { [key: string]: any } = {
                 moderate: 'Moderate',
                 high: 'High',
                 extreme: 'Extreme'
-              }
+              },
+              heatmapToggle: 'Predictive Heatmap'
           },
           panel: {
               tasks: 'Tasks Feed',
+              aiInsights: 'AI Insights',
               personnel: 'Personnel Roster',
               broadcasts: 'Broadcast Log',
               broadcastMessage: 'Broadcast Message',
@@ -570,6 +648,18 @@ export const translations: { [key: string]: any } = {
                   pilgrims: 'All Pilgrims',
                   staff: 'All Staff & Volunteers',
               }
+          },
+          analyticsModal: {
+            title: 'Operations Analytics Dashboard',
+            reportsOverTime: 'Report Volume (Last 6 Hours)',
+            reportsByCategory: 'Incident Breakdown',
+            reportsByZone: 'Report Hotspot Zones',
+            close: 'Close'
+          },
+          aiResourceSuggestion: {
+              getSuggestion: 'Get AI Resource Suggestion',
+              suggestion: 'AI Suggestion',
+              suggesting: 'Generating suggestion...',
           }
       },
       volunteer: {
@@ -604,6 +694,9 @@ export const translations: { [key: string]: any } = {
           statusUpdated: 'Report status updated.',
           viewDetails: 'View Details',
           updateStatus: 'Update Status',
+          broadcastModal: {
+            success: "Alert broadcasted to authorities.",
+          }
       },
     },
     familyHub: {
@@ -851,7 +944,7 @@ export const translations: { [key: string]: any } = {
         },
         reporting: {
             title: "Effortless Reporting",
-            description: "Lost something? Found something? Just describe what happened or upload a photo, and our AI will fill out the report for you instantly."
+            description: "Report lost items or people in seconds using your voice, text, or by simply uploading a photo and letting our AI handle the details."
         },
         guide: {
             title: "AI Pilgrim Guide",
@@ -874,7 +967,11 @@ export const translations: { [key: string]: any } = {
         triggeredBy: "Triggered By",
         timestamp: "Timestamp",
         message: "User Message",
-        location: "Last Known Location"
+        location: "Last Known Location",
+        updateAlert: "Update Alert",
+        assignTo: "Assign to Volunteer",
+        unassigned: "Unassigned",
+        saveChanges: "Save Changes",
     },
     profile: {
         changeAvatar: 'Change Avatar',
@@ -976,6 +1073,7 @@ export const translations: { [key: string]: any } = {
             noHistory: "You have no history of SOS alerts.",
             statuses: {
                 broadcasted: "Broadcasted",
+                accepted: "Accepted",
                 responded: "Responded",
                 resolved: "Resolved"
             }

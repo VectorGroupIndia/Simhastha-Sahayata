@@ -10,11 +10,14 @@ export enum UserRole {
 export interface SosAlert {
   id: number;
   timestamp: string;
-  status: 'Broadcasted' | 'Responded' | 'Resolved';
+  status: 'Broadcasted' | 'Accepted' | 'Responded' | 'Resolved';
   message?: string; // Optional user message included in the broadcast/SOS.
   userId?: number;
   userName?: string;
+  userRole?: UserRole;
   locationCoords?: { lat: number; lng: number };
+  assignedToId?: number;
+  assignedToName?: string;
 }
 
 // Represents a new targeted broadcast message
@@ -160,6 +163,24 @@ export interface MapPointOfInterest {
     type: 'Help Center' | 'Medical' | 'Lost/Found Center' | 'Police Station';
     locationCoords: { lat: number; lng: number };
 }
+
+// Represents an AI-generated insight or anomaly detection alert.
+export interface AIInsight {
+  id: string;
+  timestamp: string;
+  type: 'Crowd' | 'Reports' | 'SOS' | 'Logistics';
+  severity: 'Info' | 'Warning' | 'Critical';
+  message: string;
+  zone?: string; // Optional zone related to the insight
+}
+
+// Represents the structure for the analytics dashboard data.
+export interface AnalyticsData {
+  reportsOverTime: { hour: string; count: number }[];
+  reportsByCategory: { category: 'Person' | 'Item'; count: number }[];
+  reportsByZone: { zone: string; count: number }[];
+}
+
 
 // A generic type for any object that can be a navigation destination
 export type Navigatable = {

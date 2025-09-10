@@ -1,4 +1,4 @@
-import { ChatMessage, LostFoundReport, Navigatable } from '../types';
+import { ChatMessage, LostFoundReport, Navigatable, SosAlert } from '../types';
 
 // This file simulates interactions with the Google Gemini API.
 // In a real application, this would contain the actual logic for making API calls
@@ -494,4 +494,31 @@ export const getAiReportSummary = async (report: LostFoundReport): Promise<strin
   }
   
   return summary;
+};
+
+/**
+ * Simulates a Gemini API call to get a resource allocation suggestion for an incident.
+ * @param incident - The report or SOS alert that needs a response.
+ * @returns A promise that resolves to a string with the AI's suggestion.
+ */
+export const getAiResourceSuggestion = async (incident: LostFoundReport | SosAlert): Promise<string> => {
+    console.log("Simulating Gemini AI call for resource suggestion for incident:", incident.id);
+    await sleep(2200);
+
+    const isSos = 'userId' in incident;
+    const isCritical = isSos || (incident as LostFoundReport).priority === 'Critical';
+
+    if (!isCritical) {
+        return "This is a non-critical report. Suggest assigning to the next available volunteer in the relevant zone during low-priority dispatch cycles.";
+    }
+
+    if (isSos && incident.message?.toLowerCase().includes('medical')) {
+        return "CRITICAL MEDICAL SOS:\n1. Immediately dispatch nearest Authority (Officer Singh - 200m away).\n2. Dispatch nearest Volunteer with medical training (Sunita Devi - 450m away).\n3. Alert Medical Post at Sector C.\n4. Broadcast a localized alert for any off-duty medical personnel in Zone B.";
+    }
+
+    if ((incident as LostFoundReport).category === 'Person' && (incident as LostFoundReport).personAge && parseInt((incident as LostFoundReport).personAge) < 12) {
+         return "CRITICAL MISSING CHILD:\n1. Assign directly to Officer Singh (Authority) for immediate oversight.\n2. Dispatch two nearest available Volunteers (Sunita Devi, Deepak Chopra) to the last seen location.\n3. Broadcast a high-priority alert to ALL personnel in Zone B and adjacent zones with the child's description and photo.";
+    }
+    
+    return "HIGH PRIORITY INCIDENT:\n1. Assign to the nearest available Authority for coordination.\n2. Dispatch one volunteer to the last known location for initial assessment.\n3. Place nearby personnel on standby.";
 };
