@@ -107,418 +107,241 @@ export const getChatResponse = async (history: ChatMessage[], message: string): 
 
     if (lastAiMessage.includes('prasad or a full meal')) {
         if (lowerCaseMessage.includes('full meal')) {
-            return { text: "The main food court is in Sector C. It can be crowded. There is also a smaller, less-crowded food area near Harsiddhi Temple. Which would you prefer?" };
+            return { text: "The main food court is in Sector C. It can be crowded. There are also smaller eateries near the Harsiddhi temple with good local food. Which would you prefer?" };
         }
         if (lowerCaseMessage.includes('prasad')) {
             const prasadDestination: Navigatable = {
                 name: "Prasad Counter - Mahakal Temple",
-                locationCoords: { lat: 55, lng: 45 }
+                locationCoords: { lat: 58, lng: 48 }
             };
             return {
-                text: "The main Prasad counter is near the Mahakal Temple exit. I can guide you there.",
+                text: "The main prasad counter is at the Mahakal Temple exit. I can show you the route.",
                 action: { type: 'navigate', destination: prasadDestination }
             };
         }
     }
 
-    if (lastAiMessage.includes('which would you prefer')) {
-        if (lowerCaseMessage.includes('less crowded') || lowerCaseMessage.includes('harsiddhi')) {
-            const foodDestination: Navigatable = {
-                name: "Food Area - Harsiddhi Temple",
-                locationCoords: { lat: 50, lng: 55 }
-            };
-            return {
-                text: "Great choice. I can show you the route to the Harsiddhi Temple food area.",
-                action: { type: 'navigate', destination: foodDestination }
-            };
-        }
-        if (lowerCaseMessage.includes('main') || lowerCaseMessage.includes('sector c')) {
-            const foodDestination: Navigatable = {
-                name: "Main Food Court - Sector C",
-                locationCoords: { lat: 70, lng: 60 }
-            };
-            return {
-                text: "Okay, heading to the main food court. Here is the route.",
-                action: { type: 'navigate', destination: foodDestination }
-            };
-        }
-    }
-
-
-  // --- Single-turn canned responses ---
-  if (lowerCaseMessage.includes('shahi snan') || lowerCaseMessage.includes('royal bath')) {
-    return { text: "The next Shahi Snan is scheduled for tomorrow at 4:00 AM at Ram Ghat. It's a very auspicious event where Naga sadhus lead the procession. It's advised to reach the area at least 2 hours early." };
+  // --- General queries ---
+  if (lowerCaseMessage.includes('aarti time')) {
+    return { text: "The main evening 'Shayan Aarti' at the Mahakal Temple is at 10:30 PM. It's best to arrive early. The 'Bhasma Aarti' is at 4:00 AM, but requires pre-booking." };
   }
-  if (lowerCaseMessage.includes('significance') || lowerCaseMessage.includes('mahakal temple')) {
-    return { text: "The Mahakaleshwar Temple is one of the twelve Jyotirlingas in India. The idol of Mahakal is Dakshinamurti, meaning it faces south. This is a unique feature not found in any other Jyotirlinga." };
-  }
-  if (lowerCaseMessage.includes('emergency') || lowerCaseMessage.includes('helpline')) {
-    return { text: "The central emergency helpline number for the Kumbh Mela is 1947. For medical emergencies, call 108. For police, dial 100." };
+  if (lowerCaseMessage.includes('history') || lowerCaseMessage.includes('significance')) {
+    return { text: "The Ujjain Simhastha Kumbh is one of the four sacred Kumbh Melas, held when Jupiter enters the Leo sign. It's a time for ritual bathing in the Shipra river, believed to cleanse one of sins. Millions gather for this profound spiritual event." };
   }
 
-  // Default response
-  return { text: "That's a great question. The Ujjain Simhastha Kumbh is held once every 12 years when Jupiter enters the Leo sign (Simha rashi). It's a time for spiritual cleansing and renewal for millions of devotees." };
-};
-
-/**
- * Simulates a Gemini API call to perform a semantic search on reports.
- * @param query - The user's natural language search query.
- * @param reports - The list of all reports to search through.
- * @returns A promise that resolves to an array of matching report IDs, sorted by relevance.
- */
-export const getAiSearchResults = async (query: string, reports: LostFoundReport[]): Promise<string[]> => {
-  console.log("Simulating Gemini AI Semantic Search with query:", query);
-  await sleep(2000); // Simulate longer processing for AI search
-
-  const lowerCaseQuery = query.toLowerCase();
-
-  // More extensive synonym dictionary, especially for clothing and accessories
-  const synonyms: { [key: string]: string[] } = {
-    'bag': ['backpack', 'luggage', 'suitcase', 'rucksack', 'purse', 'handbag'],
-    'backpack': ['bag', 'rucksack'],
-    'phone': ['smartphone', 'mobile', 'cellphone'],
-    'child': ['boy', 'girl', 'son', 'daughter', 'kid', 'toddler', 'infant'],
-    'man': ['gentleman', 'male', 'father', 'husband'],
-    'woman': ['lady', 'female', 'mother', 'wife', 'grandmother'],
-    'elderly': ['old', 'senior', 'grandma', 'grandpa', 'grandmother', 'grandfather'],
-    'old': ['elderly', 'senior'],
-    'shirt': ['t-shirt', 'top', 'blouse', 'kurta'],
-    'pants': ['trousers', 'jeans', 'shorts', 'pyjamas'],
-    'jewelry': ['necklace', 'bracelet', 'earrings', 'ring', 'bangle'],
-    'document': ['card', 'id', 'passport', 'wallet', 'license'],
-    'wallet': ['purse', 'document'],
-    'card': ['document', 'id', 'license'],
-    'glasses': ['spectacles', 'eyewear'],
-  };
-
-  const colors = ['red', 'blue', 'green', 'black', 'white', 'yellow', 'orange', 'purple', 'brown', 'grey', 'gray', 'pink', 'silver', 'gold'];
-
-  // Utility to get all synonyms for a word, including the word itself
-  const getSynonyms = (word: string): string[] => {
-    return [word, ...(synonyms[word] || [])];
-  };
-
-  const queryWords = new Set(lowerCaseQuery.split(' ').filter(w => w.length > 2));
-  
-  const rankedResults: { id: string, score: number }[] = [];
-
-  reports.forEach(report => {
-    let score = 0;
-
-    // Field-specific weighted scoring
-    const checkField = (fieldValue: string | undefined | null, weight: number, exact = false) => {
-        if (!fieldValue) return;
-        const text = fieldValue.toLowerCase();
-        queryWords.forEach(word => {
-            const wordSynonyms = getSynonyms(word);
-            for (const s of wordSynonyms) {
-                if (exact && text === s) {
-                    score += weight;
-                    break;
-                }
-                if (!exact && text.includes(s)) {
-                    score += weight;
-                    break;
-                }
-            }
-        });
-    };
-    
-    // 1. Category check - very important
-    const personQueryWords = new Set(['person', 'child', 'woman', 'man', 'son', 'daughter', 'boy', 'girl', 'elderly']);
-    const itemQueryWords = new Set(['item', 'bag', 'phone', 'wallet', 'backpack', 'jewelry', 'document']);
-    
-    let isPersonQuery = false;
-    let isItemQuery = false;
-    queryWords.forEach(word => {
-        if(personQueryWords.has(word)) isPersonQuery = true;
-        if(itemQueryWords.has(word)) isItemQuery = true;
-    });
-
-    if (report.category === 'Person') {
-        if (isPersonQuery) score += 10;
-        else if (isItemQuery) score -= 20; // Heavy penalty for category mismatch
-    } else if (report.category === 'Item') {
-        if (isItemQuery) score += 10;
-        else if (isPersonQuery) score -= 20; // Heavy penalty
-    }
-
-    // 2. Score main identifiers
-    checkField(report.personName, 15);
-    checkField(report.itemName, 15);
-    checkField(report.subCategory, 8, true);
-    checkField(report.itemBrand, 10);
-    checkField(report.itemColor, 10, true);
-
-    // 3. Score descriptive fields
-    checkField(report.description, 2);
-    checkField(report.identifyingMarks, 6);
-
-    // 4. Advanced clothing/appearance scoring
-    if (report.clothingAppearance) {
-        const clothingText = report.clothingAppearance.toLowerCase();
-        let clothingItemMatches = 0;
-        let colorInClothingMatch = false;
-
-        const clothingKeywords = new Set([
-            ...getSynonyms('shirt'), ...getSynonyms('pants'), ...getSynonyms('jewelry'), ...getSynonyms('glasses'),
-            'dress', 'saree', 'kurta', 'hat', 'cap', 'scarf', 'shawl', 'shoes', 'sandals',
-        ]);
-        
-        const queryClothingWords = new Set<string>();
-        queryWords.forEach(word => {
-            if(clothingKeywords.has(word)) queryClothingWords.add(word);
-        });
-
-        queryClothingWords.forEach(word => {
-            if(clothingText.includes(word)) {
-                clothingItemMatches++;
-                score += 5;
-            }
-        });
-
-        queryWords.forEach(word => {
-            if (colors.includes(word) && clothingText.includes(word)) {
-                colorInClothingMatch = true;
-                score += 6;
-            }
-        });
-        
-        // Bonus for matching both color and item type in query and clothing description
-        if (colorInClothingMatch && clothingItemMatches > 0) {
-            score += 8;
-        }
-    }
-    
-    // 5. Demographic matching
-    if (report.category === 'Person' && report.personAge) {
-        const age = parseInt(report.personAge, 10);
-        if (!isNaN(age)) {
-            if ((queryWords.has('child') || queryWords.has('kid')) && age < 12) score += 8;
-            if (queryWords.has('toddler') && age < 4) score += 10;
-            if ((queryWords.has('elderly') || queryWords.has('senior')) && age > 65) score += 10;
-        }
-    }
-
-
-    if (score > 5) { // Threshold for a result to be considered relevant
-      rankedResults.push({ id: report.id, score });
-    }
-  });
-
-  // Sort by score descending
-  const sortedResults = rankedResults.sort((a, b) => b.score - a.score);
-
-  console.log("AI Search refined ranked results:", sortedResults);
-
-  return sortedResults.map(r => r.id);
+  return { text: "I'm sorry, I'm not sure how to help with that. You can ask me about event timings, directions, or the history of the Kumbh Mela." };
 };
 
 
 /**
- * Simulates a Gemini API call to parse a natural language prompt and autofill a report form.
- * @param prompt - The user's natural language description of the situation.
- * @returns A promise that resolves to a partial LostFoundReport object with extracted details.
+ * Simulates a Gemini API call to autofill the report form from a text prompt.
+ * @param prompt - The user's natural language description.
+ * @returns A promise that resolves to a partial LostFoundReport object.
  */
 export const autofillReportForm = async (prompt: string): Promise<Partial<LostFoundReport>> => {
-    console.log("Simulating Gemini AI Form Autofill with prompt:", prompt);
-    await sleep(1800); // Simulate processing time
+    console.log("Simulating Gemini API call for autofill with prompt:", prompt);
+    await sleep(1800);
 
-    const lowerCasePrompt = prompt.toLowerCase();
-    const autofillData: Partial<LostFoundReport> = {};
+    const lowerPrompt = prompt.toLowerCase();
+    let result: Partial<LostFoundReport> = { description: prompt };
 
-    // Determine report type (Lost/Found)
-    if (lowerCasePrompt.includes('found') || lowerCasePrompt.includes('saw a')) {
-        autofillData.type = 'Found';
-    } else {
-        autofillData.type = 'Lost'; // Default
-    }
-
-    // Determine category (Person/Item)
-    if (/\b(son|daughter|mother|father|child|boy|girl|man|woman|person|someone)\b/.test(lowerCasePrompt)) {
-        autofillData.category = 'Person';
-    } else if (/\b(bag|backpack|phone|wallet|item|keys|bottle|card|jewelry)\b/.test(lowerCasePrompt)) {
-        autofillData.category = 'Item';
+    // Detect type
+    if (lowerPrompt.includes('lost')) result.type = 'Lost';
+    if (lowerPrompt.includes('found')) result.type = 'Found';
+    
+    // Detect category
+    if (lowerPrompt.includes('father') || lowerPrompt.includes('son') || lowerPrompt.includes('child') || lowerPrompt.includes('mother') || lowerPrompt.includes('wife') || lowerPrompt.includes('person') || lowerPrompt.includes('man') || lowerPrompt.includes('woman')) {
+        result.category = 'Person';
+    } else if (lowerPrompt.includes('bag') || lowerPrompt.includes('backpack') || lowerPrompt.includes('phone') || lowerPrompt.includes('wallet') || lowerPrompt.includes('ring')) {
+        result.category = 'Item';
     }
     
-    // Extract details for Person
-    if (autofillData.category === 'Person') {
-        // Simple name extraction (mock)
-        const nameMatch = prompt.match(/\b([A-Z][a-z]+)\b/);
-        if (nameMatch) autofillData.personName = nameMatch[1];
-
-        // Age
-        const ageMatch = lowerCasePrompt.match(/(\d+)\s*year\s*old/);
-        if (ageMatch) autofillData.personAge = ageMatch[1];
-
-        // Gender
-        if (/\b(son|boy|man|father|he)\b/.test(lowerCasePrompt)) autofillData.personGender = 'Male';
-        if (/\b(daughter|girl|woman|mother|she)\b/.test(lowerCasePrompt)) autofillData.personGender = 'Female';
-
-        // Clothing
-        if(lowerCasePrompt.includes('wearing')) {
-            autofillData.clothingAppearance = prompt.substring(lowerCasePrompt.indexOf('wearing') + 8).trim();
+    // Extract details
+    if (result.category === 'Person') {
+        if (lowerPrompt.includes('child')) result.personAge = '5-7';
+        if (lowerPrompt.includes('father') || lowerPrompt.includes('man')) result.personGender = 'Male';
+        if (lowerPrompt.includes('mother') || lowerPrompt.includes('wife') || lowerPrompt.includes('woman')) result.personGender = 'Female';
+        const clothingMatch = lowerPrompt.match(/(wearing|in a) (.*?)(?=(near|around|\.|$))/);
+        if (clothingMatch) result.clothingAppearance = clothingMatch[2].trim();
+    } else if (result.category === 'Item') {
+        if (lowerPrompt.includes('backpack') || lowerPrompt.includes('bag')) {
+            result.subCategory = 'Bags & Luggage';
+            result.itemName = 'Backpack';
         }
+        if (lowerPrompt.includes('red')) result.itemColor = 'Red';
+        if (lowerPrompt.includes('laptop')) result.identifyingMarks = 'Contains a laptop.';
     }
 
-    // Extract details for Item
-    if (autofillData.category === 'Item') {
-         if (lowerCasePrompt.includes('backpack') || lowerCasePrompt.includes('bag')) {
-            autofillData.itemName = 'Backpack';
-            autofillData.subCategory = 'Bags & Luggage';
-         }
-         if (lowerCasePrompt.includes('phone')) {
-            autofillData.itemName = 'Phone';
-            autofillData.subCategory = 'Electronics';
-         }
-         if (lowerCasePrompt.includes('wallet') || lowerCasePrompt.includes('card')) {
-            autofillData.itemName = 'Wallet';
-            autofillData.subCategory = 'Documents & Cards';
-         }
-         if (lowerCasePrompt.includes('ring') || lowerCasePrompt.includes('jewelry')) {
-            autofillData.itemName = 'Jewelry';
-            autofillData.subCategory = 'Jewelry & Accessories';
-         }
+    const locationMatch = lowerPrompt.match(/(near|at|in|around) (.*?)(?=(\.|$))/);
+    if (locationMatch) result.lastSeen = locationMatch[2].trim();
 
-         if (lowerCasePrompt.includes('red')) autofillData.itemColor = 'Red';
-         if (lowerCasePrompt.includes('blue')) autofillData.itemColor = 'Blue';
-         if (lowerCasePrompt.includes('black')) autofillData.itemColor = 'Black';
-    }
-    
-    // Extract Location
-    const locationMatch = prompt.match(/(near|at|in)\s+([A-Z][a-zA-Z\s]+)/);
-    if(locationMatch) {
-        autofillData.lastSeen = locationMatch[2].trim();
-    }
-    
-    autofillData.description = prompt; // Use the full prompt as a base description
-
-    console.log("AI Autofill result:", autofillData);
-    return autofillData;
-};
-
-/**
- * Simulates a Gemini API call to analyze an image and extract details for a report.
- * @param imageBase64 - The base64 encoded string of the image to analyze.
- * @returns A promise that resolves to a partial LostFoundReport object with extracted details.
- */
-export const analyzeReportImage = async (imageBase64: string): Promise<Partial<LostFoundReport>> => {
-    console.log("Simulating smart Gemini Vision API for Image Analysis...");
-    await sleep(2500); // Simulate longer processing for image analysis
-
-    // --- Mock AI Vision Logic ---
-    // This has been improved to provide varied but deterministic results.
-    // Different images will now yield different analysis results.
-    const MOCK_RESPONSES: Partial<LostFoundReport>[] = [
-        { // Elderly Man
-            category: 'Person',
-            personName: 'Unidentified Senior',
-            personAge: 'Approx. 70-75 years old',
-            personGender: 'Male',
-            clothingAppearance: 'AI analysis: Appears to be an elderly man wearing a white shirt or kurta and glasses.',
-            description: 'The person in the photo seems disoriented.',
-        },
-        { // Blue Backpack
-            category: 'Item',
-            itemName: 'Backpack',
-            itemColor: 'Blue',
-            subCategory: 'Bags & Luggage',
-            itemBrand: 'Unknown',
-            description: 'AI analysis: A blue backpack, possibly made of canvas material. Appears to be in good condition.',
-            identifyingMarks: 'No distinct markings are visible from this angle.',
-        },
-        { // Young Child
-            category: 'Person',
-            personName: 'Unidentified Child',
-            personAge: 'Approx. 5-7 years old',
-            personGender: 'Female',
-            clothingAppearance: 'AI analysis: A young girl wearing a red t-shirt.',
-            description: 'The child appears to be alone and looking for someone.',
-        },
-        { // Black Phone
-            category: 'Item',
-            itemName: 'Smartphone',
-            itemColor: 'Black',
-            subCategory: 'Electronics',
-            itemBrand: 'Unspecified',
-            description: 'AI analysis: A black smartphone with the screen facing down.',
-            identifyingMarks: 'A crack might be visible on the back casing.',
-        }
-    ];
-
-    // Simple hash function to get a deterministic index based on image content
-    const hash = (s: string) => s.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0);
-    const hashValue = Math.abs(hash(imageBase64.substring(0, 1000))); // Hash a substring for performance
-    const index = hashValue % MOCK_RESPONSES.length;
-    
-    const result = MOCK_RESPONSES[index];
-    console.log(`AI decided on mock response index ${index}:`, result);
     return result;
 };
 
 
 /**
- * Simulates a Gemini API call to summarize a report.
- * @param report - The report to be summarized.
+ * Simulates a Gemini Vision API call to analyze an image for a report.
+ * @param imageBase64 - The base64 encoded image string.
+ * @returns A promise that resolves to a partial LostFoundReport object.
+ */
+export const analyzeReportImage = async (imageBase64: string): Promise<Partial<LostFoundReport>> => {
+  console.log("Simulating Gemini Vision API call for image analysis.");
+  await sleep(2000); // Simulate API latency
+
+  // A more stable heuristic for the mock.
+  // This uses a larger, more unique signature from the image data to generate a hash.
+  // This should provide more consistent results for the same image during the demo.
+  const signature = imageBase64.substring(100, 250); // Use a larger slice
+  let hash = 0;
+  for (let i = 0; i < signature.length; i++) {
+    const char = signature.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash |= 0; // Convert to 32bit integer
+  }
+
+  // Expanded mock responses to be more robust
+  const itemResponses = [
+    // Wallets
+    { category: 'Item' as const, subCategory: 'Documents & Cards' as const, itemName: 'Brown Leather Wallet', itemMaterial: 'Leather', itemColor: 'Brown', description: 'A standard bifold wallet was found.' },
+    // Keys
+    { category: 'Item' as const, subCategory: 'Other' as const, itemName: 'Set of Keys', identifyingMarks: 'Has a car key fob and two house keys.', description: 'A set of keys on a metal ring.' },
+    // Eyeglasses
+    { category: 'Item' as const, subCategory: 'Jewelry & Accessories' as const, itemName: 'Black Eyeglasses', itemBrand: 'Ray-Ban', itemColor: 'Black', description: 'A pair of black-framed eyeglasses.'},
+    // Backpack
+    { category: 'Item' as const, subCategory: 'Bags & Luggage' as const, itemName: 'Red Backpack', itemBrand: 'American Tourister', itemColor: 'Red', description: 'A red backpack, appears to be for students.' },
+    // Phone
+    { category: 'Item' as const, subCategory: 'Electronics' as const, itemName: 'Smartphone', itemBrand: 'Samsung', itemColor: 'Black', description: 'A black smartphone with a cracked screen.' },
+  ];
+  
+  const personResponses = [
+      // Child
+    { category: 'Person' as const, personName: 'Unknown Child', personAge: '4-5', personGender: 'Female' as const, clothingAppearance: 'Wearing a pink frock with cartoon characters.' },
+    // Elderly man
+    { category: 'Person' as const, personName: 'Unknown Male', personAge: '70-75', personGender: 'Male' as const, clothingAppearance: 'Wearing a white kurta and dhoti. Has a white beard.' },
+    // Woman
+    { category: 'Person' as const, personName: 'Unknown Female', personAge: '30-35', personGender: 'Female' as const, clothingAppearance: 'Wearing a blue saree with a gold border.' },
+  ];
+  
+  // A simple heuristic: if the hash is even, it's a person, if odd, it's an item.
+  // This creates a 50/50 split instead of being biased towards items.
+  if (hash % 2 === 0) {
+      // It's a person
+      const selectedResponse = personResponses[Math.abs(hash) % personResponses.length];
+      return selectedResponse;
+  } else {
+      // It's an item
+      const selectedResponse = itemResponses[Math.abs(hash) % itemResponses.length];
+      return selectedResponse;
+  }
+};
+
+
+/**
+ * Simulates a Gemini API call to generate a concise summary of a report.
+ * @param report - The full LostFoundReport object.
  * @returns A promise that resolves to a string summary.
  */
 export const getAiReportSummary = async (report: LostFoundReport): Promise<string> => {
-  console.log("Simulating Gemini API call for report summarization:", report.id);
-  await sleep(1500); // Simulate API latency
+    console.log("Simulating Gemini API call for report summary.");
+    await sleep(2500);
 
-  const { type, category, personName, itemName, description, lastSeen, status, assignedToName } = report;
-
-  let summary = `This is a report for a ${type.toLowerCase()} ${category.toLowerCase()}. `;
-
-  if (category === 'Person') {
-    summary += `The missing person is ${personName || 'unnamed'}`;
-    if(report.personAge) summary += `, approximately ${report.personAge} years old. `;
-    else summary += `. `;
-    if(report.clothingAppearance) summary += `They were last seen wearing: ${report.clothingAppearance}. `;
-  } else {
-    summary += `The item is a ${itemName || 'unspecified item'}. `;
-    if(report.subCategory) summary += `It is classified under ${report.subCategory}. `;
-    if(report.itemColor) summary += `Primary color is ${report.itemColor}. `;
-    if(report.itemBrand) summary += `Brand is ${report.itemBrand}. `;
-    if(report.identifyingMarks) summary += `Unique marks: ${report.identifyingMarks}. `;
-  }
-
-  summary += `It was last seen at/near "${lastSeen}". `;
-  summary += `The core of the report states: "${description}". `;
-  summary += `Current status is "${status}". `;
-
-  if (assignedToName) {
-    summary += `The case is assigned to ${assignedToName}.`;
-  } else {
-    summary += `The case is currently unassigned.`;
-  }
-  
-  return summary;
+    if (report.category === 'Person') {
+        return `Subject: ${report.personName}, approx. age ${report.personAge}, ${report.personGender}.\n` +
+               `Last seen wearing: ${report.clothingAppearance}.\n` +
+               `Details: ${report.description}\n` +
+               `Location: ${report.lastSeen}.\n` +
+               `Status: ${report.status}, reported by ${report.reportedBy}.`;
+    } else {
+        return `Item: ${report.itemName} (${report.subCategory}).\n` +
+               `Details: ${report.itemColor || ''} ${report.itemBrand || ''}. ${report.identifyingMarks || ''}\n` +
+               `Description: ${report.description}\n` +
+               `Location: ${report.lastSeen}.\n` +
+               `Status: ${report.status}, reported by ${report.reportedBy}.`;
+    }
 };
 
+// FIX: Added missing 'getAiSearchResults' function to resolve import error in AdminDashboard.
 /**
- * Simulates a Gemini API call to get a resource allocation suggestion for an incident.
- * @param incident - The report or SOS alert that needs a response.
- * @returns A promise that resolves to a string with the AI's suggestion.
+ * Simulates a Gemini API call for semantic search on reports.
+ * @param query - The user's natural language search query.
+ * @param reports - The list of all reports to search through.
+ * @returns A promise that resolves to an array of report IDs that match the query.
  */
-export const getAiResourceSuggestion = async (incident: LostFoundReport | SosAlert): Promise<string> => {
-    console.log("Simulating Gemini AI call for resource suggestion for incident:", incident.id);
+export const getAiSearchResults = async (query: string, reports: LostFoundReport[]): Promise<string[]> => {
+    console.log("Simulating Gemini API call for AI search with query:", query);
     await sleep(2200);
 
-    const isSos = 'userId' in incident;
-    const isCritical = isSos || (incident as LostFoundReport).priority === 'Critical';
-
-    if (!isCritical) {
-        return "This is a non-critical report. Suggest assigning to the next available volunteer in the relevant zone during low-priority dispatch cycles.";
-    }
-
-    if (isSos && incident.message?.toLowerCase().includes('medical')) {
-        return "CRITICAL MEDICAL SOS:\n1. Immediately dispatch nearest Authority (Officer Singh - 200m away).\n2. Dispatch nearest Volunteer with medical training (Sunita Devi - 450m away).\n3. Alert Medical Post at Sector C.\n4. Broadcast a localized alert for any off-duty medical personnel in Zone B.";
-    }
-
-    if ((incident as LostFoundReport).category === 'Person' && (incident as LostFoundReport).personAge && parseInt((incident as LostFoundReport).personAge) < 12) {
-         return "CRITICAL MISSING CHILD:\n1. Assign directly to Officer Singh (Authority) for immediate oversight.\n2. Dispatch two nearest available Volunteers (Sunita Devi, Deepak Chopra) to the last seen location.\n3. Broadcast a high-priority alert to ALL personnel in Zone B and adjacent zones with the child's description and photo.";
-    }
+    const lowerQuery = query.toLowerCase();
     
-    return "HIGH PRIORITY INCIDENT:\n1. Assign to the nearest available Authority for coordination.\n2. Dispatch one volunteer to the last known location for initial assessment.\n3. Place nearby personnel on standby.";
+    // A simple mock of semantic search: check multiple fields and keywords.
+    const results = reports.filter(report => {
+        // Direct keyword match in key fields
+        if (report.id.toLowerCase().includes(lowerQuery) || 
+            report.description.toLowerCase().includes(lowerQuery) ||
+            report.reportedBy.toLowerCase().includes(lowerQuery)) {
+            return true;
+        }
+
+        if (report.category === 'Person' && report.personName?.toLowerCase().includes(lowerQuery)) {
+            return true;
+        }
+
+        if (report.category === 'Item' && report.itemName?.toLowerCase().includes(lowerQuery)) {
+            return true;
+        }
+
+        // Simple semantic connections for the demo
+        if ((lowerQuery.includes('kid') || lowerQuery.includes('child')) && report.category === 'Person' && report.personAge && parseInt(report.personAge) < 12) {
+            return true;
+        }
+        if ((lowerQuery.includes('elderly') || lowerQuery.includes('old man') || lowerQuery.includes('old woman')) && report.category === 'Person' && report.personAge && parseInt(report.personAge) > 65) {
+            return true;
+        }
+        if ((lowerQuery.includes('phone') || lowerQuery.includes('mobile')) && report.subCategory === 'Electronics') {
+            return true;
+        }
+        
+        return false;
+    });
+
+    // Return results in a plausible "relevance" order (newest first for the mock)
+    return results
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .map(r => r.id);
+};
+
+// FIX: Refactored function with an explicit type guard to fix type errors.
+// TypeScript now correctly infers that properties like 'category' and 'priority'
+// are only accessed on objects of type 'LostFoundReport'.
+/**
+ * Simulates a Gemini API call to suggest resource allocation for a critical report.
+ * @param report - The critical LostFoundReport object.
+ * @returns A promise that resolves to a string with suggestions.
+ */
+export const getAiResourceSuggestion = async (report: LostFoundReport | SosAlert): Promise<string> => {
+    console.log("Simulating Gemini API call for resource suggestion.");
+    await sleep(3000);
+
+    // Using a type guard to differentiate between the two types.
+    // 'userId' is unique to SosAlert, and 'reportedById' is unique to LostFoundReport.
+    if ('userId' in report && !('reportedById' in report)) {
+        // Handle SosAlert
+        return "Priority: URGENT\n" +
+               "1. Dispatch nearest medical team to user's coordinates immediately.\n" +
+               "2. Alert all volunteer units within a 1km radius to assist.\n" +
+               `3. Notify authorities in Zone B about a medical emergency.\n` +
+               `4. Attempt to contact user's emergency contacts.`;
+    } else {
+        // Handle LostFoundReport - TypeScript knows `report` is a LostFoundReport in this block.
+        if (report.category === 'Person' && report.priority === 'Critical') {
+            const zone = "A"; // Mock zone
+            return `Priority: CRITICAL (Missing Child/Vulnerable Person)\n` +
+                   `1. Broadcast alert to all units in Zone ${zone}.\n` +
+                   `2. Assign 2 dedicated volunteers for ground search near '${report.lastSeen}'.\n` +
+                   `3. Task security personnel to monitor CCTV feeds at Gates 2 & 3 for a match.\n` +
+                   `4. Prepare announcement for public address system.`;
+        }
+    }
+
+    return "No specific resource suggestions for this report type.";
 };

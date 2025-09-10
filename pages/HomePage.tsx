@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import LoginModal from '../components/LoginModal';
@@ -7,6 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useLocalization } from '../hooks/useLocalization';
 // FIX: Import LANGUAGES from constants instead of useLocalization hook
 import { LANGUAGES } from '../constants';
+import { InfoPopup } from '../components/InfoPopup';
 
 /**
  * The Home Page component.
@@ -18,7 +18,16 @@ const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const [isLoginModalOpen, setLoginModalOpen] = useState(false);
+  const [isInfoPopupOpen, setInfoPopupOpen] = useState(false);
   const { translations } = useLocalization();
+
+  useEffect(() => {
+    const popupShown = sessionStorage.getItem('infoPopupShown');
+    if (!popupShown) {
+      setInfoPopupOpen(true);
+      sessionStorage.setItem('infoPopupShown', 'true');
+    }
+  }, []);
 
   const handleReportClick = () => {
     if (isAuthenticated) {
@@ -93,6 +102,7 @@ const HomePage: React.FC = () => {
       </div>
 
       <LoginModal isOpen={isLoginModalOpen} onClose={() => setLoginModalOpen(false)} />
+      <InfoPopup isOpen={isInfoPopupOpen} onClose={() => setInfoPopupOpen(false)} />
     </div>
   );
 };
