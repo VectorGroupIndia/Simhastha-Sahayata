@@ -59,6 +59,7 @@ export const MOCK_LOST_FOUND_REPORTS: LostFoundReport[] = [
         reportedById: 7,
         timestamp: '2024-07-29T10:00:00Z',
         status: 'Open',
+        priority: 'Critical',
         assignedToId: 4,
         assignedToName: 'Officer Singh (Authority)'
     },
@@ -79,6 +80,7 @@ export const MOCK_LOST_FOUND_REPORTS: LostFoundReport[] = [
         reportedById: 5,
         timestamp: '2024-07-29T09:30:00Z',
         status: 'In Progress',
+        priority: 'Medium',
         assignedToId: 5,
         assignedToName: 'Sunita Devi (Volunteer)'
     },
@@ -96,6 +98,7 @@ export const MOCK_LOST_FOUND_REPORTS: LostFoundReport[] = [
         reportedById: 1,
         timestamp: '2024-07-28T18:00:00Z',
         status: 'Resolved',
+        priority: 'Medium',
         originalItemId: 'item-2736475',
         assignedToId: 4,
         assignedToName: 'Officer Singh (Authority)'
@@ -116,6 +119,7 @@ export const MOCK_LOST_FOUND_REPORTS: LostFoundReport[] = [
         reportedById: 2,
         timestamp: '2024-07-29T08:45:00Z',
         status: 'Open',
+        priority: 'Critical',
     },
     {
         id: 'RPT-3847564',
@@ -130,6 +134,7 @@ export const MOCK_LOST_FOUND_REPORTS: LostFoundReport[] = [
         reportedById: 1,
         timestamp: '2024-07-29T06:00:00Z',
         status: 'Open',
+        priority: 'High',
     },
     {
         id: 'RPT-4958673',
@@ -146,6 +151,7 @@ export const MOCK_LOST_FOUND_REPORTS: LostFoundReport[] = [
         reportedById: 8,
         timestamp: '2024-07-29T11:00:00Z',
         status: 'In Progress',
+        priority: 'Critical',
         assignedToId: 10,
         assignedToName: 'Inspector Verma (Authority)',
     },
@@ -162,6 +168,7 @@ export const MOCK_LOST_FOUND_REPORTS: LostFoundReport[] = [
         reportedById: 9,
         timestamp: '2024-07-29T10:15:00Z',
         status: 'Resolved',
+        priority: 'Medium',
     },
     {
         id: 'RPT-6170895',
@@ -178,6 +185,7 @@ export const MOCK_LOST_FOUND_REPORTS: LostFoundReport[] = [
         reportedById: 7,
         timestamp: '2024-07-28T14:00:00Z',
         status: 'Open',
+        priority: 'High',
     },
     {
         id: 'RPT-7281906',
@@ -194,6 +202,7 @@ export const MOCK_LOST_FOUND_REPORTS: LostFoundReport[] = [
         reportedById: 12,
         timestamp: '2024-07-29T11:30:00Z',
         status: 'In Progress',
+        priority: 'High',
         assignedToId: 12,
         assignedToName: 'Deepak Chopra (Volunteer)',
     },
@@ -209,6 +218,7 @@ export const MOCK_LOST_FOUND_REPORTS: LostFoundReport[] = [
         reportedById: 13,
         timestamp: '2024-07-27T20:00:00Z',
         status: 'Resolved',
+        priority: 'Medium',
     },
     {
         id: 'RPT-9403128',
@@ -223,6 +233,7 @@ export const MOCK_LOST_FOUND_REPORTS: LostFoundReport[] = [
         reportedById: 15,
         timestamp: '2024-07-29T09:00:00Z',
         status: 'Open',
+        priority: 'Low',
     },
     {
         id: 'RPT-10514239',
@@ -239,6 +250,7 @@ export const MOCK_LOST_FOUND_REPORTS: LostFoundReport[] = [
         reportedById: 18,
         timestamp: '2024-07-29T11:45:00Z',
         status: 'Open',
+        priority: 'Critical',
     }
 ];
 
@@ -339,6 +351,13 @@ export const MOCK_POINTS_OF_INTEREST: MapPointOfInterest[] = [
     { id: 'ps1', name: 'Police Chowki - Sector B', type: 'Police Station', locationCoords: { lat: 25, lng: 40 } },
     { id: 'ps2', name: 'Police Station - Mahakal', type: 'Police Station', locationCoords: { lat: 55, lng: 40 } },
     { id: 'ps3', name: 'Women\'s Help Desk & Police', type: 'Police Station', locationCoords: { lat: 80, lng: 85 } },
+];
+
+export const MOCK_OPERATIONAL_ZONES = [
+  { id: 'zone_a', name: 'Zone A (Ram Ghat)', path: 'M 70 0 H 100 V 50 H 70 Z', color: '#3b82f6' }, 
+  { id: 'zone_b', name: 'Zone B (Mahakal)', path: 'M 30 30 H 70 V 70 H 30 Z', color: '#22c55e' },
+  { id: 'zone_c', name: 'Zone C (Harsiddhi)', path: 'M 0 50 H 30 V 100 H 0 Z', color: '#f97316' },
+  { id: 'zone_d', name: 'Zone D (Datta Akhara)', path: 'M 30 70 H 70 V 100 H 30 Z', color: '#a855f7' },
 ];
 
 
@@ -476,6 +495,7 @@ export const translations: { [key: string]: any } = {
           },
           map: {
               title: 'Live Operations Map',
+              operationalZones: 'Operational Zones',
               personnel: 'Personnel',
               report: 'Report',
               sos: 'SOS',
@@ -488,21 +508,29 @@ export const translations: { [key: string]: any } = {
               }
           },
           panel: {
+              tasks: 'Tasks Feed',
+              personnel: 'Personnel Roster',
+              broadcasts: 'Broadcast Log',
+              filterBy: 'Filter by',
+              sortBy: 'Sort by',
+              priority: 'Priority',
+              date: 'Date',
+              status: 'Status',
+              zone: 'Zone',
+              noTasks: 'No active tasks match the current filters.',
               acknowledge: 'Acknowledge',
               viewDetails: 'View Details',
-              status: {
+              assign: 'Assign',
+              statusLabels: {
                   available: 'Available',
-                  assigned: 'Assigned to report'
+                  onTask: 'On Task',
+                  onBreak: 'On Break'
               },
-              noAlerts: 'No active cases at this time.',
               noPersonnel: 'No active personnel found.',
-              alerts: 'Active Cases',
-              personnel: 'Personnel',
-              sos: 'SOS',
-              missingPerson: 'MISSING PERSON',
+              noBroadcasts: 'No recent broadcasts.',
               report: 'REPORT',
-              sosLog: 'SOS Log',
-              triggeredBy: 'Triggered by',
+              missingPerson: 'MISSING PERSON',
+              sos: 'SOS',
               broadcastFrom: 'Broadcast from'
           }
       },
@@ -718,6 +746,7 @@ export const translations: { [key: string]: any } = {
     },
     reportDetails: {
         title: 'Report Details',
+        priority: 'Priority',
         updateStatus: 'Update Case Status',
         assignTo: 'Assigned To',
         unassigned: 'Unassigned',
@@ -823,15 +852,17 @@ export const translations: { [key: string]: any } = {
         authority: {
             statsTitle: 'My Operational Stats',
             totalAssigned: 'Total Assigned Reports',
-            openPriority: 'Open Priority Cases',
-            resolvedCases: 'Resolved Cases',
+            openCases: 'My Open Cases',
+            resolvedCases: 'My Resolved Cases',
             settingsTitle: 'Authority Settings',
+            operationalZone: 'My Operational Zone',
+            operationalZoneDesc: 'Select the zone you are currently assigned to.',
             assignmentNotifications: 'New Assignment Alerts',
             assignmentNotificationsDesc: 'Get a notification when a new case is assigned to you.',
             sosZoneAlerts: 'SOS Alerts in Zone',
             sosZoneAlertsDesc: 'Notify on SOS alerts triggered in your assigned operational zone.',
-            highPriorityOnly: "High-Priority Alerts Only",
-            highPriorityOnlyDesc: "Only receive notifications for critical cases like missing persons.",
+            alertThreshold: 'Alert Priority Threshold',
+            alertThresholdDesc: 'Only receive notifications for cases matching this priority level or higher.',
             patrolMode: "Silent Patrol Mode",
             patrolModeDesc: "Mute all non-critical notifications while on active duty."
         },

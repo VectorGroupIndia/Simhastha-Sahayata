@@ -89,6 +89,16 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
             default: return 'bg-gray-200 text-gray-800';
         }
     };
+    
+  const getPriorityClasses = (priority?: LostFoundReport['priority']) => {
+    switch (priority) {
+        case 'Critical': return 'bg-red-200 text-red-800';
+        case 'High': return 'bg-orange-200 text-orange-800';
+        case 'Medium': return 'bg-yellow-200 text-yellow-800';
+        case 'Low': return 'bg-blue-200 text-blue-800';
+        default: return 'bg-gray-200 text-gray-800';
+    }
+};
 
   return (
     <>
@@ -108,11 +118,18 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
                     </div>
                 )}
                  <div className={`space-y-3 ${report.imageUrl ? 'md:col-span-2' : 'md:col-span-3'}`}>
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-start">
                         <h3 className="text-2xl font-bold text-orange-600">{report.personName || report.itemName}</h3>
-                        <span className={`px-3 py-1 text-sm font-semibold rounded-full ${getStatusClasses(report.status)}`}>
-                            {report.status}
-                        </span>
+                        <div className="text-right flex-shrink-0 ml-2">
+                             <span className={`block px-3 py-1 text-sm font-semibold rounded-full ${getStatusClasses(report.status)}`}>
+                                {report.status}
+                            </span>
+                            {report.priority && (
+                                <span className={`block mt-1 px-3 py-1 text-xs font-semibold rounded-full ${getPriorityClasses(report.priority)}`}>
+                                    {report.priority} Priority
+                                </span>
+                            )}
+                        </div>
                     </div>
                     <DetailRow label={translations.myReports.id} value={report.id} />
                     <DetailRow label={translations.report.type} value={report.type} />

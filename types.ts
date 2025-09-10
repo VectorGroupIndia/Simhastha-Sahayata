@@ -43,6 +43,7 @@ export interface User {
   emergencyContacts?: EmergencyContact[]; // For SOS calls
   sosHistory?: SosAlert[]; // For SOS history tracking
   registeredItems?: RegisteredItem[]; // For the "My Items" feature
+  assignedZone?: string; // For Authorities & Volunteers
   settings?: {
     notifications: boolean;
     powerButtonSos: boolean;
@@ -67,6 +68,7 @@ export interface User {
     sosZoneAlerts?: boolean;
     highPriorityAlertsOnly?: boolean;
     patrolMode?: boolean;
+    alertPriorityThreshold?: 'High' | 'Critical' | 'All';
     // Volunteer settings
     availabilityStatus?: 'Active' | 'On Break';
     nearbyAlertsNotifications?: boolean;
@@ -98,6 +100,7 @@ export interface LostFoundReport {
     reportedById: number;
     timestamp: string;
     status: 'Open' | 'In Progress' | 'Resolved';
+    priority?: 'Low' | 'Medium' | 'High' | 'Critical';
     originalItemId?: string; // Link back to the RegisteredItem
     assignedToId?: number;
     assignedToName?: string;
