@@ -1,3 +1,14 @@
+/*********************************************************************************
+ * Author: Sujit Babar
+ * Company: Transfigure Technologies Pvt. Ltd.
+ *
+ * Copyright Note: All rights reserved.
+ * The code, design, process, logic, thinking, and overall layout structure
+ * of this application are the intellectual property of Transfigure Technologies Pvt. Ltd.
+ * This notice is for informational purposes only and does not grant any rights
+ * to copy, modify, or distribute this code without explicit written permission.
+ * This code is provided as-is and is intended for read-only inspection. It cannot be edited.
+ *********************************************************************************/
 import React, { useState, useMemo } from 'react';
 import { Card } from '../ui/Card';
 import { useLocalization } from '../../hooks/useLocalization';
@@ -266,12 +277,16 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
                             {filteredTasks.length > 0 ? filteredTasks.map(task => {
                                 if (task.kind === 'report') {
                                     const { bg, border } = getPriorityClasses(task.priority);
+                                    const isEscort = task.taskType === 'Escort';
+                                    const title = isEscort
+                                        ? `${t.escortRequest}: ${task.personName}`
+                                        : task.category === 'Person'
+                                            ? `${t.missingPerson}: ${task.personName}`
+                                            : `${t.report}: ${task.itemName}`;
+
                                     return (
                                         <div key={`${task.kind}-${task.id}`} className={`p-3 rounded-lg border-l-4 ${bg} ${border}`}>
-                                            <p className="font-bold text-sm">
-                                                {task.category === 'Person' ? `${t.missingPerson}: ${task.personName}` :
-                                                 `${t.report}: ${task.itemName}`}
-                                            </p>
+                                            <p className="font-bold text-sm">{title}</p>
                                             <p className="text-xs text-gray-600 italic truncate">"{task.description}"</p>
                                             <div className="text-xs mt-2 flex justify-between items-center">
                                                 <p>{new Date(task.timestamp).toLocaleString()}</p>
@@ -325,12 +340,16 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
                     <div className="animate-fade-in space-y-3">
                          {myAssignments.length > 0 ? myAssignments.map(report => {
                              const { bg, border } = getPriorityClasses(report.priority);
+                             const isEscort = report.taskType === 'Escort';
+                             const title = isEscort
+                                 ? `${t.escortRequest}: ${report.personName}`
+                                 : report.category === 'Person'
+                                     ? `${t.missingPerson}: ${report.personName}`
+                                     : `${t.report}: ${report.itemName}`;
+
                              return (
                                 <div key={report.id} className={`p-3 rounded-lg border-l-4 ${bg} ${border}`}>
-                                     <p className="font-bold text-sm">
-                                        {report.category === 'Person' ? `${t.missingPerson}: ${report.personName}` :
-                                            `${t.report}: ${report.itemName}`}
-                                    </p>
+                                     <p className="font-bold text-sm">{title}</p>
                                     <p className="text-xs text-gray-600 italic truncate">"{report.description}"</p>
                                     <div className="text-xs mt-2 flex justify-between items-center">
                                         <p>{new Date(report.timestamp).toLocaleString()}</p>

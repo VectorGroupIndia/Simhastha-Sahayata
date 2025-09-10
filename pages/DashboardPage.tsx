@@ -1,4 +1,14 @@
-
+/*********************************************************************************
+ * Author: Sujit Babar
+ * Company: Transfigure Technologies Pvt. Ltd.
+ *
+ * Copyright Note: All rights reserved.
+ * The code, design, process, logic, thinking, and overall layout structure
+ * of this application are the intellectual property of Transfigure Technologies Pvt. Ltd.
+ * This notice is for informational purposes only and does not grant any rights
+ * to copy, modify, or distribute this code without explicit written permission.
+ * This code is provided as-is and is intended for read-only inspection. It cannot be edited.
+ *********************************************************************************/
 import React, { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -21,16 +31,18 @@ import { useToast } from '../hooks/useToast';
 import { BroadcastAlertModal } from '../components/dashboard/BroadcastAlertModal';
 import MyItems from '../components/dashboard/MyItems';
 import { MyReports } from '../components/profile/MyReports';
+import { RequestEscortModal } from '../components/dashboard/RequestEscortModal';
 
 // --- ICONS ---
 const BroadcastIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.636 5.636a9 9 0 0112.728 0M8.464 15.536a5 5 0 010-7.072" /></svg>;
 const SosIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>;
 const ReportIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>;
 const GuideIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>;
+const EscortIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>;
 
 
 // --- PilgrimDashboardOverview Component ---
-const PilgrimDashboardOverview: React.FC<{ setActiveTab: (tab: string) => void }> = ({ setActiveTab }) => {
+const PilgrimDashboardOverview: React.FC<{ setActiveTab: (tab: string) => void; onEscortRequest: () => void; }> = ({ setActiveTab, onEscortRequest }) => {
     const { user } = useAuth();
     const navigate = useNavigate();
     const { translations } = useLocalization();
@@ -49,15 +61,18 @@ const PilgrimDashboardOverview: React.FC<{ setActiveTab: (tab: string) => void }
             <div className="lg:col-span-2 space-y-6">
                 <Card>
                     <h3 className="text-xl font-bold mb-4">Quick Actions</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <Button variant="danger" className="h-24 text-lg flex flex-col items-center justify-center" onClick={() => navigate('/#') /* Placeholder for SOS modal */}>
                             <SosIcon /> Trigger SOS
                         </Button>
                         <Button variant="primary" className="h-24 text-lg flex flex-col items-center justify-center" onClick={() => navigate('/report')}>
-                            <ReportIcon /> Report Lost/Found
+                            <ReportIcon /> Report
                         </Button>
                         <Button variant="secondary" className="h-24 text-lg flex flex-col items-center justify-center" onClick={() => setActiveTab('guide')}>
-                            <GuideIcon /> Ask AI Guide
+                            <GuideIcon /> Ask Guide
+                        </Button>
+                         <Button variant="secondary" className="h-24 text-lg flex flex-col items-center justify-center" onClick={onEscortRequest}>
+                            <EscortIcon /> {translations.dashboard.pilgrim.requestEscort}
                         </Button>
                     </div>
                 </Card>
@@ -131,9 +146,10 @@ const PilgrimDashboard: React.FC = () => {
     const [isGuideOpen, setGuideOpen] = useState(false);
     const [navigationTarget, setNavigationTarget] = useState<Navigatable | null>(null);
     const [isBroadcastModalOpen, setBroadcastModalOpen] = useState(false);
+    const [isEscortModalOpen, setEscortModalOpen] = useState(false);
 
     const tabs = {
-        overview: { name: 'Overview', component: <PilgrimDashboardOverview setActiveTab={setActiveTab} /> },
+        overview: { name: 'Overview', component: <PilgrimDashboardOverview setActiveTab={setActiveTab} onEscortRequest={() => setEscortModalOpen(true)} /> },
         familyHub: { name: translations.dashboard.pilgrim.familyHub, component: <FamilyHub /> },
         liveMap: { name: translations.dashboard.pilgrim.liveMap, component: <LiveMapView onNavigate={setNavigationTarget} /> },
         myItems: { name: translations.dashboard.pilgrim.myItems, component: <MyItems /> },
@@ -165,6 +181,31 @@ const PilgrimDashboard: React.FC = () => {
         addToast(translations.dashboard.broadcastModal.success, 'success');
         setBroadcastModalOpen(false);
     };
+
+    const handleConfirmEscortRequest = (from: string, to: string, message: string) => {
+        if (!user) return;
+
+        const newEscortTask: LostFoundReport = {
+            id: `ESCORT-${Date.now()}`,
+            taskType: 'Escort',
+            type: 'Found', // Semantically, we "found" someone needing help
+            category: 'Person',
+            personName: user.name,
+            description: `Escort from "${from}" to "${to}". User message: ${message || 'N/A'}`,
+            lastSeen: from,
+            reportedBy: user.name,
+            reportedById: user.id,
+            timestamp: new Date().toISOString(),
+            status: 'Open',
+            priority: 'High',
+            locationCoords: user.locationCoords,
+        };
+
+        MOCK_LOST_FOUND_REPORTS.unshift(newEscortTask);
+        addToast(translations.escortModal.success, 'success');
+        setEscortModalOpen(false);
+    };
+
 
     return (
         <>
@@ -220,6 +261,11 @@ const PilgrimDashboard: React.FC = () => {
             isOpen={isBroadcastModalOpen}
             onClose={() => setBroadcastModalOpen(false)}
             onConfirm={handleConfirmBroadcast}
+        />
+         <RequestEscortModal
+            isOpen={isEscortModalOpen}
+            onClose={() => setEscortModalOpen(false)}
+            onConfirm={handleConfirmEscortRequest}
         />
         </>
     );

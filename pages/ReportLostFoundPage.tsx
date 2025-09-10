@@ -100,63 +100,12 @@ const ReportLostFoundPage: React.FC = () => {
         ...(effectiveCategory === 'Item' && { itemName, itemBrand, itemColor, identifyingMarks, subCategory, itemMaterial, itemSize }),
     };
   }
-  
-  const handleAnalyze = async (b64: string, preselectedCategory: ReportCategory | null) => {
-    if (!b64) return;
-    setIsAnalyzing(true);
-    try {
-        const data = await analyzeReportImage(b64);
-
-        // Validation check: If a category is pre-selected by the user, verify it matches the AI's analysis.
-        if (preselectedCategory && data.category && preselectedCategory !== data.category) {
-            addToast(
-                `Image Mismatch: AI detected a '${data.category}' but you selected '${preselectedCategory}'. Please change your selection or upload a different photo.`,
-                'error'
-            );
-            setIsAnalyzing(false);
-            return; // Stop the process
-        }
-        
-        const wasAutodetected = !preselectedCategory;
-
-        // If validation passes, proceed to fill the form
-        if (data.category) setCategory(data.category);
-        if (data.subCategory) setSubCategory(data.subCategory);
-        if (data.description) setDescription(prev => `${data.description} ${prev}`.trim());
-        if (data.personName) setPersonName(data.personName);
-        if (data.personAge) setPersonAge(data.personAge);
-        if (data.personGender) setPersonGender(data.personGender);
-        if (data.clothingAppearance) setClothingAppearance(data.clothingAppearance);
-        if (data.itemName) setItemName(data.itemName);
-        if (data.itemBrand) setItemBrand(data.itemBrand);
-        if (data.itemColor) setItemColor(data.itemColor);
-        if (data.itemMaterial) setItemMaterial(data.itemMaterial);
-        if (data.itemSize) setItemSize(data.itemSize);
-        if (data.identifyingMarks) setIdentifyingMarks(data.identifyingMarks);
-
-        if(wasAutodetected && data.category) {
-            addToast(`AI auto-detected a ${data.category} and pre-filled the form.`, "success");
-        } else {
-            addToast("Photo analyzed and form pre-filled!", "success");
-        }
-    } catch (error) {
-        console.error("AI Image Analysis failed:", error);
-        addToast("AI Image Analysis failed. Please fill the form manually.", 'error');
-    } finally {
-        setIsAnalyzing(false);
-    }
-  };
 
   const handleFile = (file: File) => {
       if (file && file.type.startsWith('image/')) {
           const reader = new FileReader();
           reader.onloadend = () => {
-              const b64 = reader.result as string;
-              setImageBase64(b64);
-              // If category is not set, run analysis automatically.
-              if (!category) {
-                handleAnalyze(b64, null);
-              }
+              setImageBase64(reader.result as string);
           };
           reader.readAsDataURL(file);
       }
@@ -175,7 +124,7 @@ const ReportLostFoundPage: React.FC = () => {
       if (e.dataTransfer.files && e.dataTransfer.files[0]) {
           handleFile(e.dataTransfer.files[0]);
       }
-  }, [category]);
+  }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault();
@@ -252,6 +201,46 @@ const ReportLostFoundPage: React.FC = () => {
         setIsAutofilling(false);
     }
   };
+
+  const handleAnalyze = async () => {
+    if (!imageBase64) return;
+    setIsAnalyzing(true);
+    try {
+        const data = await analyzeReportImage(imageBase64);
+
+        // Validation check: If a category is pre-selected by the user, verify it matches the AI's analysis.
+        if (category && data.category && category !== data.category) {
+            addToast(
+                `Image Mismatch: AI detected a '${data.category}' but you selected '${category}'. Please change your selection or upload a different photo.`,
+                'error'
+            );
+            setIsAnalyzing(false);
+            return; // Stop the process
+        }
+
+        // If validation passes, proceed to fill the form
+        if (data.category) setCategory(data.category);
+        if (data.subCategory) setSubCategory(data.subCategory);
+        if (data.description) setDescription(prev => `${data.description} ${prev}`.trim());
+        if (data.personName) setPersonName(data.personName);
+        if (data.personAge) setPersonAge(data.personAge);
+        if (data.personGender) setPersonGender(data.personGender);
+        if (data.clothingAppearance) setClothingAppearance(data.clothingAppearance);
+        if (data.itemName) setItemName(data.itemName);
+        if (data.itemBrand) setItemBrand(data.itemBrand);
+        if (data.itemColor) setItemColor(data.itemColor);
+        if (data.itemMaterial) setItemMaterial(data.itemMaterial);
+        if (data.itemSize) setItemSize(data.itemSize);
+        if (data.identifyingMarks) setIdentifyingMarks(data.identifyingMarks);
+        addToast("Photo analyzed and form pre-filled!", "success");
+    } catch (error) {
+        console.error("AI Image Analysis failed:", error);
+        addToast("AI Image Analysis failed. Please fill the form manually.", 'error');
+    } finally {
+        setIsAnalyzing(false);
+    }
+  };
+
 
   const handleDownload = () => {
     if (!submittedReport) return;
@@ -383,7 +372,7 @@ const ReportLostFoundPage: React.FC = () => {
                                 </div>
                             </div>
                         )}
-                        <Button type="button" onClick={() => handleAnalyze(imageBase64!, category)} disabled={isAnalyzing || !imageBase64} className="mt-2">
+                        <Button type="button" onClick={handleAnalyze} disabled={isAnalyzing || !imageBase64} className="mt-2">
                              {isAnalyzing ? <Spinner size="sm" /> : <><SparklesIcon /> {translations.report.analyze}</>}
                         </Button>
                     </div>

@@ -1,3 +1,14 @@
+/*********************************************************************************
+ * Author: Sujit Babar
+ * Company: Transfigure Technologies Pvt. Ltd.
+ *
+ * Copyright Note: All rights reserved.
+ * The code, design, process, logic, thinking, and overall layout structure
+ * of this application are the intellectual property of Transfigure Technologies Pvt. Ltd.
+ * This notice is for informational purposes only and does not grant any rights
+ * to copy, modify, or distribute this code without explicit written permission.
+ * This code is provided as-is and is intended for read-only inspection. It cannot be edited.
+ *********************************************************************************/
 import React from 'react';
 
 interface CardProps {

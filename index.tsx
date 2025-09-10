@@ -1,13 +1,23 @@
+/*********************************************************************************
+ * Author: Sujit Babar
+ * Company: Transfigure Technologies Pvt. Ltd.
+ *
+ * Copyright Note: All rights reserved.
+ * The code, design, process, logic, thinking, and overall layout structure
+ * of this application are the intellectual property of Transfigure Technologies Pvt. Ltd.
+ * This notice is for informational purposes only and does not grant any rights
+ * to copy, modify, or distribute this code without explicit written permission.
+ * This code is provided as-is and is intended for read-only inspection. It cannot be edited.
+ *********************************************************************************/
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import type { Root } from 'react-dom/client';
 
 // Define a type for our custom property on the window object to store the React root.
 // This prevents TypeScript errors and ensures type safety.
 declare global {
   interface Window {
-    _reactRoot?: Root;
+    _reactRoot?: ReactDOM.Root;
   }
 }
 
