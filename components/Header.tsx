@@ -116,6 +116,7 @@ const Header: React.FC = () => {
                 <div className="hidden md:flex items-center space-x-4">
                    <Button onClick={handleSosClick} variant="danger" className={`px-3 ${isSosActive ? 'animate-pulse' : ''}`} disabled={isSosActive}><SosIcon/><span className="ml-1.5">{translations.header.sosButton}</span></Button>
                    <NavLink to="/profile" className="text-sm font-semibold text-gray-700 hover:text-orange-500">{translations.dashboard.greeting}, {user.name.split(' ')[0]}!</NavLink>
+                   <NavLink to="/settings" className="text-sm text-gray-700 hover:text-orange-500">{translations.header.settings}</NavLink>
                    <Button onClick={handleLogout} variant="secondary" className="px-4 py-1.5 text-sm">{translations.auth.logout}</Button>
                 </div>
               ) : (
@@ -144,6 +145,7 @@ const Header: React.FC = () => {
                            <Button onClick={() => {handleSosClick(); setMobileMenuOpen(false);}} variant="danger" className={`w-full ${isSosActive ? 'animate-pulse' : ''}`} disabled={isSosActive}>{translations.header.sosButton}</Button>
                            <NavLink to="/profile" className="font-semibold text-gray-700 w-full text-center p-2 rounded hover:bg-gray-100" onClick={() => setMobileMenuOpen(false)}>{translations.dashboard.greeting}, {user.name.split(' ')[0]}!</NavLink>
                            <NavLink to="/dashboard" className="text-gray-600 hover:text-orange-500 w-full text-center p-2 rounded" onClick={() => setMobileMenuOpen(false)}>{translations.dashboard.title}</NavLink>
+                           <NavLink to="/settings" className="text-gray-600 hover:text-orange-500 w-full text-center p-2 rounded" onClick={() => setMobileMenuOpen(false)}>{translations.header.settings}</NavLink>
                            <Button onClick={()=>{handleLogout(); setMobileMenuOpen(false);}} variant="secondary" className="w-full">{translations.auth.logout}</Button>
                         </>
                     ) : (

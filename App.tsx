@@ -12,6 +12,7 @@ import FAQPage from './pages/FAQPage';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import ProfilePage from './pages/ProfilePage';
+import SettingsPage from './pages/SettingsPage';
 import CookieConsentBanner from './components/CookieConsentBanner';
 import CookieSettingsModal from './components/CookieSettingsModal';
 import ToastContainer from './components/ToastContainer';
@@ -99,6 +100,7 @@ const MainApp = () => {
             <Route path="/contact" element={<ContactUsPage />} />
             <Route path="/faq" element={<FAQPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Routes>
         </main>
         <Footer />
