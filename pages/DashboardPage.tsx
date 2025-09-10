@@ -1,7 +1,7 @@
 
 
 import React, { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useLocalization } from '../hooks/useLocalization';
 import { LostFoundReport, UserRole, Navigatable, SosAlert } from '../types';
@@ -10,12 +10,10 @@ import AuthoritiesDashboard from '../components/dashboard/AuthoritiesDashboard';
 import VolunteerDashboard from '../components/dashboard/VolunteerDashboard';
 import FamilyHub from '../components/dashboard/FamilyHub';
 import PilgrimGuide from '../components/dashboard/PilgrimGuide';
-import MyItems from '../components/dashboard/MyItems';
 import AiAlerts from '../components/dashboard/AiAlerts';
 import CrowdDensityIndicator from '../components/dashboard/CrowdDensityIndicator';
 import { Card } from '../components/ui/Card';
-import ReportDetailsModal from '../components/dashboard/ReportDetailsModal';
-import { MOCK_LOST_FOUND_REPORTS, MOCK_SOS_ALERTS } from '../data/mockData';
+import { MOCK_LOST_FOUND_REPORTS, MOCK_SOS_ALERTS, MOCK_FAMILY_MEMBERS } from '../data/mockData';
 import { UserGuideModal } from '../components/dashboard/UserGuideModal';
 import { Button } from '../components/ui/Button';
 import LiveMapView from '../components/dashboard/LiveMapView';
@@ -25,58 +23,100 @@ import { BroadcastAlertModal } from '../components/dashboard/BroadcastAlertModal
 
 // --- ICONS ---
 const BroadcastIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.636 5.636a9 9 0 0112.728 0M8.464 15.536a5 5 0 010-7.072" /></svg>;
+const SosIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>;
+const ReportIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>;
+const GuideIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>;
 
-// --- MyReports Component (for Pilgrim Dashboard) ---
-const MyReports: React.FC = () => {
+
+// --- PilgrimDashboardOverview Component ---
+const PilgrimDashboardOverview: React.FC<{ setActiveTab: (tab: string) => void }> = ({ setActiveTab }) => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const { translations } = useLocalization();
-    const [selectedReport, setSelectedReport] = useState<LostFoundReport | null>(null);
 
-    if (!user) return null;
-
-    const userReports = MOCK_LOST_FOUND_REPORTS.filter(report => report.reportedById === user.id);
-
-    const getStatusClasses = (status: LostFoundReport['status']) => {
-        switch (status) {
-            case 'Open': return 'bg-yellow-200 text-yellow-800';
-            case 'In Progress': return 'bg-blue-200 text-blue-800';
-            case 'Resolved': return 'bg-green-200 text-green-800';
-            default: return 'bg-gray-200 text-gray-800';
-        }
+    const familyInAlert = MOCK_FAMILY_MEMBERS.filter(m => m.status === 'Alert' || m.status === 'Lost');
+    const userReports = MOCK_LOST_FOUND_REPORTS.filter(r => r.reportedById === user?.id).slice(0, 3);
+    const criticalAiAlert = {
+        id: 3,
+        text: translations.dashboard.aiAlerts.alerts.child,
+        level: 'critical',
     };
-    
+
     return (
-        <>
-            <Card>
-                <h3 className="text-2xl font-bold mb-4">{translations.myReports.title}</h3>
-                {userReports.length > 0 ? (
-                    <div className="space-y-4">
-                        {userReports.map(report => (
-                            <div key={report.id} className="bg-gray-50 p-4 rounded-lg flex flex-col md:flex-row justify-between md:items-center gap-4">
-                                <div>
-                                    <p className="font-bold text-lg">{report.personName || report.itemName}</p>
-                                    <p className="text-sm text-gray-500">{translations.myReports.reportedOn}: {new Date(report.timestamp).toLocaleDateString()}</p>
-                                    <p className="text-sm text-gray-600 truncate max-w-md">{report.description}</p>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                     <span className={`px-3 py-1 text-sm font-semibold rounded-full ${getStatusClasses(report.status)}`}>
-                                        {report.status}
-                                    </span>
-                                    <Button variant="secondary" onClick={() => setSelectedReport(report)}>{translations.myReports.viewDetails}</Button>
-                                </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column */}
+            <div className="lg:col-span-2 space-y-6">
+                <Card>
+                    <h3 className="text-xl font-bold mb-4">Quick Actions</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <Button variant="danger" className="h-24 text-lg flex flex-col items-center justify-center" onClick={() => navigate('/#') /* Placeholder for SOS modal */}>
+                            <SosIcon /> Trigger SOS
+                        </Button>
+                        <Button variant="primary" className="h-24 text-lg flex flex-col items-center justify-center" onClick={() => navigate('/report')}>
+                            <ReportIcon /> Report Lost/Found
+                        </Button>
+                        <Button variant="secondary" className="h-24 text-lg flex flex-col items-center justify-center" onClick={() => setActiveTab('guide')}>
+                            <GuideIcon /> Ask AI Guide
+                        </Button>
+                    </div>
+                </Card>
+                <Card>
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-xl font-bold">Priority Alerts</h3>
+                        <Button variant="secondary" className="text-xs py-1 px-2" onClick={() => setActiveTab('familyHub')}>View Family Hub</Button>
+                    </div>
+                    <div className="space-y-3">
+                         {familyInAlert.length > 0 ? familyInAlert.map(member => (
+                            <div key={member.id} className="p-3 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
+                                <p className="font-semibold">{member.name} has status: <span className="text-red-600">{member.status}</span></p>
+                                <p className="text-sm text-gray-600">Please check the Family Hub for their last known location.</p>
+                            </div>
+                         )) : (
+                            <div className="p-3 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
+                               <p className="font-semibold">AI Alert: <span className="text-blue-600">Critical</span></p>
+                               <p className="text-sm text-gray-600">{criticalAiAlert.text}</p>
+                           </div>
+                         )}
+                    </div>
+                </Card>
+            </div>
+            {/* Right Column */}
+            <div className="space-y-6">
+                <Card>
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-xl font-bold">Family Status</h3>
+                        <Button variant="secondary" className="text-xs py-1 px-2" onClick={() => setActiveTab('liveMap')}>View on Map</Button>
+                    </div>
+                    <div className="space-y-2">
+                        {MOCK_FAMILY_MEMBERS.map(member => (
+                            <div key={member.id} className="flex items-center bg-gray-50 p-2 rounded-lg">
+                                <img src={member.avatar} alt={member.name} className="w-8 h-8 rounded-full mr-3" />
+                                <p className="font-medium flex-grow">{member.name}</p>
+                                <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
+                                    member.status === 'Safe' ? 'bg-green-100 text-green-800' :
+                                    member.status === 'Alert' ? 'bg-yellow-100 text-yellow-800' :
+                                    'bg-red-100 text-red-800'
+                                }`}>{member.status}</span>
                             </div>
                         ))}
                     </div>
-                ) : (
-                    <p className="text-center text-gray-500 py-8">{translations.myReports.noReports}</p>
-                )}
-            </Card>
-            <ReportDetailsModal 
-                isOpen={!!selectedReport}
-                onClose={() => setSelectedReport(null)}
-                report={selectedReport}
-            />
-        </>
+                </Card>
+                 <Card>
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-xl font-bold">My Recent Reports</h3>
+                        <Button variant="secondary" className="text-xs py-1 px-2" onClick={() => navigate('/profile')}>View All</Button>
+                    </div>
+                    <div className="space-y-2">
+                       {userReports.length > 0 ? userReports.map(report => (
+                           <div key={report.id} className="bg-gray-50 p-2 rounded-lg">
+                               <p className="font-semibold text-sm truncate">{report.personName || report.itemName}</p>
+                               <p className="text-xs text-gray-500">Status: {report.status}</p>
+                           </div>
+                       )) : <p className="text-sm text-gray-500 text-center py-4">No reports filed yet.</p>}
+                    </div>
+                </Card>
+            </div>
+        </div>
     );
 };
 
@@ -86,17 +126,16 @@ const PilgrimDashboard: React.FC = () => {
     const { translations } = useLocalization();
     const { user } = useAuth();
     const { addToast } = useToast();
-    const [activeTab, setActiveTab] = useState('familyHub');
+    const [activeTab, setActiveTab] = useState('overview');
     const [isGuideOpen, setGuideOpen] = useState(false);
     const [navigationTarget, setNavigationTarget] = useState<Navigatable | null>(null);
     const [isBroadcastModalOpen, setBroadcastModalOpen] = useState(false);
 
     const tabs = {
+        overview: { name: 'Overview', component: <PilgrimDashboardOverview setActiveTab={setActiveTab} /> },
         familyHub: { name: translations.dashboard.pilgrim.familyHub, component: <FamilyHub /> },
         liveMap: { name: translations.dashboard.pilgrim.liveMap, component: <LiveMapView onNavigate={setNavigationTarget} /> },
         guide: { name: translations.dashboard.pilgrim.guide, component: <PilgrimGuide /> },
-        myItems: { name: translations.dashboard.pilgrim.myItems, component: <MyItems /> },
-        myReports: { name: translations.dashboard.pilgrim.myReports, component: <MyReports /> },
     };
 
     const handleConfirmBroadcast = (message: string) => {
@@ -133,8 +172,8 @@ const PilgrimDashboard: React.FC = () => {
                     <p className="text-gray-600">{translations.dashboard.pilgrim.welcome}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                    <Button onClick={() => setBroadcastModalOpen(true)} variant="danger" className="flex items-center">
-                        <BroadcastIcon /> {translations.dashboard.volunteer.broadcastAlert}
+                    <Button onClick={() => setBroadcastModalOpen(true)} variant="secondary" className="flex items-center">
+                        <BroadcastIcon /> Broadcast Alert
                     </Button>
                     <Button onClick={() => setGuideOpen(true)} variant="secondary">
                         {translations.userGuide.button}

@@ -1,5 +1,6 @@
+
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useLocalization } from '../hooks/useLocalization';
 import { Card } from '../components/ui/Card';
@@ -8,11 +9,12 @@ import { ToggleSwitch } from '../components/ui/ToggleSwitch';
 import { useToast } from '../hooks/useToast';
 import { EmergencyContact, SosAlert, User, UserRole, LostFoundReport } from '../types';
 import { Modal } from '../components/ui/Modal';
-// FIX: DEMO_USERS is imported from `../constants` not `../data/mockData`.
 import { DEMO_USERS } from '../constants';
 import { MOCK_LOST_FOUND_REPORTS } from '../data/mockData';
 import ReportDetailsModal from '../components/dashboard/ReportDetailsModal';
 import { SosDetailsModal } from '../components/dashboard/SosDetailsModal';
+import MyItems from '../components/dashboard/MyItems';
+import { MyReports } from '../components/profile/MyReports';
 
 
 // --- ICONS ---
@@ -21,7 +23,7 @@ const CheckIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w
 const XIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>;
 const BellIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>;
 const ShieldExclamationIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>;
-const CogIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066 2.573c-.94-1.543.826 3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
+const CogIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924-1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066 2.573c-.94-1.543.826 3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
 const WrenchScrewdriverIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.023 2.033a1 1 0 01.954 0l6 3a1 1 0 01.023 1.732l-6 11a1 1 0 01-1.732-.954l6-11a1 1 0 01.755-.778zM11 5v.01M13 19.967a1 1 0 01-.954 0l-6-3a1 1 0 01-.023-1.732l6-11a1 1 0 011.732.954l-6 11a1 1 0 01-.755.778zM13 19v-.01" /></svg>;
 const SparklesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 17l-4 4 4-4 2.293-2.293a1 1 0 011.414 0L17 14m-5-5l2.293 2.293a1 1 0 010 1.414L10 17" /></svg>;
 const ShieldCheckIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 20.944a11.955 11.955 0 018.618-3.04 12.02 12.02 0 008.618-3.04z" /></svg>;
@@ -114,7 +116,6 @@ const AdminProfileBody: React.FC<{ user: User, onUpdateUser: (data: Partial<User
     const { translations } = useLocalization();
     const t = translations.profile;
     
-    // FIX: Removed local `settings` variable and use `user.settings` directly with optional chaining to prevent type errors.
     useEffect(() => {
         if (user.settings?.theme === 'dark') {
             document.documentElement.classList.add('dark');
@@ -123,7 +124,6 @@ const AdminProfileBody: React.FC<{ user: User, onUpdateUser: (data: Partial<User
         }
     }, [user.settings?.theme]);
     
-    // FIX: Updated settings handlers to correctly construct a new settings object, preserving existing values and preventing type errors.
     const handleThemeChange = (newTheme: 'light' | 'dark') => {
         const baseSettings = user.settings || {
             notifications: false,
@@ -179,7 +179,6 @@ const AdminProfileBody: React.FC<{ user: User, onUpdateUser: (data: Partial<User
                         <p className="text-sm text-gray-500 dark:text-gray-400">{t.themeDesc}</p>
                     </div>
                     <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
-                        {/* FIX: Use `user.settings?.theme` for safe access. */}
                         <Button variant={user.settings?.theme === 'light' ? 'primary' : 'secondary'} onClick={() => handleThemeChange('light')} className="text-sm py-1 px-3">{t.light}</Button>
                         <Button variant={user.settings?.theme === 'dark' ? 'primary' : 'secondary'} onClick={() => handleThemeChange('dark')} className="text-sm py-1 px-3">{t.dark}</Button>
                     </div>
@@ -189,7 +188,6 @@ const AdminProfileBody: React.FC<{ user: User, onUpdateUser: (data: Partial<User
                 <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">{t.notificationSettingsAdmin}</h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{t.notificationSettingsAdminDesc}</p>
                 <div className="divide-y divide-gray-200 dark:divide-gray-700 -m-6">
-                    {/* FIX: Use `user.settings` with optional chaining and nullish coalescing for safe access. */}
                     <SettingRow id="high-priority" label={t.highPriority} description={t.highPriorityDesc} checked={user.settings?.adminNotifications?.highPriority ?? true} onToggle={(c) => handleAdminNotificationToggle('highPriority', c)} icon={<ShieldExclamationIcon />} />
                     <SettingRow id="sos-alerts" label={t.sosAlerts} description={t.sosAlertsDesc} checked={user.settings?.adminNotifications?.sosAlerts ?? true} onToggle={(c) => handleAdminNotificationToggle('sosAlerts', c)} icon={<BellIcon />} />
                     <SettingRow id="system-health" label={t.systemHealth} description={t.systemHealthDesc} checked={user.settings?.adminNotifications?.systemHealth ?? false} onToggle={(c) => handleAdminNotificationToggle('systemHealth', c)} icon={<CogIcon />} />
@@ -199,7 +197,6 @@ const AdminProfileBody: React.FC<{ user: User, onUpdateUser: (data: Partial<User
                 <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">{t.systemConfig}</h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{t.systemConfigDesc}</p>
                 <div className="divide-y divide-gray-200 dark:divide-gray-700 -m-6">
-                    {/* FIX: Use `user.settings` with optional chaining and nullish coalescing for safe access. */}
                     <SettingRow id="ai-autofill" label={t.aiAutofill} description={t.aiAutofillDesc} checked={user.settings?.systemSettings?.aiAutofill ?? true} onToggle={(c) => handleSystemSettingToggle('aiAutofill', c)} icon={<SparklesIcon />} />
                     <SettingRow id="ai-image-analysis" label={t.aiImageAnalysis} description={t.aiImageAnalysisDesc} checked={user.settings?.systemSettings?.aiImageAnalysis ?? true} onToggle={(c) => handleSystemSettingToggle('aiImageAnalysis', c)} icon={<SparklesIcon />} />
                     <SettingRow id="maintenance-mode" label={t.maintenanceMode} description={t.maintenanceModeDesc} checked={user.settings?.systemSettings?.maintenanceMode ?? false} onToggle={(c) => handleSystemSettingToggle('maintenanceMode', c)} icon={<WrenchScrewdriverIcon />} />
@@ -229,7 +226,6 @@ const AuthorityProfileBody: React.FC<{ user: User; onUpdateUser: (data: Partial<
     const openPriorityAssignments = myAssignments.filter(r => r.status !== 'Resolved' && r.category === 'Person');
     const resolvedAssignments = myAssignments.filter(r => r.status === 'Resolved');
     
-    // FIX: Removed local `settings` variable and use `user.settings` directly with optional chaining to prevent type errors.
     useEffect(() => {
         if (user.settings?.theme === 'dark') {
             document.documentElement.classList.add('dark');
@@ -238,7 +234,6 @@ const AuthorityProfileBody: React.FC<{ user: User; onUpdateUser: (data: Partial<
         }
     }, [user.settings?.theme]);
 
-    // FIX: Updated settings handlers to correctly construct a new settings object, preserving existing values and preventing type errors.
     const handleThemeChange = (newTheme: 'light' | 'dark') => {
         const baseSettings = user.settings || {
             notifications: false,
@@ -301,12 +296,10 @@ const AuthorityProfileBody: React.FC<{ user: User; onUpdateUser: (data: Partial<
                             <p className="text-sm text-gray-500 dark:text-gray-400">{t.themeDesc}</p>
                         </div>
                         <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
-                            {/* FIX: Use `user.settings?.theme` for safe access. */}
                             <Button variant={user.settings?.theme === 'light' ? 'primary' : 'secondary'} onClick={() => handleThemeChange('light')} className="text-sm py-1 px-3">{t.light}</Button>
                             <Button variant={user.settings?.theme === 'dark' ? 'primary' : 'secondary'} onClick={() => handleThemeChange('dark')} className="text-sm py-1 px-3">{t.dark}</Button>
                         </div>
                     </div>
-                    {/* FIX: Use `user.settings` with optional chaining and nullish coalescing for safe access. */}
                     <SettingRow id="assignment-notifications" label={authT.assignmentNotifications} description={authT.assignmentNotificationsDesc} checked={user.settings?.notifications ?? true} onToggle={(c) => handleSettingToggle('notifications', c)} icon={<BellIcon />} />
                     <SettingRow id="sos-zone-alerts" label={authT.sosZoneAlerts} description={authT.sosZoneAlertsDesc} checked={user.settings?.sosZoneAlerts ?? true} onToggle={(c) => handleSettingToggle('sosZoneAlerts', c)} icon={<ShieldExclamationIcon />} />
                     <SettingRow id="high-priority-only" label={authT.highPriorityOnly} description={authT.highPriorityOnlyDesc} checked={user.settings?.highPriorityAlertsOnly ?? false} onToggle={(c) => handleSettingToggle('highPriorityAlertsOnly', c)} icon={<ShieldCheckIcon />} />
@@ -457,6 +450,8 @@ const VolunteerProfileBody: React.FC<{ user: User; onUpdateUser: (data: Partial<
 const PilgrimProfileBody: React.FC<{ user: User; onUpdateUser: (data: Partial<User>) => void; onSelectSosAlert: (alert: SosAlert) => void; }> = ({ user, onUpdateUser, onSelectSosAlert }) => {
     const { translations } = useLocalization();
     const { addToast } = useToast();
+    const navigate = useNavigate();
+    const [activeTab, setActiveTab] = useState('hub');
     const [isContactModalOpen, setContactModalOpen] = useState(false);
     const [newContactName, setNewContactName] = useState('');
     const [newContactPhone, setNewContactPhone] = useState('');
@@ -466,33 +461,59 @@ const PilgrimProfileBody: React.FC<{ user: User; onUpdateUser: (data: Partial<Us
     const t = translations.profile;
     const contacts = user.emergencyContacts || [];
     const sosHistory = user.sosHistory || [];
+    
+    useEffect(() => {
+        if (user.settings?.theme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    }, [user.settings?.theme]);
+    
+    const handleSettingsUpdate = (update: Partial<User['settings']>) => {
+        const newSettings = { ...user.settings, ...update };
+        onUpdateUser({ settings: newSettings });
 
+        // Simulate persistence by updating the main DEMO_USERS array
+        const userIndex = DEMO_USERS.findIndex(u => u.id === user.id);
+        if (userIndex !== -1 && DEMO_USERS[userIndex].settings) {
+            DEMO_USERS[userIndex].settings = { ...DEMO_USERS[userIndex].settings, ...update };
+        }
+    };
+
+    const handleThemeChange = (newTheme: 'light' | 'dark') => {
+        handleSettingsUpdate({ theme: newTheme });
+    };
+    
     const handleToggle = (key: 'notifications' | 'powerButtonSos' | 'voiceNav', enabled: boolean) => {
-        const baseSettings = user.settings || {
-            notifications: false, powerButtonSos: false, voiceNav: false,
-        };
-        onUpdateUser({ settings: { ...baseSettings, [key]: enabled } });
+        handleSettingsUpdate({ [key]: enabled });
         addToast(`${key} setting updated.`, 'info');
     };
 
     const handlePermissionToggle = (key: 'locationAccess' | 'cameraAccess' | 'microphoneAccess', enabled: boolean) => {
-        const baseSettings = user.settings || {
-            notifications: false, powerButtonSos: false, voiceNav: false,
-        };
-        onUpdateUser({ settings: { ...baseSettings, [key]: enabled } });
+        handleSettingsUpdate({ [key]: enabled });
         addToast(`${key.replace('Access','')} access setting updated.`, 'info');
     };
 
     const handleAddContact = () => {
         if (newContactName.trim() && newContactPhone.trim()) {
             const newContact: EmergencyContact = { id: Date.now(), name: newContactName, phone: newContactPhone };
-            onUpdateUser({ emergencyContacts: [...contacts, newContact] });
+            const updatedContacts = [...contacts, newContact];
+            onUpdateUser({ emergencyContacts: updatedContacts });
+            
+            const userIndex = DEMO_USERS.findIndex(u => u.id === user.id);
+            if (userIndex !== -1) DEMO_USERS[userIndex].emergencyContacts = updatedContacts;
+
             setNewContactName(''); setNewContactPhone(''); setContactModalOpen(false);
         }
     };
     
     const handleRemoveContact = (id: number) => {
-        onUpdateUser({ emergencyContacts: contacts.filter(c => c.id !== id) });
+        const updatedContacts = contacts.filter(c => c.id !== id);
+        onUpdateUser({ emergencyContacts: updatedContacts });
+        
+        const userIndex = DEMO_USERS.findIndex(u => u.id === user.id);
+        if (userIndex !== -1) DEMO_USERS[userIndex].emergencyContacts = updatedContacts;
     };
 
     const getSosStatusClasses = (status: SosAlert['status']) => {
@@ -513,63 +534,121 @@ const PilgrimProfileBody: React.FC<{ user: User; onUpdateUser: (data: Partial<Us
                 return sosSort === 'newest' ? dateB - dateA : dateA - dateB;
             });
     }, [sosHistory, sosFilter, sosSort]);
+
+    const tabs = {
+        hub: 'My Hub',
+        safety: 'Safety & Security',
+        settings: 'Settings',
+        permissions: 'Permissions'
+    };
     
     return (
       <>
-        <Card>
-            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{t.emergencyContacts.title}</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{t.emergencyContacts.description}</p>
-            <div className="space-y-3 mb-4">
-                {contacts.length > 0 ? (
-                    contacts.map(c => <div key={c.id} className="flex justify-between items-center bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg"><div><p className="font-semibold text-gray-800 dark:text-gray-200">{c.name}</p><p className="text-sm text-gray-600 dark:text-gray-400">{c.phone}</p></div><Button onClick={() => handleRemoveContact(c.id)} variant="danger" className="text-xs px-3 py-1">{t.emergencyContacts.remove}</Button></div>)
-                ) : <p className="text-gray-500 dark:text-gray-400 italic text-center py-2">{t.emergencyContacts.noContacts}</p>}
-            </div>
-            <Button onClick={() => setContactModalOpen(true)} className="w-full" variant="secondary">{t.emergencyContacts.addContact}</Button>
-        </Card>
-        <Card>
-            <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">{t.sosHistory.title}</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{t.sosHistory.description}</p>
-            <div className="flex flex-col sm:flex-row gap-4 mb-4">
-                <div className="flex-1">
-                    <label htmlFor="sos-filter" className="text-sm font-medium text-gray-700 dark:text-gray-300">{t.sosHistory.filterByStatus}</label>
-                    <select id="sos-filter" value={sosFilter} onChange={e => setSosFilter(e.target.value)} className="w-full mt-1 p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600">
-                        <option value="all">{t.sosHistory.allStatuses}</option>
-                        <option value="Broadcasted">{t.sosHistory.statuses.broadcasted}</option>
-                        <option value="Responded">{t.sosHistory.statuses.responded}</option>
-                        <option value="Resolved">{t.sosHistory.statuses.resolved}</option>
-                    </select>
+        <div className="border-b border-gray-200 dark:border-gray-700">
+            <nav className="-mb-px flex justify-around space-x-2">
+                {Object.entries(tabs).map(([key, tabName]) => (
+                    <button
+                        key={key}
+                        onClick={() => setActiveTab(key)}
+                        className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm sm:text-base ${
+                            activeTab === key
+                            ? 'border-orange-500 text-orange-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        }`}
+                    >
+                        {tabName}
+                    </button>
+                ))}
+            </nav>
+        </div>
+
+        <div className="mt-6 space-y-6">
+            {activeTab === 'hub' && (
+                <div className="animate-fade-in space-y-6">
+                    <MyItems />
+                    <MyReports onSelectReport={(report) => navigate('/dashboard')} />
                 </div>
-                <div className="flex-1">
-                    <label htmlFor="sos-sort" className="text-sm font-medium text-gray-700 dark:text-gray-300">{t.sosHistory.sortBy}</label>
-                    <select id="sos-sort" value={sosSort} onChange={e => setSosSort(e.target.value)} className="w-full mt-1 p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600">
-                        <option value="newest">{t.sosHistory.sortNewest}</option>
-                        <option value="oldest">{t.sosHistory.sortOldest}</option>
-                    </select>
+            )}
+            {activeTab === 'safety' && (
+                <div className="animate-fade-in space-y-6">
+                    <Card>
+                        <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{t.emergencyContacts.title}</h2>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{t.emergencyContacts.description}</p>
+                        <div className="space-y-3 mb-4">
+                            {contacts.length > 0 ? (
+                                contacts.map(c => <div key={c.id} className="flex justify-between items-center bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg"><div><p className="font-semibold text-gray-800 dark:text-gray-200">{c.name}</p><p className="text-sm text-gray-600 dark:text-gray-400">{c.phone}</p></div><Button onClick={() => handleRemoveContact(c.id)} variant="danger" className="text-xs px-3 py-1">{t.emergencyContacts.remove}</Button></div>)
+                            ) : <p className="text-gray-500 dark:text-gray-400 italic text-center py-2">{t.emergencyContacts.noContacts}</p>}
+                        </div>
+                        <Button onClick={() => setContactModalOpen(true)} className="w-full" variant="secondary">{t.emergencyContacts.addContact}</Button>
+                    </Card>
+                    <Card>
+                        <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">{t.sosHistory.title}</h2>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{t.sosHistory.description}</p>
+                        <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                            <div className="flex-1">
+                                <label htmlFor="sos-filter" className="text-sm font-medium text-gray-700 dark:text-gray-300">{t.sosHistory.filterByStatus}</label>
+                                <select id="sos-filter" value={sosFilter} onChange={e => setSosFilter(e.target.value)} className="w-full mt-1 p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600">
+                                    <option value="all">{t.sosHistory.allStatuses}</option>
+                                    <option value="Broadcasted">{t.sosHistory.statuses.broadcasted}</option>
+                                    <option value="Responded">{t.sosHistory.statuses.responded}</option>
+                                    <option value="Resolved">{t.sosHistory.statuses.resolved}</option>
+                                </select>
+                            </div>
+                            <div className="flex-1">
+                                <label htmlFor="sos-sort" className="text-sm font-medium text-gray-700 dark:text-gray-300">{t.sosHistory.sortBy}</label>
+                                <select id="sos-sort" value={sosSort} onChange={e => setSosSort(e.target.value)} className="w-full mt-1 p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600">
+                                    <option value="newest">{t.sosHistory.sortNewest}</option>
+                                    <option value="oldest">{t.sosHistory.sortOldest}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+                          {filteredAndSortedSosHistory.length > 0 ? (
+                            filteredAndSortedSosHistory.map(alert => <div key={alert.id} onClick={() => onSelectSosAlert(alert)} className="flex justify-between items-center bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors"><div><p className="font-semibold text-gray-800 dark:text-gray-200">{new Date(alert.timestamp).toLocaleString()}</p><p className="text-sm text-gray-500 dark:text-gray-400">{t.sosHistory.triggeredOn}</p></div><span className={`px-3 py-1 text-xs font-semibold rounded-full ${getSosStatusClasses(alert.status)}`}>{t.sosHistory.statuses[alert.status.toLowerCase() as keyof typeof t.sosHistory.statuses]}</span></div>)
+                          ) : <p className="text-gray-500 dark:text-gray-400 italic text-center py-2">{t.sosHistory.noHistory}</p>}
+                        </div>
+                    </Card>
                 </div>
-            </div>
-            <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
-              {filteredAndSortedSosHistory.length > 0 ? (
-                filteredAndSortedSosHistory.map(alert => <div key={alert.id} onClick={() => onSelectSosAlert(alert)} className="flex justify-between items-center bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors"><div><p className="font-semibold text-gray-800 dark:text-gray-200">{new Date(alert.timestamp).toLocaleString()}</p><p className="text-sm text-gray-500 dark:text-gray-400">{t.sosHistory.triggeredOn}</p></div><span className={`px-3 py-1 text-xs font-semibold rounded-full ${getSosStatusClasses(alert.status)}`}>{t.sosHistory.statuses[alert.status.toLowerCase() as keyof typeof t.sosHistory.statuses]}</span></div>)
-              ) : <p className="text-gray-500 dark:text-gray-400 italic text-center py-2">{t.sosHistory.noHistory}</p>}
-            </div>
-        </Card>
-        <Card>
-            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{t.settings}</h2>
-            <div className="divide-y divide-gray-200 dark:divide-gray-700 -m-6">
-                 <SettingRow id="power-sos" label={t.powerButtonSos} description={t.powerButtonSosDesc} checked={user.settings?.powerButtonSos ?? false} onToggle={c => handleToggle('powerButtonSos', c)} icon={<ShieldExclamationIcon />} />
-                 <SettingRow id="voice-nav" label={t.voiceNav} description={t.voiceNavDesc} checked={user.settings?.voiceNav ?? false} onToggle={c => handleToggle('voiceNav', c)} icon={<MicIcon />} />
-                 <SettingRow id="push-notifications" label={t.pushNotifications} description={t.pushNotificationsDesc} checked={user.settings?.notifications ?? false} onToggle={c => handleToggle('notifications', c)} icon={<BellIcon />} />
-            </div>
-        </Card>
-        <Card>
-            <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">{t.permissions}</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{t.permissionsDesc}</p>
-            <div className="divide-y divide-gray-200 dark:divide-gray-700 -m-6">
-                <SettingRow id="location-access" label={t.location} description={t.locationDesc} checked={user.settings?.locationAccess ?? false} onToggle={c => handlePermissionToggle('locationAccess', c)} icon={<LocationMarkerIcon />} />
-                <SettingRow id="camera-access" label={t.camera} description={t.cameraDesc} checked={user.settings?.cameraAccess ?? false} onToggle={c => handlePermissionToggle('cameraAccess', c)} icon={<CameraIcon />} />
-                <SettingRow id="mic-access" label={t.microphone} description={t.microphoneDesc} checked={user.settings?.microphoneAccess ?? false} onToggle={c => handlePermissionToggle('microphoneAccess', c)} icon={<MicIcon />} />
-            </div>
-        </Card>
+            )}
+             {activeTab === 'settings' && (
+                <div className="animate-fade-in space-y-6">
+                    <Card>
+                        <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Appearance</h2>
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <p className="font-medium text-gray-800 dark:text-gray-200">{t.theme}</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">{t.themeDesc}</p>
+                            </div>
+                            <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
+                                <Button variant={user.settings?.theme === 'light' ? 'primary' : 'secondary'} onClick={() => handleThemeChange('light')} className="text-sm py-1 px-3">{t.light}</Button>
+                                <Button variant={user.settings?.theme === 'dark' ? 'primary' : 'secondary'} onClick={() => handleThemeChange('dark')} className="text-sm py-1 px-3">{t.dark}</Button>
+                            </div>
+                        </div>
+                    </Card>
+                     <Card>
+                        <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{t.settings}</h2>
+                        <div className="divide-y divide-gray-200 dark:divide-gray-700 -m-6">
+                            <SettingRow id="power-sos" label={t.powerButtonSos} description={t.powerButtonSosDesc} checked={user.settings?.powerButtonSos ?? false} onToggle={c => handleToggle('powerButtonSos', c)} icon={<ShieldExclamationIcon />} />
+                            <SettingRow id="voice-nav" label={t.voiceNav} description={t.voiceNavDesc} checked={user.settings?.voiceNav ?? false} onToggle={c => handleToggle('voiceNav', c)} icon={<MicIcon />} />
+                            <SettingRow id="push-notifications" label={t.pushNotifications} description={t.pushNotificationsDesc} checked={user.settings?.notifications ?? false} onToggle={c => handleToggle('notifications', c)} icon={<BellIcon />} />
+                        </div>
+                    </Card>
+                </div>
+            )}
+            {activeTab === 'permissions' && (
+                <div className="animate-fade-in">
+                    <Card>
+                        <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">{t.permissions}</h2>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{t.permissionsDesc}</p>
+                        <div className="divide-y divide-gray-200 dark:divide-gray-700 -m-6">
+                            <SettingRow id="location-access" label={t.location} description={t.locationDesc} checked={user.settings?.locationAccess ?? false} onToggle={c => handlePermissionToggle('locationAccess', c)} icon={<LocationMarkerIcon />} />
+                            <SettingRow id="camera-access" label={t.camera} description={t.cameraDesc} checked={user.settings?.cameraAccess ?? false} onToggle={c => handlePermissionToggle('cameraAccess', c)} icon={<CameraIcon />} />
+                            <SettingRow id="mic-access" label={t.microphone} description={t.microphoneDesc} checked={user.settings?.microphoneAccess ?? false} onToggle={c => handlePermissionToggle('microphoneAccess', c)} icon={<MicIcon />} />
+                        </div>
+                    </Card>
+                </div>
+            )}
+        </div>
         <Modal isOpen={isContactModalOpen} onClose={() => setContactModalOpen(false)} title={t.emergencyContacts.addModalTitle}>
             <div className="space-y-4">
                 <div><label htmlFor="contact-name" className="block text-sm font-medium text-gray-700">{t.emergencyContacts.nameLabel}</label><input type="text" id="contact-name" value={newContactName} onChange={(e) => setNewContactName(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"/></div>
@@ -612,7 +691,7 @@ const ProfilePage: React.FC = () => {
   return (
     <>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="max-w-2xl mx-auto space-y-6">
+          <div className="max-w-3xl mx-auto space-y-6">
               <ProfileHeader user={user} onUpdateUser={updateUser} />
               {renderProfileBody()}
           </div>
