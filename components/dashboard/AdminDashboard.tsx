@@ -203,7 +203,16 @@ const AdminDashboard: React.FC = () => {
     const [aiFilteredReportIds, setAiFilteredReportIds] = useState<string[] | null>(null);
     const [aiSearchQuery, setAiSearchQuery] = useState('');
     
-    const assignableUsers = useMemo(() => DEMO_USERS.filter(u => u.role === UserRole.VOLUNTEER || u.role === UserRole.AUTHORITY), []);
+    const assignableUsers = useMemo(() => {
+        const staffRoles = new Set([
+            UserRole.VOLUNTEER,
+            UserRole.AUTHORITY,
+            UserRole.SECURITY_PERSONNEL,
+            UserRole.MEDICAL_STAFF,
+            UserRole.INFO_DESK_STAFF,
+        ]);
+        return DEMO_USERS.filter(u => staffRoles.has(u.role));
+    }, []);
 
     const handleUpdateReport = (reportId: string, updates: Partial<Pick<LostFoundReport, 'status' | 'assignedToId' | 'assignedToName'>>) => {
         const updatedReports = reports.map(r => r.id === reportId ? { ...r, ...updates } : r);

@@ -81,7 +81,15 @@ const Header: React.FC = () => {
 
 
   const navLinks = NAV_LINKS[language] || NAV_LINKS.en;
-  const canReport = !user || user.role === UserRole.PILGRIM || user.role === UserRole.VOLUNTEER;
+  
+  const reportableRoles = [
+      UserRole.PILGRIM,
+      UserRole.VOLUNTEER,
+      UserRole.INFO_DESK_STAFF,
+      UserRole.MEDICAL_STAFF,
+      UserRole.SECURITY_PERSONNEL,
+  ];
+  const canReport = !user || reportableRoles.includes(user.role);
 
   return (
     <>

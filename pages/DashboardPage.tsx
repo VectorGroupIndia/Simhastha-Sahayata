@@ -238,8 +238,11 @@ const DashboardPage: React.FC = () => {
       case UserRole.ADMIN:
         return <AdminDashboard />;
       case UserRole.AUTHORITY:
+      case UserRole.SECURITY_PERSONNEL:
+      case UserRole.MEDICAL_STAFF:
         return <AuthoritiesDashboard />;
       case UserRole.VOLUNTEER:
+      case UserRole.INFO_DESK_STAFF:
         return <VolunteerDashboard />;
       case UserRole.PILGRIM:
       default:

@@ -1,4 +1,4 @@
-import { RegisteredItem, FamilyMember, LostFoundReport, UserRole, SosAlert, MapPointOfInterest } from '../types';
+import { RegisteredItem, FamilyMember, LostFoundReport, UserRole, SosAlert, MapPointOfInterest, BroadcastMessage } from '../types';
 
 export const MOCK_REGISTERED_ITEMS: RegisteredItem[] = [
   {
@@ -61,7 +61,7 @@ export const MOCK_LOST_FOUND_REPORTS: LostFoundReport[] = [
         status: 'Open',
         priority: 'Critical',
         assignedToId: 4,
-        assignedToName: 'Officer Singh (Authority)'
+        assignedToName: 'Officer Singh'
     },
     {
         id: 'RPT-1672837198',
@@ -76,13 +76,13 @@ export const MOCK_LOST_FOUND_REPORTS: LostFoundReport[] = [
         lastSeen: 'Sector 5 Food Court',
         locationCoords: { lat: 70, lng: 60 },
         imageUrl: 'https://i.imgur.com/found-backpack.png',
-        reportedBy: 'Sunita Devi (Volunteer)',
+        reportedBy: 'Sunita Devi',
         reportedById: 5,
         timestamp: '2024-07-29T09:30:00Z',
         status: 'In Progress',
         priority: 'Medium',
         assignedToId: 5,
-        assignedToName: 'Sunita Devi (Volunteer)'
+        assignedToName: 'Sunita Devi'
     },
     {
         id: 'RPT-2736475',
@@ -101,7 +101,7 @@ export const MOCK_LOST_FOUND_REPORTS: LostFoundReport[] = [
         priority: 'Medium',
         originalItemId: 'item-2736475',
         assignedToId: 4,
-        assignedToName: 'Officer Singh (Authority)'
+        assignedToName: 'Officer Singh'
     },
      {
         id: 'RPT-1672836598',
@@ -153,7 +153,7 @@ export const MOCK_LOST_FOUND_REPORTS: LostFoundReport[] = [
         status: 'In Progress',
         priority: 'Critical',
         assignedToId: 10,
-        assignedToName: 'Inspector Verma (Authority)',
+        assignedToName: 'Inspector Verma',
     },
     {
         id: 'RPT-5069784',
@@ -282,7 +282,7 @@ export const MOCK_SOS_ALERTS: SosAlert[] = [
     {
         id: 4,
         userId: 5,
-        userName: 'Sunita Devi (Volunteer)',
+        userName: 'Sunita Devi',
         timestamp: new Date(Date.now() - 10 * 60 * 1000).toISOString(), // 10 mins ago
         status: 'Broadcasted',
         locationCoords: { lat: 35, lng: 40 },
@@ -329,6 +329,30 @@ export const MOCK_SOS_ALERTS: SosAlert[] = [
         timestamp: '2024-07-27T10:00:00Z',
         status: 'Resolved',
         locationCoords: { lat: 10, lng: 80 }
+    }
+];
+
+export const MOCK_BROADCASTS: BroadcastMessage[] = [
+    {
+        id: 'BC-1',
+        timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+        message: 'Weather update: Light rain expected in the next hour. Please advise pilgrims near open ghats to seek shelter.',
+        sentBy: 'Admin User',
+        recipients: [UserRole.INFO_DESK_STAFF, UserRole.SECURITY_PERSONNEL]
+    },
+    {
+        id: 'BC-2',
+        timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+        message: 'Reminder: The evening Aarti will begin at 7:00 PM at Ram Ghat. Expect heavy footfall in Zone A.',
+        sentBy: 'Admin User',
+        recipients: ['All']
+    },
+    {
+        id: 'BC-3',
+        timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+        message: 'All medical staff, please be advised that a central medical supply restock is available at the Sector C main camp.',
+        sentBy: 'Inspector Verma',
+        recipients: [UserRole.MEDICAL_STAFF]
     }
 ];
 
@@ -511,6 +535,7 @@ export const translations: { [key: string]: any } = {
               tasks: 'Tasks Feed',
               personnel: 'Personnel Roster',
               broadcasts: 'Broadcast Log',
+              broadcastMessage: 'Broadcast Message',
               filterBy: 'Filter by',
               sortBy: 'Sort by',
               priority: 'Priority',
@@ -531,7 +556,20 @@ export const translations: { [key: string]: any } = {
               report: 'REPORT',
               missingPerson: 'MISSING PERSON',
               sos: 'SOS',
-              broadcastFrom: 'Broadcast from'
+              broadcastFrom: 'Broadcast from',
+              to: 'To',
+          },
+          advancedBroadcast: {
+              title: 'Send Broadcast Message',
+              recipients: 'Recipients',
+              message: 'Message',
+              send: 'Send Broadcast',
+              success: 'Broadcast sent successfully!',
+              groups: {
+                  all: 'All Users',
+                  pilgrims: 'All Pilgrims',
+                  staff: 'All Staff & Volunteers',
+              }
           }
       },
       volunteer: {

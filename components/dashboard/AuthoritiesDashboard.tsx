@@ -1,19 +1,36 @@
 import React, { useState, useMemo } from 'react';
 import { Card } from '../ui/Card';
 import { useLocalization } from '../../hooks/useLocalization';
-import { MOCK_LOST_FOUND_REPORTS, MOCK_SOS_ALERTS, MOCK_OPERATIONAL_ZONES } from '../../data/mockData';
+import { MOCK_LOST_FOUND_REPORTS, MOCK_SOS_ALERTS, MOCK_OPERATIONAL_ZONES, MOCK_BROADCASTS } from '../../data/mockData';
 import { DEMO_USERS } from '../../constants';
-import { LostFoundReport, User, UserRole, SosAlert } from '../../types';
+import { LostFoundReport, User, UserRole, SosAlert, BroadcastMessage } from '../../types';
 import ReportDetailsModal from './ReportDetailsModal';
 import { Button } from '../ui/Button';
+import { AdvancedBroadcastModal } from './AdvancedBroadcastModal';
+import { useToast } from '../../hooks/useToast';
+import { useAuth } from '../../hooks/useAuth';
 
 // --- ICONS ---
 const MapIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
 const TasksIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>;
 const PersonnelIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-3-5.197m0 0A7.963 7.963 0 0112 4.354a7.963 7.963 0 013 3.197m-6 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 003-5.197" /></svg>;
 const BroadcastIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.636 5.636a9 9 0 0112.728 0M8.464 15.536a5 5 0 010-7.072" /></svg>;
+const ClipboardListIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>;
+const BellIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>;
+const CheckCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+
 
 // --- Helper Components ---
+const StatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode }> = ({ title, value, icon }) => (
+    <Card className="flex items-center p-4">
+        <div className="mr-4">{icon}</div>
+        <div>
+            <p className="text-sm font-medium text-gray-500">{title}</p>
+            <p className="text-2xl font-bold text-gray-800">{value}</p>
+        </div>
+    </Card>
+);
+
 const FilterDropdown: React.FC<{label: string, value: string, onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void, options: {value: string, label: string}[]}> = ({label, value, onChange, options}) => (
     <div>
         <label htmlFor={label} className="sr-only">{label}</label>
@@ -89,9 +106,10 @@ const MapView: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; per
     );
 };
 
-const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; personnel: User[]; onSelectReport: (report: LostFoundReport) => void; translations: any; }> = ({ reports, sosAlerts, personnel, onSelectReport, translations }) => {
-    const [activeTab, setActiveTab] = useState<'tasks' | 'personnel' | 'broadcasts'>('tasks');
+const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; personnel: User[]; user: User | null; onSelectReport: (report: LostFoundReport) => void; translations: any; onOpenBroadcast: () => void; }> = ({ reports, sosAlerts, personnel, user, onSelectReport, translations, onOpenBroadcast }) => {
+    const [activeTab, setActiveTab] = useState<'tasks' | 'my-assignments' | 'personnel' | 'broadcasts'>('tasks');
     const t = translations.dashboard.authorities.panel;
+    const profileT = translations.profile;
     
     // Task Panel State
     const [taskFilter, setTaskFilter] = useState({ status: 'all', priority: 'all', zone: 'all' });
@@ -101,12 +119,24 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
         ...sosAlerts.filter(a => a.status !== 'Resolved').map(a => ({ ...a, kind: 'sos' as const, priority: 'Critical' as const })),
     ], [reports, sosAlerts]);
     
+    const myAssignments = useMemo(() => reports.filter(r => r.assignedToId === user?.id), [reports, user]);
+
+    const allBroadcasts = useMemo(() => {
+        const sosMessages = MOCK_SOS_ALERTS
+            .filter(a => a.message)
+            .map(a => ({ ...a, kind: 'sos' as const, id: `sos-${a.id}` }));
+        
+        const generalBroadcasts = MOCK_BROADCASTS
+            .map(b => ({ ...b, kind: 'general' as const }));
+
+        return [...sosMessages, ...generalBroadcasts].sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    }, []);
+    
     const filteredTasks = useMemo(() => {
         return allTasks
             .filter(task => 
                 (taskFilter.status === 'all' || task.status === taskFilter.status) &&
                 (taskFilter.priority === 'all' || task.priority === taskFilter.priority) &&
-                // FIX: Check task.kind to ensure task is a LostFoundReport before accessing assignedToId.
                 (taskFilter.zone === 'all' || (task.kind === 'report' && task.assignedToId && personnel.find(p=>p.id === task.assignedToId)?.assignedZone === taskFilter.zone))
             )
             .sort((a, b) => {
@@ -121,15 +151,16 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
     return (
         <Card className="h-full flex flex-col">
              <div className="border-b border-gray-200">
-                <nav className="-mb-px flex space-x-4">
+                <nav className="-mb-px flex space-x-4 overflow-x-auto">
                     <button onClick={() => setActiveTab('tasks')} className={`flex items-center whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'tasks' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}><TasksIcon/> <span className="ml-2">{t.tasks}</span></button>
+                    <button onClick={() => setActiveTab('my-assignments')} className={`flex items-center whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'my-assignments' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}><TasksIcon/> <span className="ml-2">{profileT.myAssignments} ({myAssignments.length})</span></button>
                     <button onClick={() => setActiveTab('personnel')} className={`flex items-center whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'personnel' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}><PersonnelIcon/><span className="ml-2">{t.personnel}</span></button>
                     <button onClick={() => setActiveTab('broadcasts')} className={`flex items-center whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'broadcasts' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}><BroadcastIcon/><span className="ml-2">{t.broadcasts}</span></button>
                 </nav>
             </div>
              <div className="flex-grow overflow-y-auto mt-4 pr-2">
                 {activeTab === 'tasks' && (
-                    <div>
+                    <div className="animate-fade-in">
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4 text-xs">
                             <FilterDropdown label="Status" value={taskFilter.status} onChange={e=>setTaskFilter(f=>({...f, status: e.target.value}))} options={[{value:'all', label: 'All Statuses'}, {value:'Open', label:'Open'}, {value:'In Progress', label:'In Progress'}]}/>
                             <FilterDropdown label="Priority" value={taskFilter.priority} onChange={e=>setTaskFilter(f=>({...f, priority: e.target.value}))} options={[{value:'all', label: 'All Priorities'}, {value:'Critical', label:'Critical'}, {value:'High', label:'High'}, {value:'Medium', label:'Medium'}, {value:'Low', label:'Low'}]}/>
@@ -137,7 +168,6 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
                             <FilterDropdown label="Sort by" value={taskSort} onChange={e=>setTaskSort(e.target.value)} options={[{value:'date', label:'Sort by Date'}, {value:'priority', label:'Sort by Priority'}]}/>
                         </div>
                         <div className="space-y-3">
-                            {/* FIX: Use a discriminated union (if/else on task.kind) to help TypeScript narrow the type of `task` and fix property access errors. */}
                             {filteredTasks.length > 0 ? filteredTasks.map(task => {
                                 const { bg, border } = getPriorityClasses(task.priority);
                                 if (task.kind === 'report') {
@@ -147,7 +177,7 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
                                                 {task.category === 'Person' ? `${t.missingPerson}: ${task.personName}` :
                                                  `${t.report}: ${task.itemName}`}
                                             </p>
-                                            <p className="text-xs text-gray-600 italic">"{task.description}"</p>
+                                            <p className="text-xs text-gray-600 italic truncate">"{task.description}"</p>
                                             <div className="text-xs mt-2 flex justify-between items-center">
                                                 <p>{new Date(task.timestamp).toLocaleString()}</p>
                                                 <Button onClick={()=>onSelectReport(task)} variant="secondary" className="text-xs py-0.5 px-2">{t.viewDetails}</Button>
@@ -160,7 +190,7 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
                                             <p className="font-bold text-sm">
                                                 {`${t.sos}: ${task.userName}`}
                                             </p>
-                                            <p className="text-xs text-gray-600 italic">"{task.message}"</p>
+                                            <p className="text-xs text-gray-600 italic truncate">"{task.message}"</p>
                                             <div className="text-xs mt-2 flex justify-between items-center">
                                                 <p>{new Date(task.timestamp).toLocaleString()}</p>
                                             </div>
@@ -171,8 +201,28 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
                         </div>
                     </div>
                 )}
+                 {activeTab === 'my-assignments' && (
+                    <div className="animate-fade-in space-y-3">
+                         {myAssignments.length > 0 ? myAssignments.map(report => {
+                             const { bg, border } = getPriorityClasses(report.priority);
+                             return (
+                                <div key={report.id} className={`p-3 rounded-lg border-l-4 ${bg} ${border}`}>
+                                     <p className="font-bold text-sm">
+                                        {report.category === 'Person' ? `${t.missingPerson}: ${report.personName}` :
+                                            `${t.report}: ${report.itemName}`}
+                                    </p>
+                                    <p className="text-xs text-gray-600 italic truncate">"{report.description}"</p>
+                                    <div className="text-xs mt-2 flex justify-between items-center">
+                                        <p>{new Date(report.timestamp).toLocaleString()}</p>
+                                        <Button onClick={() => onSelectReport(report)} variant="secondary" className="text-xs py-0.5 px-2">{t.viewDetails}</Button>
+                                    </div>
+                                </div>
+                            )
+                        }) : <p className="text-gray-500 text-center py-8">{profileT.noAssignments}</p>}
+                    </div>
+                 )}
                  {activeTab === 'personnel' && (
-                     <div className="space-y-2">
+                     <div className="animate-fade-in space-y-2">
                          {personnel.map(p => {
                              const assignment = reports.find(r => r.assignedToId === p.id && r.status === 'In Progress');
                              return (
@@ -194,14 +244,25 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
                      </div>
                 )}
                  {activeTab === 'broadcasts' && (
-                    <div className="space-y-3">
-                        {MOCK_SOS_ALERTS.filter(a => a.message).map(alert => (
-                             <div key={`log-${alert.id}`} className="p-3 bg-gray-50 rounded-lg">
-                                <p className="font-semibold text-sm">{t.broadcastFrom}: {alert.userName}</p>
-                                <p className="text-xs text-gray-500">{new Date(alert.timestamp).toLocaleString()}</p>
-                                <p className="text-sm italic mt-1 bg-white p-2 rounded">"{alert.message}"</p>
-                            </div>
-                        ))}
+                    <div className="animate-fade-in">
+                         <Button onClick={onOpenBroadcast} className="w-full mb-4">{t.broadcastMessage}</Button>
+                        <div className="space-y-3">
+                            {allBroadcasts.map(log => {
+                                const isSos = log.kind === 'sos';
+                                return (
+                                    <div key={log.id} className={`p-3 rounded-lg border-l-4 ${isSos ? 'bg-red-50 border-red-500' : 'bg-blue-50 border-blue-500'}`}>
+                                        <div className="flex justify-between text-xs mb-1">
+                                            <p className="font-semibold">{t.broadcastFrom}: {isSos ? log.userName : log.sentBy}</p>
+                                            <p className="text-gray-500">{new Date(log.timestamp).toLocaleString()}</p>
+                                        </div>
+                                        {!isSos && (
+                                            <p className="text-xs font-bold text-blue-800 mb-1">{t.to}: {log.recipients.join(', ')}</p>
+                                        )}
+                                        <p className="text-sm italic bg-white p-2 rounded">"{log.message}"</p>
+                                    </div>
+                                )
+                            })}
+                        </div>
                     </div>
                 )}
             </div>
@@ -214,18 +275,57 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
  */
 const AuthoritiesDashboard: React.FC = () => {
     const { translations } = useLocalization();
+    const { addToast } = useToast();
+    const { user } = useAuth();
     const t = translations.dashboard.authorities;
-    const [selectedReport, setSelectedReport] = useState<LostFoundReport | null>(null);
+    const profileT = translations.profile.authority;
 
-    const activePersonnel = useMemo(() => DEMO_USERS.filter(u => u.status === 'Active' && (u.role === UserRole.AUTHORITY || u.role === UserRole.VOLUNTEER)), []);
+    const [selectedReport, setSelectedReport] = useState<LostFoundReport | null>(null);
+    const [isBroadcastModalOpen, setBroadcastModalOpen] = useState(false);
+
+    const staffRoles = new Set([
+        UserRole.AUTHORITY,
+        UserRole.VOLUNTEER,
+        UserRole.SECURITY_PERSONNEL,
+        UserRole.MEDICAL_STAFF,
+        UserRole.INFO_DESK_STAFF,
+    ]);
+    const activePersonnel = useMemo(() => DEMO_USERS.filter(u => u.status === 'Active' && staffRoles.has(u.role)), [staffRoles]);
+    
+    // Calculate stats for the current user
+    const myAssignments = useMemo(() => MOCK_LOST_FOUND_REPORTS.filter(r => r.assignedToId === user?.id), [user]);
+    const openCases = useMemo(() => myAssignments.filter(r => r.status !== 'Resolved').length, [myAssignments]);
+    const resolvedCases = useMemo(() => myAssignments.filter(r => r.status === 'Resolved').length, [myAssignments]);
+    const activeSosAlerts = useMemo(() => MOCK_SOS_ALERTS.filter(a => a.status !== 'Resolved').length, []);
+
+
+    const handleConfirmBroadcast = (message: string, recipients: (UserRole | 'All' | 'Pilgrims' | 'Staff')[]) => {
+        if(!user) return;
+        const newBroadcast: BroadcastMessage = {
+            id: `BC-${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            message,
+            recipients,
+            sentBy: user.name,
+        };
+        MOCK_BROADCASTS.unshift(newBroadcast);
+        addToast(t.advancedBroadcast.success, 'success');
+    };
 
     return (
         <>
             <div className="space-y-6">
                 <h2 className="text-3xl font-bold">{t.title}</h2>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[80vh]">
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <StatCard title={profileT.openCases} value={openCases} icon={<ClipboardListIcon />} />
+                    <StatCard title={profileT.resolvedCases} value={resolvedCases} icon={<CheckCircleIcon />} />
+                    <StatCard title={t.kpis.sosAlerts} value={activeSosAlerts} icon={<BellIcon />} />
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" style={{ height: 'calc(80vh - 120px)'}}>
                     <MapView reports={MOCK_LOST_FOUND_REPORTS} sosAlerts={MOCK_SOS_ALERTS} personnel={activePersonnel} onSelectReport={setSelectedReport} translations={translations} />
-                    <SidePanel reports={MOCK_LOST_FOUND_REPORTS} sosAlerts={MOCK_SOS_ALERTS} personnel={activePersonnel} onSelectReport={setSelectedReport} translations={translations}/>
+                    <SidePanel reports={MOCK_LOST_FOUND_REPORTS} sosAlerts={MOCK_SOS_ALERTS} personnel={activePersonnel} user={user} onSelectReport={setSelectedReport} translations={translations} onOpenBroadcast={() => setBroadcastModalOpen(true)}/>
                 </div>
             </div>
             <ReportDetailsModal 
@@ -233,6 +333,11 @@ const AuthoritiesDashboard: React.FC = () => {
                 onClose={() => setSelectedReport(null)}
                 report={selectedReport}
                 assignableUsers={activePersonnel}
+            />
+            <AdvancedBroadcastModal
+                isOpen={isBroadcastModalOpen}
+                onClose={() => setBroadcastModalOpen(false)}
+                onConfirm={handleConfirmBroadcast}
             />
         </>
     );

@@ -4,6 +4,9 @@ export enum UserRole {
   ADMIN = 'Admin',
   AUTHORITY = 'Authority',
   VOLUNTEER = 'Volunteer',
+  SECURITY_PERSONNEL = 'Security Personnel',
+  MEDICAL_STAFF = 'Medical Staff',
+  INFO_DESK_STAFF = 'Information Desk Staff',
 }
 
 // Represents a single SOS alert in the user's history.
@@ -15,6 +18,15 @@ export interface SosAlert {
   userId?: number;
   userName?: string;
   locationCoords?: { lat: number; lng: number };
+}
+
+// Represents a new targeted broadcast message
+export interface BroadcastMessage {
+  id: string;
+  timestamp: string;
+  message: string;
+  sentBy: string; // User name
+  recipients: (UserRole | 'All' | 'Pilgrims' | 'Staff')[]; // Array of roles, or a special 'All' value
 }
 
 // Represents a user's pre-registered valuable item.

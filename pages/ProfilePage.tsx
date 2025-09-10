@@ -188,16 +188,11 @@ const AdminProfileBody: React.FC<{ user: User, onUpdateUser: (data: Partial<User
     );
 };
 
-const AuthorityProfileBody: React.FC<{ user: User; onUpdateUser: (data: Partial<User>) => void; onSelectReport: (report: LostFoundReport) => void; }> = ({ user, onUpdateUser, onSelectReport }) => {
+const AuthorityProfileBody: React.FC<{ user: User; onUpdateUser: (data: Partial<User>) => void; }> = ({ user, onUpdateUser }) => {
     const { translations } = useLocalization();
-    const [activeTab, setActiveTab] = useState('assignments');
     const t = translations.profile;
     const authT = t.authority || {};
 
-    const myAssignments = MOCK_LOST_FOUND_REPORTS.filter(r => r.assignedToId === user.id);
-    const openAssignments = myAssignments.filter(r => r.status === 'In Progress');
-    const resolvedAssignments = myAssignments.filter(r => r.status === 'Resolved');
-    
     useEffect(() => {
         if (user.settings?.theme === 'dark') {
             document.documentElement.classList.add('dark');
@@ -220,105 +215,47 @@ const AuthorityProfileBody: React.FC<{ user: User; onUpdateUser: (data: Partial<
         }
     }
 
-    const tabs = {
-        assignments: 'My Assignments',
-        stats: 'My Stats',
-        settings: 'Settings'
-    };
-
     return (
-      <>
-        <div className="border-b border-gray-200 dark:border-gray-700">
-            <nav className="-mb-px flex justify-around space-x-2">
-                {Object.entries(tabs).map(([key, tabName]) => (
-                    <button
-                        key={key}
-                        onClick={() => setActiveTab(key)}
-                        className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm sm:text-base ${
-                            activeTab === key
-                            ? 'border-orange-500 text-orange-600'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                        }`}
-                    >
-                        {tabName}
-                    </button>
-                ))}
-            </nav>
-        </div>
-
-        <div className="mt-6 space-y-6">
-            {activeTab === 'assignments' && (
-                <Card className="animate-fade-in">
-                    <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{t.myAssignments}</h2>
-                    <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
-                        {myAssignments.length > 0 ? (
-                            myAssignments.map(report => (
-                                <div key={report.id} className="flex flex-col sm:flex-row justify-between sm:items-center bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg gap-2">
-                                    <div>
-                                        <p className="font-semibold text-gray-800 dark:text-gray-200">{report.personName || report.itemName}</p>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400 truncate max-w-sm">{report.description}</p>
-                                    </div>
-                                    <Button onClick={() => onSelectReport(report)} variant="secondary" className="text-sm py-1 px-3 self-end sm:self-center">{t.viewReport}</Button>
-                                </div>
-                            ))
-                        ) : (
-                            <p className="text-gray-500 dark:text-gray-400 italic text-center py-4">{t.noAssignments}</p>
-                        )}
-                    </div>
-                </Card>
-            )}
-             {activeTab === 'stats' && (
-                <Card className="animate-fade-in">
-                    <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{authT.statsTitle}</h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-                        <div><p className="text-3xl font-bold">{myAssignments.length}</p><p className="text-gray-500 dark:text-gray-400">{authT.totalAssigned}</p></div>
-                        <div><p className="text-3xl font-bold text-yellow-600">{openAssignments.length}</p><p className="text-gray-500 dark:text-gray-400">{authT.openCases}</p></div>
-                        <div><p className="text-3xl font-bold text-green-600">{resolvedAssignments.length}</p><p className="text-gray-500 dark:text-gray-400">{authT.resolvedCases}</p></div>
-                    </div>
-                </Card>
-            )}
-             {activeTab === 'settings' && (
-                <Card className="animate-fade-in">
-                    <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{authT.settingsTitle}</h2>
-                    <div className="divide-y divide-gray-200 dark:divide-gray-700 -m-6">
-                        <div className="p-4 flex justify-between items-center">
-                            <div>
-                                <p className="font-medium text-gray-800 dark:text-gray-200">{t.theme}</p>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">{t.themeDesc}</p>
-                            </div>
-                            <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
-                                <Button variant={user.settings?.theme === 'light' ? 'primary' : 'secondary'} onClick={() => handleSettingChange('theme', 'light')} className="text-sm py-1 px-3">{t.light}</Button>
-                                <Button variant={user.settings?.theme === 'dark' ? 'primary' : 'secondary'} onClick={() => handleSettingChange('theme', 'dark')} className="text-sm py-1 px-3">{t.dark}</Button>
-                            </div>
-                        </div>
-                        <div className="p-4 flex justify-between items-center">
-                            <div>
-                                <p className="font-medium text-gray-800 dark:text-gray-200">{authT.operationalZone}</p>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">{authT.operationalZoneDesc}</p>
-                            </div>
-                            <select value={user.assignedZone || ''} onChange={e => handleSettingChange('assignedZone', e.target.value)} className="rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500">
-                                <option value="">Select Zone</option>
-                                {MOCK_OPERATIONAL_ZONES.map(z=><option key={z.id} value={z.name}>{z.name}</option>)}
-                            </select>
-                        </div>
-                        <div className="p-4 flex justify-between items-center">
-                            <div>
-                                <p className="font-medium text-gray-800 dark:text-gray-200">{authT.alertThreshold}</p>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">{authT.alertThresholdDesc}</p>
-                            </div>
-                            <select value={user.settings?.alertPriorityThreshold || 'All'} onChange={e => handleSettingChange('alertPriorityThreshold', e.target.value)} className="rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500">
-                               <option value="All">All Priorities</option>
-                               <option value="High">High & Critical Only</option>
-                               <option value="Critical">Critical Only</option>
-                            </select>
-                        </div>
-                        <SettingRow id="sos-zone-alerts" label={authT.sosZoneAlerts} description={authT.sosZoneAlertsDesc} checked={user.settings?.sosZoneAlerts ?? true} onToggle={(c) => handleSettingToggle('sosZoneAlerts', c)} icon={<ShieldExclamationIcon />} />
-                        <SettingRow id="patrol-mode" label={authT.patrolMode} description={authT.patrolModeDesc} checked={user.settings?.patrolMode ?? false} onToggle={(c) => handleSettingToggle('patrolMode', c)} icon={<MoonIcon />} />
-                    </div>
-                </Card>
-            )}
-        </div>
-      </>
+      <div className="space-y-6">
+          <Card>
+              <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{authT.settingsTitle}</h2>
+              <div className="divide-y divide-gray-200 dark:divide-gray-700 -m-6">
+                  <div className="p-4 flex justify-between items-center">
+                      <div>
+                          <p className="font-medium text-gray-800 dark:text-gray-200">{t.theme}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{t.themeDesc}</p>
+                      </div>
+                      <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
+                          <Button variant={user.settings?.theme === 'light' ? 'primary' : 'secondary'} onClick={() => handleSettingChange('theme', 'light')} className="text-sm py-1 px-3">{t.light}</Button>
+                          <Button variant={user.settings?.theme === 'dark' ? 'primary' : 'secondary'} onClick={() => handleSettingChange('theme', 'dark')} className="text-sm py-1 px-3">{t.dark}</Button>
+                      </div>
+                  </div>
+                  <div className="p-4 flex justify-between items-center">
+                      <div>
+                          <p className="font-medium text-gray-800 dark:text-gray-200">{authT.operationalZone}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{authT.operationalZoneDesc}</p>
+                      </div>
+                      <select value={user.assignedZone || ''} onChange={e => handleSettingChange('assignedZone', e.target.value)} className="rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500">
+                          <option value="">Select Zone</option>
+                          {MOCK_OPERATIONAL_ZONES.map(z=><option key={z.id} value={z.name}>{z.name}</option>)}
+                      </select>
+                  </div>
+                  <div className="p-4 flex justify-between items-center">
+                      <div>
+                          <p className="font-medium text-gray-800 dark:text-gray-200">{authT.alertThreshold}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{authT.alertThresholdDesc}</p>
+                      </div>
+                      <select value={user.settings?.alertPriorityThreshold || 'All'} onChange={e => handleSettingChange('alertPriorityThreshold', e.target.value)} className="rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500">
+                         <option value="All">All Priorities</option>
+                         <option value="High">High & Critical Only</option>
+                         <option value="Critical">Critical Only</option>
+                      </select>
+                  </div>
+                  <SettingRow id="sos-zone-alerts" label={authT.sosZoneAlerts} description={authT.sosZoneAlertsDesc} checked={user.settings?.sosZoneAlerts ?? true} onToggle={(c) => handleSettingToggle('sosZoneAlerts', c)} icon={<ShieldExclamationIcon />} />
+                  <SettingRow id="patrol-mode" label={authT.patrolMode} description={authT.patrolModeDesc} checked={user.settings?.patrolMode ?? false} onToggle={(c) => handleSettingToggle('patrolMode', c)} icon={<MoonIcon />} />
+              </div>
+          </Card>
+      </div>
     );
 };
 
@@ -683,8 +620,11 @@ const ProfilePage: React.FC = () => {
       case UserRole.ADMIN:
         return <AdminProfileBody user={user} onUpdateUser={updateUser} />;
       case UserRole.AUTHORITY:
-        return <AuthorityProfileBody user={user} onUpdateUser={updateUser} onSelectReport={setSelectedReport} />;
+      case UserRole.SECURITY_PERSONNEL:
+      case UserRole.MEDICAL_STAFF:
+        return <AuthorityProfileBody user={user} onUpdateUser={updateUser} />;
       case UserRole.VOLUNTEER:
+      case UserRole.INFO_DESK_STAFF:
         return <VolunteerProfileBody user={user} onUpdateUser={updateUser} onSelectReport={setSelectedReport} />;
       case UserRole.PILGRIM:
       default:
