@@ -223,6 +223,7 @@ const VolunteerDashboard: React.FC = () => {
                 status: 'Accepted',
                 assignedToId: user.id,
                 assignedToName: user.name,
+                responderStatusAtAcceptance: user.settings?.availabilityStatus,
             };
             setReports([...reports]);
             addToast("SOS Alert accepted. It's now in your assignments.", 'success');
@@ -244,6 +245,7 @@ const VolunteerDashboard: React.FC = () => {
             status: 'Broadcasted',
             locationCoords: volunteerLocation,
             message: message,
+            volunteerStatusAtBroadcast: user.settings?.availabilityStatus,
         };
 
         MOCK_SOS_ALERTS.unshift(newAlert);

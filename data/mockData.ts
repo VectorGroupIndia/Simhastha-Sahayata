@@ -613,7 +613,7 @@ export const translations: { [key: string]: any } = {
         itemMaterial: "Material (optional)",
         itemMaterialPlaceholder: "e.g., Canvas, Leather",
         itemSize: "Size (optional)",
-        itemSizePlaceholder: "e.g., Medium, 24 inches",
+        itemSizePlaceholder: "e.g., Small, 24 inches",
         identifyingMarks: "Identifying Marks (optional)",
         identifyingMarksPlaceholder: "e.g., University logo sticker on front",
         description: "Additional Description",
@@ -796,7 +796,7 @@ export const translations: { [key: string]: any } = {
             systemConfigDesc: "Global settings that affect all users.",
             aiAutofill: "Enable AI Report Autofill",
             aiAutofillDesc: "Allow users to autofill report forms from a text description.",
-            aiImageAnalysis: "Enable AI Image Analysis",
+aiImageAnalysis: "Enable AI Image Analysis",
             aiImageAnalysisDesc: "Allow users to pre-fill reports by uploading an image.",
             maintenanceMode: "Enable Maintenance Mode",
             maintenanceModeDesc: "Restricts app access to Admins only for system updates."

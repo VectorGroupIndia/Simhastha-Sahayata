@@ -80,6 +80,10 @@ const Header: React.FC = () => {
         lng: 75.7873 + (Math.random() - 0.5) * 0.1,
       },
     };
+
+    if (user.role === UserRole.VOLUNTEER) {
+        newSosAlert.volunteerStatusAtBroadcast = user.settings?.availabilityStatus;
+    }
     
     // Add to the global mock data to broadcast it
     MOCK_SOS_ALERTS.unshift(newSosAlert);

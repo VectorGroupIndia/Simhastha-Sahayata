@@ -334,6 +334,16 @@ const AdminDashboard: React.FC = () => {
     ]), [assignableUsers, translations]);
     const sortOptions = [{ value: 'dateNewest', label: translations.filterBar.dateNewest }, { value: 'dateOldest', label: translations.filterBar.dateOldest }, { value: 'status', label: translations.filterBar.statusSort }, { value: 'category', label: translations.filterBar.categorySort }, { value: 'type', label: translations.filterBar.typeSort }, { value: 'assignment', label: translations.filterBar.assignmentSort }];
 
+    const getStatusClasses = (status: LostFoundReport['status']) => {
+        switch (status) {
+            case 'Open': return 'bg-yellow-200 text-yellow-800';
+            case 'In Progress': return 'bg-blue-200 text-blue-800';
+            case 'AI Search in Progress': return 'bg-indigo-200 text-indigo-800 animate-pulse';
+            case 'Located': return 'bg-teal-200 text-teal-800';
+            case 'Resolved': return 'bg-green-200 text-green-800';
+            default: return 'bg-gray-200 text-gray-800';
+        }
+    };
 
     return (
         <>
@@ -386,7 +396,7 @@ const AdminDashboard: React.FC = () => {
                                                 <td className="p-3">{report.type}</td>
                                                 <td className="p-3">{report.category}</td>
                                                 <td className="p-3 truncate max-w-xs">{report.description}</td>
-                                                <td className="p-3"><span className={`px-2 py-1 text-xs rounded-full ${report.status === 'Open' ? 'bg-yellow-200 text-yellow-800' : report.status === 'In Progress' ? 'bg-blue-200 text-blue-800' : 'bg-green-200 text-green-800'}`}>{report.status}</span></td>
+                                                <td className="p-3"><span className={`px-2 py-1 text-xs rounded-full ${getStatusClasses(report.status)}`}>{report.status}</span></td>
                                                 <td className="p-3">{report.assignedToName || 'Unassigned'}</td>
                                                 <td className="p-3">{report.reportedBy}</td>
                                                 <td className="p-3 text-sm text-gray-500">{new Date(report.timestamp).toLocaleDateString()}</td>

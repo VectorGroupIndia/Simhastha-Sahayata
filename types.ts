@@ -1,4 +1,3 @@
-
 /*********************************************************************************
  * Author: Sujit Babar
  * Company: Transfigure Technologies Pvt. Ltd.
@@ -30,6 +29,8 @@ export interface SosAlert {
   locationCoords?: { lat: number; lng: number };
   assignedToId?: number;
   assignedToName?: string;
+  volunteerStatusAtBroadcast?: 'Active' | 'On Break';
+  responderStatusAtAcceptance?: 'Active' | 'On Break';
 }
 
 // Represents a new targeted broadcast message

@@ -347,6 +347,9 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
                                             </div>
                                             <div className="text-sm">
                                                 <p><span className="font-semibold">From:</span> {task.userName} ({task.userRole})</p>
+                                                {task.userRole === UserRole.VOLUNTEER && task.volunteerStatusAtBroadcast && (
+                                                    <p className="text-xs text-red-700 font-medium">Status at broadcast: {task.volunteerStatusAtBroadcast}</p>
+                                                )}
                                                 {task.message && <p className="text-xs italic bg-red-50 dark:bg-red-800/50 p-2 my-2 rounded">"{task.message}"</p>}
                                                 <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{new Date(task.timestamp).toLocaleString()}</p>
                                             </div>
@@ -455,6 +458,9 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
                                         </div>
                                         <div className="text-xs mb-2">
                                             <p><span className="font-semibold">{t.broadcastFrom}:</span> {isSos ? log.userName : log.sentBy}</p>
+                                            {isSos && log.userRole === UserRole.VOLUNTEER && log.volunteerStatusAtBroadcast && (
+                                                <p className="text-xs text-red-700 font-medium mt-1">Status at broadcast: {log.volunteerStatusAtBroadcast}</p>
+                                            )}
                                             {!isSos && (
                                                 <p><span className="font-semibold">{t.to}:</span> {log.recipients.join(', ')}</p>
                                             )}

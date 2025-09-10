@@ -53,16 +53,25 @@ export const SosDetailsModal: React.FC<SosDetailsModalProps> = ({ isOpen, onClos
 
     const handleUpdate = () => {
         if (onUpdateAlert) {
-          const [idStr, ...nameParts] = assignedTo.split(',');
-          const name = nameParts.join(',');
-          const id = parseInt(idStr, 10);
-          
-          onUpdateAlert(alert.id, {
-            status: newStatus,
-            assignedToId: assignedTo ? id : undefined,
-            assignedToName: assignedTo ? name : undefined,
-          });
-          onClose();
+            const [idStr, ...nameParts] = assignedTo.split(',');
+            const name = nameParts.join(',');
+            const id = parseInt(idStr, 10);
+            
+            const updates: Partial<SosAlert> = {
+                status: newStatus,
+                assignedToId: assignedTo ? id : undefined,
+                assignedToName: assignedTo ? name : undefined,
+            };
+
+            if (assignedTo) {
+                const assignedVolunteer = DEMO_USERS.find(u => u.id === id);
+                if (assignedVolunteer && assignedVolunteer.role === UserRole.VOLUNTEER) {
+                    updates.responderStatusAtAcceptance = assignedVolunteer.settings?.availabilityStatus;
+                }
+            }
+            
+            onUpdateAlert(alert.id, updates);
+            onClose();
         }
     };
     
@@ -118,6 +127,9 @@ export const SosDetailsModal: React.FC<SosDetailsModalProps> = ({ isOpen, onClos
                                 <div>
                                     <p className="text-sm text-gray-500">Assigned To</p>
                                     <p className="font-semibold text-gray-800">{alert.assignedToName}</p>
+                                    {alert.responderStatusAtAcceptance && (
+                                        <p className="text-xs text-gray-600">Status at acceptance: <span className="font-medium">{alert.responderStatusAtAcceptance}</span></p>
+                                    )}
                                 </div>
                             )}
                             {alert.message && (
