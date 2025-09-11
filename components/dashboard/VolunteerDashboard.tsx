@@ -1,3 +1,4 @@
+
 /*********************************************************************************
  * Author: Sujit Babar
  * Company: Transfigure Technologies Pvt. Ltd.
@@ -105,6 +106,7 @@ const VolunteerMapView: React.FC<{ user: User; assignments: (LostFoundReport | S
     const { translations } = useLocalization();
     const volunteerLocation = user.locationCoords || { lat: 50, lng: 50 };
     const radiusInPixels = (user.settings?.workingRadius || 1) * 10;
+    const [activePin, setActivePin] = useState<LostFoundReport | null>(null);
 
     const Pin: React.FC<{ item: LostFoundReport | SosAlert; type: 'assignment' | 'alert' | 'sos' }> = ({ item, type }) => {
         if (!item.locationCoords) return null;
@@ -114,7 +116,15 @@ const VolunteerMapView: React.FC<{ user: User; assignments: (LostFoundReport | S
         const name = isSos ? (item as SosAlert).userName : (item as LostFoundReport).personName || (item as LostFoundReport).itemName;
 
         return (
-            <div className="absolute" style={{ top: `${item.locationCoords.lat}%`, left: `${item.locationCoords.lng}%`, transform: 'translate(-50%, -100%)' }} onClick={() => onSelectItem(item)}>
+            <div className="absolute" style={{ top: `${item.locationCoords.lat}%`, left: `${item.locationCoords.lng}%`, transform: 'translate(-50%, -100%)' }} 
+            onClick={(e) => {
+                e.stopPropagation();
+                if ('reportedById' in item) { // It's a LostFoundReport
+                    setActivePin(item as LostFoundReport);
+                } else { // It's an SosAlert, keep old behavior
+                    onSelectItem(item);
+                }
+            }}>
                 <div className="relative flex flex-col items-center cursor-pointer group">
                     {isSos && <div className={`absolute h-8 w-8 rounded-full bg-red-400 opacity-75 animate-ping`}></div>}
                     <svg xmlns="http://www.w3.org/2000/svg" className={`h-8 w-8 text-${pinColor}-500 drop-shadow-lg transition-transform group-hover:scale-110`} viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 20l-4.95-5.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" /></svg>
@@ -126,7 +136,7 @@ const VolunteerMapView: React.FC<{ user: User; assignments: (LostFoundReport | S
 
     return (
         <Card>
-            <div className="aspect-video bg-gray-200 rounded-lg relative overflow-hidden">
+            <div className="aspect-video bg-gray-200 rounded-lg relative overflow-hidden" onClick={() => setActivePin(null)}>
                 <img src="https://i.imgur.com/3Z3tV8C.png" alt="Map" className="w-full h-full object-cover" />
                 <CrowdDensityLayer />
                 <div className="absolute" style={{ top: `${volunteerLocation.lat}%`, left: `${volunteerLocation.lng}%`, transform: 'translate(-50%, -50%)' }}>
@@ -136,6 +146,25 @@ const VolunteerMapView: React.FC<{ user: User; assignments: (LostFoundReport | S
                 {assignments.filter(item => item.locationCoords).map(item => <Pin key={`asgn-${item.id}`} item={item} type="assignment" />)}
                 {alerts.filter(r => r.locationCoords).map(r => <Pin key={`alrt-${r.id}`} item={r} type="alert" />)}
                 {sosAlerts.filter(s => s.locationCoords).map(s => <Pin key={`sos-${s.id}`} item={s} type="sos" />)}
+                {activePin && (
+                     <div 
+                        className="absolute p-3 bg-white rounded-lg shadow-xl border animate-fade-in-up dark:bg-gray-800 dark:border-gray-700"
+                        style={{ 
+                            top: `${activePin.locationCoords!.lat}%`, 
+                            left: `${activePin.locationCoords!.lng}%`, 
+                            transform: 'translate(-50%, -115%)',
+                            zIndex: 20,
+                            width: '250px'
+                        }}
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <button onClick={() => setActivePin(null)} className="absolute -top-2 -right-2 bg-white dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 w-6 h-6 flex items-center justify-center shadow">&times;</button>
+                        <h4 className="font-bold text-orange-600 dark:text-orange-400 truncate">{activePin.personName || activePin.itemName}</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{activePin.description}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{translations.filterBar.statusLabel}: {activePin.status}</p>
+                        <Button onClick={() => { onSelectItem(activePin); setActivePin(null); }} variant="secondary" className="w-full mt-3 text-sm py-1 h-auto">{translations.myReports.viewDetails}</Button>
+                    </div>
+                )}
                 <CrowdDensityLegend />
             </div>
         </Card>

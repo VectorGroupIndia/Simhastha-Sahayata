@@ -1,5 +1,3 @@
-
-
 /*********************************************************************************
  * Author: Sujit Babar
  * Company: Transfigure Technologies Pvt. Ltd.
@@ -251,6 +249,12 @@ export const MOCK_POINTS_OF_INTEREST: MapPointOfInterest[] = [
   { id: 'poi-4', name: 'Harsiddhi Police Outpost', type: 'Police Station', locationCoords: { lat: 45, lng: 60 } },
   { id: 'poi-5', name: 'Sector C Medical Tent', type: 'Medical', locationCoords: { lat: 75, lng: 65 } },
   { id: 'poi-6', name: 'Datta Akhara Police Booth', type: 'Police Station', locationCoords: { lat: 18, lng: 80 } },
+  { id: 'poi-7', name: 'Prasad Stall Zone B', type: 'Food Stall', locationCoords: { lat: 35, lng: 55 } },
+  { id: 'poi-8', name: 'Restroom Block A', type: 'Restroom', locationCoords: { lat: 15, lng: 40 } },
+  { id: 'poi-9', name: 'Jalebi Corner', type: 'Food Stall', locationCoords: { lat: 80, lng: 50 } },
+  { id: 'poi-10', name: 'Washroom Facility C', type: 'Restroom', locationCoords: { lat: 65, lng: 75 } },
+  { id: 'poi-11', name: 'Sector D Help Kiosk', type: 'Help Center', locationCoords: { lat: 60, lng: 15 } },
+  { id: 'poi-12', name: 'Mobile Medical Unit', type: 'Medical', locationCoords: { lat: 85, lng: 40 } },
 ];
 
 export let MOCK_SOS_ALERTS: SosAlert[] = [
@@ -272,9 +276,10 @@ export const MOCK_CROWD_ZONES = [
 ];
 
 export const MOCK_AI_INSIGHTS: AIInsight[] = [
-    { id: 'ai-1', timestamp: new Date().toISOString(), type: 'Crowd', severity: 'Warning', message: 'Unusual crowd density forming near Ram Ghat. Potential for stampede.' },
-    { id: 'ai-2', timestamp: new Date(Date.now() - 10 * 60000).toISOString(), type: 'Reports', severity: 'Info', message: 'Spike in "lost item" reports from Sector B market area.' },
-    { id: 'ai-3', timestamp: new Date(Date.now() - 30 * 60000).toISOString(), type: 'SOS', severity: 'Critical', message: 'Multiple SOS alerts detected within a 200m radius in Zone A. Immediate dispatch recommended.' },
+    { id: 'ai-1', timestamp: new Date().toISOString(), type: 'Crowd', severity: 'Warning', message: 'Unusual crowd density forming near Ram Ghat. Potential for stampede.', zone: 'Zone D' },
+    { id: 'ai-2', timestamp: new Date(Date.now() - 10 * 60000).toISOString(), type: 'Reports', severity: 'Info', message: 'Spike in "lost item" reports from Sector B market area.', zone: 'Zone B' },
+    { id: 'ai-3', timestamp: new Date(Date.now() - 30 * 60000).toISOString(), type: 'SOS', severity: 'Critical', message: 'Multiple SOS alerts detected within a 200m radius in Zone A. Immediate dispatch recommended.', zone: 'Zone A' },
+    { id: 'ai-4', timestamp: new Date(Date.now() - 60 * 60000).toISOString(), type: 'Logistics', severity: 'Info', message: 'Water tanker refill required at Sector C station within the next hour.', zone: 'Zone C' },
 ];
 
 export const MOCK_OPERATIONAL_ZONES = [
@@ -840,9 +845,13 @@ aiImageAnalysis: "Enable AI Image Analysis",
         layers: "Map Layers",
         layerFamily: "My Family",
         layerSos: "Family SOS Alerts",
-        layerHelp: "Help Centers",
+        layerHelpCenters: "Help Centers",
         layerMedical: "Medical Centers",
         layerReports: "My Open Reports",
+        layerFood: "Food Stalls",
+        layerRestroom: "Restrooms",
+        layerLostFound: "Lost/Found Centers",
+        layerPolice: "Police Stations",
         navigationModalTitle: "Navigating to {name}",
         statuses: {
             safe: "Safe",
@@ -927,7 +936,7 @@ aiImageAnalysis: "Enable AI Image Analysis",
         },
         reporting: {
             title: "AI-Powered Reporting",
-            description: "Lost something? Just describe it or upload a photo. Our AI will help fill out the report and start searching for matches immediately.",
+            description: "Report lost items or people in seconds using your voice, text, or by simply uploading a photo and letting our AI handle the details.",
         },
         guide: {
             title: "AI Pilgrim Guide",

@@ -1,4 +1,3 @@
-
 /*********************************************************************************
  * Author: Sujit Babar
  * Company: Transfigure Technologies Pvt. Ltd.
@@ -15,7 +14,7 @@ import { Card } from '../ui/Card';
 import { useLocalization } from '../../hooks/useLocalization';
 import { MOCK_LOST_FOUND_REPORTS, MOCK_SOS_ALERTS, MOCK_OPERATIONAL_ZONES, MOCK_BROADCASTS, MOCK_AI_INSIGHTS, MOCK_PREDICTIVE_HOTSPOTS } from '../../data/mockData';
 import { DEMO_USERS } from '../../constants';
-import { LostFoundReport, User, UserRole, SosAlert, BroadcastMessage, PredictedHotspot } from '../../types';
+import { LostFoundReport, User, UserRole, SosAlert, BroadcastMessage, PredictedHotspot, AIInsight } from '../../types';
 import ReportDetailsModal from './ReportDetailsModal';
 import { Button } from '../ui/Button';
 import { AdvancedBroadcastModal } from './AdvancedBroadcastModal';
@@ -40,6 +39,8 @@ const MegaphoneIcon: React.FC<{ className?: string }> = ({ className = '' }) => 
 const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" /></svg>;
 const ChartBarIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 110 2H3a1 1 0 01-1-1zm5-3a1 1 0 011-1h2a1 1 0 110 2H8a1 1 0 01-1-1zm5-3a1 1 0 011-1h2a1 1 0 110 2h-2a1 1 0 01-1-1zM4 16a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1z" /></svg>;
 const SparklesIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 17l-4 4 4-4 2.293-2.293a1 1 0 011.414 0L17 14m-5-5l2.293 2.293a1 1 0 010 1.414L10 17" /></svg>;
+const LightBulbIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>;
+// FIX: Moved ActionIcon to the top-level scope to be accessible by all components in this file.
 const ActionIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clipRule="evenodd" /></svg>;
 
 
@@ -73,9 +74,13 @@ const getPriorityClasses = (priority?: 'Low' | 'Medium' | 'High' | 'Critical') =
     }
 };
 
-const MapView: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; personnel: User[]; onSelectReport: (report: LostFoundReport) => void; translations: any; }> = ({ reports, sosAlerts, personnel, onSelectReport, translations }) => {
+const MapView: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; personnel: User[]; onSelectReport: (report: LostFoundReport) => void; translations: any; onOpenBroadcast: (params?: any) => void; }> = ({ reports, sosAlerts, personnel, onSelectReport, translations, onOpenBroadcast }) => {
     const t = translations.dashboard.authorities.map;
     const [showHeatmap, setShowHeatmap] = useState(true);
+    const [activeReport, setActiveReport] = useState<LostFoundReport | null>(null);
+    const [activeHotspot, setActiveHotspot] = useState<PredictedHotspot | null>(null);
+
+    const SparklesPinIcon: React.FC<{ className?: string }> = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 17l-4 4 4-4 2.293-2.293a1 1 0 011.414 0L17 14m-5-5l2.293 2.293a1 1 0 010 1.414L10 17" /></svg>;
 
     const Pin: React.FC<{ item: any; type: 'report' | 'sos' | 'personnel' | 'hotspot' }> = ({ item, type }) => {
         const coords = item.locationCoords;
@@ -85,7 +90,7 @@ const MapView: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; per
             report: { color: getPriorityClasses(item.priority).text, label: item.personName || item.itemName },
             sos: { color: 'text-red-500 animate-ping', label: t.sos },
             personnel: { color: 'text-green-500', label: item.name?.split(' ')[0] || t.personnel },
-            hotspot: { color: 'text-transparent', label: t.hotspot } // No visible pin, just the circle
+            hotspot: { color: item.riskLevel === 'Critical' ? 'text-red-500' : 'text-yellow-500', label: t.hotspot }
         };
         const style = pinStyles[type];
 
@@ -93,11 +98,24 @@ const MapView: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; per
             <div
                 className="absolute"
                 style={{ top: `${coords.lat}%`, left: `${coords.lng}%`, transform: 'translate(-50%, -100%)' }}
-                onClick={() => type === 'report' && onSelectReport(item)}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    if (type === 'report') {
+                        setActiveHotspot(null);
+                        setActiveReport(item);
+                    }
+                    if (type === 'hotspot') {
+                        setActiveReport(null);
+                        setActiveHotspot(item);
+                    }
+                }}
             >
-                <div className={`relative flex flex-col items-center ${type === 'report' ? 'cursor-pointer group' : ''}`}>
+                <div className={`relative flex flex-col items-center ${type === 'report' || type === 'hotspot' ? 'cursor-pointer group' : ''}`}>
                     {type === 'sos' && <div className={`absolute h-8 w-8 rounded-full bg-red-400 opacity-75 ${style.color}`}></div>}
-                    {type !== 'hotspot' && (
+                    
+                    {type === 'hotspot' ? (
+                        <SparklesPinIcon className={`h-8 w-8 drop-shadow-lg transition-transform group-hover:scale-110 ${style.color}`} />
+                    ) : (
                         <svg xmlns="http://www.w3.org/2000/svg" className={`h-8 w-8 drop-shadow-lg transition-transform ${type === 'report' ? 'group-hover:scale-110' : ''} ${style.color}`} viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 20l-4.95-5.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                         </svg>
@@ -139,7 +157,7 @@ const MapView: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; per
                     <ToggleSwitch id="heatmap-toggle" checked={showHeatmap} onChange={setShowHeatmap} />
                  </div>
             </div>
-            <div className="flex-grow aspect-video bg-gray-200 rounded-lg relative overflow-hidden">
+            <div className="flex-grow aspect-video bg-gray-200 rounded-lg relative overflow-hidden" onClick={() => { setActiveReport(null); setActiveHotspot(null); }}>
                 <img src="https://i.imgur.com/3Z3tV8C.png" alt="Map" className="w-full h-full object-cover" />
                 
                 {showHeatmap && <PredictiveHotspotsLayer />}
@@ -159,13 +177,67 @@ const MapView: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; per
                 {sosAlerts.map(a => <Pin key={`sos-${a.id}`} item={a} type="sos" />)}
                 {personnel.map((p) => <Pin key={`per-${p.id}`} item={p} type="personnel" />)}
                 {showHeatmap && MOCK_PREDICTIVE_HOTSPOTS.map(spot => <Pin key={`hotspot-${spot.id}`} item={spot} type="hotspot" />)}
+
+                {activeReport && (
+                    <div 
+                        className="absolute p-3 bg-white rounded-lg shadow-xl border animate-fade-in-up dark:bg-gray-800 dark:border-gray-700"
+                        style={{ 
+                            top: `${activeReport.locationCoords!.lat}%`, 
+                            left: `${activeReport.locationCoords!.lng}%`, 
+                            transform: 'translate(-50%, -115%)',
+                            zIndex: 20,
+                            width: '250px'
+                        }}
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <button onClick={() => setActiveReport(null)} className="absolute -top-2 -right-2 bg-white dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 w-6 h-6 flex items-center justify-center shadow">&times;</button>
+                        <h4 className="font-bold text-orange-600 dark:text-orange-400 truncate">{activeReport.personName || activeReport.itemName}</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{activeReport.description}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{translations.filterBar.statusLabel}: {activeReport.status}</p>
+                        <Button onClick={() => { onSelectReport(activeReport); setActiveReport(null); }} variant="secondary" className="w-full mt-3 text-sm py-1 h-auto">{translations.myReports.viewDetails}</Button>
+                    </div>
+                )}
+                 {activeHotspot && (
+                    <div 
+                        className="absolute p-3 bg-white rounded-lg shadow-xl border animate-fade-in-up dark:bg-gray-800 dark:border-gray-700"
+                        style={{ 
+                            top: `${activeHotspot.locationCoords.lat}%`, 
+                            left: `${activeHotspot.locationCoords.lng}%`, 
+                            transform: 'translate(-50%, -115%)',
+                            zIndex: 20,
+                            width: '280px'
+                        }}
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <button onClick={() => setActiveHotspot(null)} className="absolute -top-2 -right-2 bg-white dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 w-6 h-6 flex items-center justify-center shadow">&times;</button>
+                        <h4 className={`font-bold ${activeHotspot.riskLevel === 'Critical' ? 'text-red-600' : 'text-yellow-600'} dark:text-orange-400 truncate`}>{activeHotspot.locationName}</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{activeHotspot.message} ({activeHotspot.predictedTime})</p>
+                        <div className="bg-gray-50 dark:bg-gray-700/50 p-2 rounded-md">
+                            <p className="font-semibold text-xs mb-2 text-gray-800 dark:text-gray-200">{translations.dashboard.authorities.panel.suggestions}:</p>
+                            <div className="space-y-2">
+                                {activeHotspot.suggestions.map(s => (
+                                    <div key={s.id} className="flex justify-between items-center">
+                                        <p className="text-xs flex-grow text-gray-700 dark:text-gray-300">{s.text}</p>
+                                        <Button 
+                                            onClick={() => s.action === 'broadcast' && onOpenBroadcast(s.params)}
+                                            variant="secondary" 
+                                            className="text-xs py-0.5 px-2 ml-2 flex-shrink-0"
+                                        >
+                                            <ActionIcon/> {translations.dashboard.authorities.panel.takeAction}
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </Card>
     );
 };
 
 const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; personnel: User[]; user: User | null; onSelectReport: (report: LostFoundReport) => void; onSelectSos: (sos: SosAlert) => void; translations: any; onOpenBroadcast: (params?: any) => void; onOpenCreateTask: () => void; }> = ({ reports, sosAlerts, personnel, user, onSelectReport, onSelectSos, translations, onOpenBroadcast, onOpenCreateTask }) => {
-    const [activeTab, setActiveTab] = useState<'hotspots' | 'tasks' | 'my-assignments' | 'personnel' | 'broadcasts'>('hotspots');
+    const [activeTab, setActiveTab] = useState<'hotspots' | 'insights' | 'tasks' | 'my-assignments' | 'personnel' | 'broadcasts'>('hotspots');
     const t = translations.dashboard.authorities.panel;
     const profileT = translations.profile;
     
@@ -253,6 +325,15 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
         }
     }
 
+    const getInsightSeverityClasses = (severity: AIInsight['severity']) => {
+        switch (severity) {
+            case 'Critical': return { text: 'text-red-800', bg: 'bg-red-50', border: 'border-red-500' };
+            case 'Warning': return { text: 'text-yellow-800', bg: 'bg-yellow-50', border: 'border-yellow-500' };
+            case 'Info':
+            default: return { text: 'text-blue-800', bg: 'bg-blue-50', border: 'border-blue-500' };
+        }
+    };
+
     const getOperationalStatusClasses = (status: 'Available' | 'On Task' | 'On Break') => {
         switch (status) {
             case 'Available': return 'bg-green-100 text-green-800';
@@ -266,6 +347,7 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
              <div className="border-b border-gray-200">
                 <nav className="-mb-px flex space-x-4 overflow-x-auto">
                     <button onClick={() => setActiveTab('hotspots')} className={`flex items-center whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'hotspots' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}><SparklesIcon/><span className="ml-2">{t.hotspots}</span></button>
+                    <button onClick={() => setActiveTab('insights')} className={`flex items-center whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'insights' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}><LightBulbIcon/><span className="ml-2">{t.aiInsights}</span></button>
                     <button onClick={() => setActiveTab('tasks')} className={`flex items-center whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'tasks' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}><TasksIcon/> <span className="ml-2">{t.tasks}</span></button>
                     <button onClick={() => setActiveTab('my-assignments')} className={`flex items-center whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'my-assignments' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}><TasksIcon/> <span className="ml-2">{profileT.myAssignments} ({myAssignments.length})</span></button>
                     <button onClick={() => setActiveTab('personnel')} className={`flex items-center whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${activeTab === 'personnel' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}><PersonnelIcon/><span className="ml-2">{t.personnel}</span></button>
@@ -303,6 +385,22 @@ const SidePanel: React.FC<{ reports: LostFoundReport[]; sosAlerts: SosAlert[]; p
                         ))}
                     </div>
                  )}
+                 {activeTab === 'insights' && (
+                    <div className="animate-fade-in space-y-3">
+                        {MOCK_AI_INSIGHTS.map(insight => {
+                            const { bg, border, text } = getInsightSeverityClasses(insight.severity);
+                            return (
+                                <div key={insight.id} className={`p-3 border-l-4 rounded-r-md ${bg} ${border}`}>
+                                    <div className={`flex justify-between items-center text-xs mb-1 font-medium ${text}`}>
+                                        <p className="font-bold uppercase tracking-wider">{insight.type} {insight.zone && `| ${insight.zone}`}</p>
+                                        <p>{new Date(insight.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                    </div>
+                                    <p className={`text-sm ${text}`}>{insight.message}</p>
+                                </div>
+                            )
+                        })}
+                    </div>
+                )}
                 {activeTab === 'tasks' && (
                     <div className="animate-fade-in">
                         <Button onClick={onOpenCreateTask} className="w-full mb-4">Create Task</Button>
@@ -602,7 +700,14 @@ const AuthoritiesDashboard: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" style={{ height: 'calc(80vh - 120px)'}}>
-                    <MapView reports={MOCK_LOST_FOUND_REPORTS} sosAlerts={MOCK_SOS_ALERTS} personnel={activePersonnel} onSelectReport={setSelectedReport} translations={translations} />
+                    <MapView 
+                        reports={MOCK_LOST_FOUND_REPORTS} 
+                        sosAlerts={MOCK_SOS_ALERTS} 
+                        personnel={activePersonnel} 
+                        onSelectReport={setSelectedReport} 
+                        translations={translations}
+                        onOpenBroadcast={handleOpenBroadcast}
+                    />
                     <SidePanel reports={reports} sosAlerts={MOCK_SOS_ALERTS} personnel={activePersonnel} user={user} onSelectReport={setSelectedReport} onSelectSos={setSelectedSosAlert} translations={translations} onOpenBroadcast={handleOpenBroadcast} onOpenCreateTask={() => setCreateTaskModalOpen(true)} />
                 </div>
             </div>

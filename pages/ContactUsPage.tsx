@@ -11,13 +11,19 @@ const MedicalIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6
 const HelpIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
 const LostFoundIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6.364-6.364l-1.414-1.414a2 2 0 010-2.828l1.414-1.414a2 2 0 012.828 0l1.414 1.414a2 2 0 010 2.828l-1.414 1.414a2 2 0 01-2.828 0zm12.728 0l-1.414-1.414a2 2 0 00-2.828 0l-1.414 1.414a2 2 0 000 2.828l1.414 1.414a2 2 0 002.828 0l1.414-1.414a2 2 0 000-2.828z" /></svg>;
 const PoliceIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>;
+// FIX: Add icons for Food Stall and Restroom to be used in the iconMap below.
+const FoodIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-orange-500" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H3a1 1 0 01-1-1V3zm12 5a1 1 0 011 1v9a1 1 0 01-1 1H6a1 1 0 01-1-1V9a1 1 0 011-1h8z" /></svg>;
+const RestroomIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-purple-500" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3.5 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zM6.5 6a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zM8 9a2 2 0 100-4 2 2 0 000 4zm4.5 0a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm1.5 1.5a2 2 0 100-4 2 2 0 000 4zM5 10.5a1 1 0 011-1h4a1 1 0 110 2H6a1 1 0 01-1-1zm8.5-.5a1 1 0 00-1 1v4a1 1 0 102 0v-4a1 1 0 00-1-1z" clipRule="evenodd" /></svg>;
 
 const Pin: React.FC<{ point: MapPointOfInterest; isSelected: boolean; onSelect: () => void }> = ({ point, isSelected, onSelect }) => {
+    // FIX: Add missing 'Food Stall' and 'Restroom' types to satisfy the Record type.
     const pinColors: Record<MapPointOfInterest['type'], string> = {
         'Medical': 'green',
         'Help Center': 'blue',
         'Lost/Found Center': 'yellow',
         'Police Station': 'red',
+        'Food Stall': 'orange',
+        'Restroom': 'purple',
     };
     const color = pinColors[point.type] || 'gray';
 
@@ -76,13 +82,17 @@ const ContactUsPage: React.FC = () => {
         return acc;
     }, {} as Record<MapPointOfInterest['type'], MapPointOfInterest[]>);
 
-    const groupOrder: MapPointOfInterest['type'][] = ['Police Station', 'Medical', 'Help Center', 'Lost/Found Center'];
+    // FIX: Add 'Food Stall' and 'Restroom' to the groupOrder to ensure they are rendered in the list.
+    const groupOrder: MapPointOfInterest['type'][] = ['Police Station', 'Medical', 'Help Center', 'Lost/Found Center', 'Food Stall', 'Restroom'];
 
+    // FIX: Add missing 'Food Stall' and 'Restroom' types to satisfy the Record type.
     const iconMap: Record<MapPointOfInterest['type'], React.ReactNode> = {
         'Police Station': <PoliceIcon />,
         'Medical': <MedicalIcon />,
         'Help Center': <HelpIcon />,
         'Lost/Found Center': <LostFoundIcon />,
+        'Food Stall': <FoodIcon />,
+        'Restroom': <RestroomIcon />,
     };
 
     return (
@@ -141,7 +151,7 @@ const ContactUsPage: React.FC = () => {
                         <div className="flex-grow overflow-y-auto pr-2 space-y-4">
                             {groupOrder.map(groupName => (
                                 <div key={groupName}>
-                                    <h3 className="text-xl font-semibold mb-2 flex items-center">{iconMap[groupName]} <span className="ml-2">{groupName}s</span></h3>
+                                    <h3 className="text-xl font-semibold mb-2 flex items-center">{iconMap[groupName]} <span className="ml-2">{groupName}{groupName.endsWith('s') ? '' : 's'}</span></h3>
                                     <div className="space-y-2">
                                         {(groupedCenters[groupName] || []).map(center => (
                                             <div

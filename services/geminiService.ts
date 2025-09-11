@@ -1,4 +1,3 @@
-
 /*********************************************************************************
  * Author: Sujit Babar
  * Company: Transfigure Technologies Pvt. Ltd.
@@ -11,7 +10,7 @@
  * This code is provided as-is and is intended for read-only inspection. It cannot be edited.
  *********************************************************************************/
 import { ChatMessage, LostFoundReport, Navigatable, SosAlert } from '../types';
-import { MOCK_PREDICTIVE_HOTSPOTS } from '../data/mockData';
+import { MOCK_POINTS_OF_INTEREST, MOCK_PREDICTIVE_HOTSPOTS } from '../data/mockData';
 
 // This file simulates interactions with the Google Gemini API.
 // In a real application, this would contain the actual logic for making API calls
@@ -91,84 +90,113 @@ export const getNavigationRoute = async (query: string): Promise<{ text: string;
   };
 };
 
+// --- START: Enhanced AI Chat Logic ---
+
+// A predefined list of known, navigatable locations with aliases for better matching.
+const knownLocations: (Navigatable & { aliases: string[] })[] = [
+    // Dynamically create aliases from POI names
+    ...MOCK_POINTS_OF_INTEREST.map(poi => ({
+        ...poi,
+        aliases: [
+            poi.name.toLowerCase(), // Full name
+            // Keywords from name, excluding generic terms
+            ...poi.name.toLowerCase().split(' ').filter(w => w.length > 3 && !['sector', 'center', 'camp', 'tent', 'post', 'booth', 'station', 'kiosk', 'unit', 'stall', 'block', 'corner', 'facility', 'zone'].includes(w)),
+            // Type as alias (e.g., 'medical', 'police')
+            poi.type.toLowerCase().replace('/found center','').replace(' center','')
+        ].filter((value, index, self) => self.indexOf(value) === index) // Ensure unique aliases
+    })),
+    // Add other common, non-POI locations
+    {
+        name: "Main Food Court",
+        aliases: ["food court", "food", "eat", "restaurant", "hungry", "lunch", "dinner"],
+        locationCoords: { lat: 70, lng: 60 },
+    },
+    {
+        name: "Mahakal Temple",
+        aliases: ["main temple", "mahakal", "mahakaleshwar"],
+        locationCoords: { lat: 55, lng: 45 },
+    },
+    {
+        name: "Clean Toilet Facility",
+        aliases: ["toilet", "washroom", "restroom", "bathroom"],
+        locationCoords: { lat: 52, lng: 82 },
+    },
+    {
+        name: "Ram Ghat",
+        aliases: ["ram ghat", "bathing area", "holy bath", "shahi snan", "snan", "royal bath"],
+        locationCoords: { lat: 90, lng: 28 },
+    },
+];
+
+// Helper to find a location in a user's message using word boundaries for accuracy.
+const findLocationInMessage = (message: string): (Navigatable & { aliases: string[] }) | null => {
+    const lowerCaseMessage = message.toLowerCase();
+    // Prioritize longer aliases to avoid partial matches (e.g., matching 'ram' in 'program')
+    const sortedLocations = [...knownLocations].sort((a, b) => 
+        Math.max(...b.aliases.map(al => al.length)) - Math.max(...a.aliases.map(al => al.length))
+    );
+
+    for (const location of sortedLocations) {
+        for (const alias of location.aliases) {
+            // Use word boundaries (\b) to ensure we match whole words or phrases
+            const regex = new RegExp(`\\b${alias}\\b`);
+            if (regex.test(lowerCaseMessage)) {
+                return location;
+            }
+        }
+    }
+    return null;
+};
+
 /**
- * Simulates a Gemini API call to get a chat response.
+ * Simulates a Gemini API call to get a chat response, with improved navigation logic.
  * @param history - The existing chat history.
  * @param message - The new user message.
  * @returns A promise that resolves to the AI's string response.
  */
 export const getChatResponse = async (history: ChatMessage[], message: string): Promise<{ text: string; action?: { type: 'navigate'; destination: Navigatable; } }> => {
   console.log("Simulating Gemini API call for chat with message:", message);
-  await sleep(1200); // Simulate API latency
+  await sleep(1200);
 
   const lowerCaseMessage = message.toLowerCase();
-  const lastAiMessage = history.filter(m => m.sender === 'ai').pop()?.text.toLowerCase() || '';
+  const lastAiMessage = history.filter(m => m.sender === 'ai').pop();
 
-  // --- Multi-turn conversation for finding a toilet ---
-  if (lowerCaseMessage.includes('toilet') || lowerCaseMessage.includes('washroom') || lowerCaseMessage.includes('restroom')) {
-      return { text: "Certainly. I can help with that. Are you looking for the nearest one, or one with specific facilities like wheelchair access?" };
+  // 1. Check for confirmation of a previous navigation suggestion.
+  const affirmativeResponse = /^\s*(yes|ok|okay|sure|please|guide me|show me|start)\s*$/i.test(lowerCaseMessage);
+  if (lastAiMessage?.action?.type === 'navigate' && affirmativeResponse) {
+    return {
+        text: `Of course. Starting navigation to ${lastAiMessage.action.destination.name}.`,
+        action: lastAiMessage.action,
+    };
   }
   
-  if (lastAiMessage.includes('toilet') && (lowerCaseMessage.includes('nearest') || lowerCaseMessage.includes('any'))) {
-      const toiletDestination: Navigatable = {
-          name: "Clean Toilet Facility - Sector C",
-          locationCoords: { lat: 52, lng: 82 } // Example coordinates
-      };
+  // 2. Check for navigation intent + location in one message.
+  const navKeywords = ['go to', 'how to get to', 'navigate', 'directions', 'where is', 'find', 'take me to', 'show me the way to'];
+  const hasNavIntent = navKeywords.some(keyword => lowerCaseMessage.includes(keyword));
+  const foundLocation = findLocationInMessage(lowerCaseMessage);
+
+  if (hasNavIntent && foundLocation) {
+    return {
+        text: `I can guide you to ${foundLocation.name}. Would you like to start navigation?`,
+        action: {
+            type: 'navigate',
+            destination: foundLocation,
+        }
+    };
+  }
+
+  // 3. Handle simple location queries without explicit nav intent.
+  if (foundLocation) {
       return {
-          text: "The nearest clean toilet is in Sector C, near the medical camp. It is currently reporting low footfall. Would you like me to guide you there?",
+          text: `I found ${foundLocation.name} on the map. Would you like me to guide you there?`,
           action: {
               type: 'navigate',
-              destination: toiletDestination
+              destination: foundLocation,
           }
       };
   }
   
-  // --- Multi-turn conversation for finding food ---
-    if (lowerCaseMessage.includes('food') || lowerCaseMessage.includes('eat') || lowerCaseMessage.includes('hungry')) {
-        return { text: "There are many food stalls. Are you looking for something specific, like 'prasad' or a full meal?" };
-    }
-
-    if (lastAiMessage.includes('prasad or a full meal')) {
-        if (lowerCaseMessage.includes('full meal')) {
-            return { text: "The main food court is in Sector C. It can be crowded. There is also a smaller, less-crowded food area near Harsiddhi Temple. Which would you prefer?" };
-        }
-        if (lowerCaseMessage.includes('prasad')) {
-            const prasadDestination: Navigatable = {
-                name: "Prasad Counter - Mahakal Temple",
-                locationCoords: { lat: 55, lng: 45 }
-            };
-            return {
-                text: "The main Prasad counter is near the Mahakal Temple exit. I can guide you there.",
-                action: { type: 'navigate', destination: prasadDestination }
-            };
-        }
-    }
-
-    if (lastAiMessage.includes('which would you prefer')) {
-        if (lowerCaseMessage.includes('less crowded') || lowerCaseMessage.includes('harsiddhi')) {
-            const foodDestination: Navigatable = {
-                name: "Food Area - Harsiddhi Temple",
-                locationCoords: { lat: 50, lng: 55 }
-            };
-            return {
-                text: "Great choice. I can show you the route to the Harsiddhi Temple food area.",
-                action: { type: 'navigate', destination: foodDestination }
-            };
-        }
-        if (lowerCaseMessage.includes('main') || lowerCaseMessage.includes('sector c')) {
-            const foodDestination: Navigatable = {
-                name: "Main Food Court - Sector C",
-                locationCoords: { lat: 70, lng: 60 }
-            };
-            return {
-                text: "Okay, heading to the main food court. Here is the route.",
-                action: { type: 'navigate', destination: foodDestination }
-            };
-        }
-    }
-
-
-  // --- Single-turn canned responses ---
+  // 4. Fallback to general Q&A.
   if (lowerCaseMessage.includes('shahi snan') || lowerCaseMessage.includes('royal bath')) {
     return { text: "The next Shahi Snan is scheduled for tomorrow at 4:00 AM at Ram Ghat. It's a very auspicious event where Naga sadhus lead the procession. It's advised to reach the area at least 2 hours early." };
   }
@@ -179,9 +207,12 @@ export const getChatResponse = async (history: ChatMessage[], message: string): 
     return { text: "The central emergency helpline number for the Kumbh Mela is 1947. For medical emergencies, call 108. For police, dial 100." };
   }
 
-  // Default response
-  return { text: "That's a great question. The Ujjain Simhastha Kumbh is held once every 12 years when Jupiter enters the Leo sign (Simha rashi). It's a time for spiritual cleansing and renewal for millions of devotees." };
+  // Default response if no specific intent is matched.
+  return { text: "I can help with navigation, information about the Kumbh, and general questions. How can I assist you?" };
 };
+
+// --- END: Enhanced AI Chat Logic ---
+
 
 /**
  * Simulates a Gemini API call to perform a semantic search on reports.
